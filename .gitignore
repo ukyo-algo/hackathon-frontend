@@ -179,3 +179,27 @@ cython_debug/
 #  refer to https://docs.cursor.com/context/ignore-files
 .cursorignore
 .cursorindexingignore
+
+# dependencies
+# node_modules フォルダ全体を無視
+/node_modules
+
+# build output
+# ビルド成果物（Vercelがデプロイ時に自動作成）を無視
+/build
+
+# misc
+# macOSのシステムファイル
+.DS_Store
+
+# production
+# 環境変数ファイル（APIキーなど秘密情報を入れるため）
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
