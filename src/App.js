@@ -1,15 +1,29 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+
+const API_URL = process.env.REACT_APP_API_URL;
 
 function App() {
-  // ここでルーティングやグローバルなContextの設定を行います。
-  // まずは起動確認用のシンプルな表示にします。
+  const [message, setMessage] = useState("");
+
+  // / (ルート) からメッセージを取得
+  useEffect(() => {
+    fetch(API_URL) // APIのベースURL（FastAPIのルート）にリクエスト
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
+      .then(data => {
+        setMessage(data.message); // FastAPIからの {"message": "..."} をセット
+      })
+      .catch(err => console.error("Error fetching root:", err));
+  }, []); // [] を指定することで、コンポーネントのマウント時に1回だけ実行されます
+
   return (
-    <div style={{ padding: '2rem', textAlign: 'center' }}>
-      <h1>FREAM App Frontend</h1>
-      <p>Reactアプリが正常に起動しました。</p>
-      <p>
-        <code>src/App.js</code> を編集して、開発を始めてください。
-      </p>
+    <div>
+      <h1>React + FastAPI</h1>
+      <p>Message from FastAPI: <strong>{message}</strong></p>
     </div>
   );
 }
