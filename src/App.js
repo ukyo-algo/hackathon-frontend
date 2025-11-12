@@ -1,30 +1,30 @@
-import React, { useState, useEffect } from 'react';
+// src/App.js
 
-const API_URL = process.env.REACT_APP_API_URL;
+import React from 'react';
+// ↓↓↓ 3つのコンポーネントを react-router-dom からインポート
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+
+// ↓↓↓ これから作成する HomePage をインポート
+import HomePage from './pages/HomePage';
+// import ItemDetailPage from './pages/ItemDetailPage'; // (これは将来作成)
 
 function App() {
-  const [message, setMessage] = useState("");
-
-  // / (ルート) からメッセージを取得
-  useEffect(() => {
-    fetch(API_URL) // APIのベースURL（FastAPIのルート）にリクエスト
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        return response.json();
-      })
-      .then(data => {
-        setMessage(data.message); // FastAPIからの {"message": "..."} をセット
-      })
-      .catch(err => console.error("Error fetching root:", err));
-  }, []); // [] を指定することで、コンポーネントのマウント時に1回だけ実行されます
-
   return (
-    <div>
-      <h1>React + FastAPI</h1>
-      <p>Message from FastAPI: <strong>{message}</strong></p>
-    </div>
+    // <BrowserRouter> でアプリ全体を囲みます
+    <BrowserRouter>
+      <div>
+        <h1>Flea Market App</h1>
+        
+        {/* <Routes> の中で、URLのルールを定義します */}
+        <Routes>
+          {/* URLが "/" (トップページ) の時は HomePage コンポーネントを表示 */}
+          <Route path="/" element={<HomePage />} />
+          
+          {/* (将来追加) URLが "/items/商品ID" の時は ItemDetailPage を表示 */}
+          {/* <Route path="/items/:itemId" element={<ItemDetailPage />} /> */}
+        </Routes>
+      </div>
+    </BrowserRouter>
   );
 }
 
