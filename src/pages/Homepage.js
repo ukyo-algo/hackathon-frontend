@@ -1,11 +1,11 @@
-// src/pages/HomePage.js
+// src/pages/Homepage.js
 
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom'; // 詳細ページへのリンクを使うため
 
 const API_URL = process.env.REACT_APP_API_URL;
 
-const HomePage = () => {
+const Homepage = () => {
   // 1. データを保持するための「状態(state)」を定義
   const [items, setItems] = useState([]); // 商品データ (最初は空の配列)
   const [loading, setLoading] = useState(true);
@@ -70,4 +70,4 @@ const HomePage = () => {
   );
 };
 
-export default HomePage;
+export default Homepage;
