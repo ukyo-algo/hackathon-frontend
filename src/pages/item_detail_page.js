@@ -59,8 +59,7 @@ const ItemDetailPage = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          // 本来はここでFirebase ID Tokenをヘッダーに付与しますが、
-          // バックエンドがダミー認証(get_current_user_dummy)の場合は不要です。
+          "X-Firebase-UID": currentUser.uid // Firebase UIDをヘッダーに含める
         },
       });
 
