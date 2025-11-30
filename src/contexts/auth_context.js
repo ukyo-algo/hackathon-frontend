@@ -1,4 +1,3 @@
-// src/contexts/AuthContext.js
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { auth } from '../firebase_config';
 import { 
@@ -8,11 +7,11 @@ import {
   onAuthStateChanged 
 } from 'firebase/auth';
 
-const AuthContext = createContext();
+const AuthContext = createContext(); // currentUser,signup,login,logoutを提供するコンテキスト
 
 export function useAuth() {
   return useContext(AuthContext);
-}
+} // 他のコンポーネントでuseAuthを使ってAuthContextの値にアクセスできるようにするフック
 
 export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);
@@ -50,7 +49,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider value={value}> {/* AuthContextの値を設定する*/}
       {!loading && children}
     </AuthContext.Provider>
   );

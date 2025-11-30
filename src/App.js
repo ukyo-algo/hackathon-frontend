@@ -1,18 +1,13 @@
-// src/App.js (修正後のコード)
-
 import React from 'react';
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
-// ↓ contextsも小文字にリネームしたことを想定し、パスを修正
 import { AuthProvider, useAuth } from './contexts/auth_context';
 
 import Homepage from './pages/Homepage';
-// ↓↓↓ 修正: 実際のファイル名に合わせてパスをすべて小文字にする
 import RegisterPage from './pages/register_page';
 import LoginPage from './pages/login_page';
 
 const NavBar = () => {
-// ... (この部分は変更なし)
-  const { currentUser, logout } = useAuth();
+  const { currentUser, logout } = useAuth(); // currentUser・・・ユーザー情報を持ったオブジェクト、logout・・・ログアウト関数
   
   return (
     <nav style={{ padding: '10px', borderBottom: '1px solid #ccc', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -20,7 +15,7 @@ const NavBar = () => {
         <Link to="/" style={{ marginRight: '10px', textDecoration: 'none', fontWeight: 'bold' }}>FleaMarket</Link>
       </div>
       <div>
-        {currentUser ? (
+        {currentUser ? ( // ユーザー情報がある場合の処理
           <>
             <span style={{ marginRight: '10px' }}>{currentUser.email}</span>
             <button onClick={() => logout()}>ログアウト</button>
@@ -40,7 +35,7 @@ function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <NavBar />
+        <NavBar /> {/* 子要素がないものは閉じなくて良い */}
         <div style={{ padding: '20px' }}>
           <Routes>
             <Route path="/" element={<Homepage />} />

@@ -5,7 +5,7 @@ import { useAuth } from '../contexts/auth_context';
 import { useNavigate } from 'react-router-dom';
 
 const RegisterPage = () => {
-  const emailRef = useRef();
+  const emailRef = useRef(); // useref: inputの値を取得するためのフック
   const passwordRef = useRef();
   const usernameRef = useRef();
   const { signup } = useAuth();
@@ -35,7 +35,7 @@ const RegisterPage = () => {
           username: usernameRef.current.value,
           email: user.email,
           icon_url: null 
-        }),
+        }), // 送るデータの定義
       });
 
       if (!response.ok) {
@@ -54,7 +54,7 @@ const RegisterPage = () => {
   return (
     <div style={{ padding: '20px' }}>
       <h2>ユーザー登録</h2>
-      {error && <p style={{color: 'red'}}>{error}</p>}
+      {error && <p style={{color: 'red'}}>{error}</p>} {/* エラーメッセージの表示 */}
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxWidth: '300px' }}>
         <input type="text" ref={usernameRef} placeholder="ユーザー名" required />
         <input type="email" ref={emailRef} placeholder="メールアドレス" required />

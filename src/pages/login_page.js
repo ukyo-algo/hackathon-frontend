@@ -18,7 +18,7 @@ const LoginPage = () => {
     try {
       setError('');
       setLoading(true);
-      await login(emailRef.current.value, passwordRef.current.value);
+      await login(emailRef.current.value, passwordRef.current.value); // ログイン処理
       navigate('/');
     } catch (err) {
       console.error(err);
