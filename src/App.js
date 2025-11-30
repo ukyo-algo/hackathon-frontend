@@ -1,14 +1,17 @@
-// src/App.js
+// src/App.js (修正後のコード)
+
 import React from 'react';
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
+// ↓ contextsも小文字にリネームしたことを想定し、パスを修正
 import { AuthProvider, useAuth } from './contexts/auth_context';
 
 import Homepage from './pages/Homepage';
-import RegisterPage from './pages/RegisterPage';
-import LoginPage from './pages/Loginpage';
+// ↓↓↓ 修正: 実際のファイル名に合わせてパスをすべて小文字にする
+import RegisterPage from './pages/register_page';
+import LoginPage from './pages/login_page';
 
-// ナビゲーションバーコンポーネント
 const NavBar = () => {
+// ... (この部分は変更なし)
   const { currentUser, logout } = useAuth();
   
   return (
