@@ -7,6 +7,7 @@ import RegisterPage from './pages/register_page';
 import LoginPage from './pages/login_page';
 import ItemCreatePage from './pages/item_create_page';
 import ItemDetailPage from './pages/item_detail_page';
+import MyPage from './pages/my_page';
 
 const NavBar = () => {
   const { currentUser, logout } = useAuth();
@@ -21,6 +22,7 @@ const NavBar = () => {
           <>
             {/* ↓↓↓ 商品出品ページへのリンクを追加 ↓↓↓ */}
             <Link to="/items/create" style={{ marginRight: '10px' }}>出品</Link> 
+            <Link to="/mypage" style={{ marginRight: '10px' }}>マイページ</Link>
             
             <span style={{ marginRight: '10px' }}>{currentUser.email}</span>
             <button onClick={() => logout()}>ログアウト</button>
@@ -48,6 +50,7 @@ function App() {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/items/create" element={<ItemCreatePage />} />
             <Route path="/items/:itemId" element={<ItemDetailPage />} />
+            <Route path="/mypage" element={<MyPage />} />
           </Routes>
         </div>
       </AuthProvider>
