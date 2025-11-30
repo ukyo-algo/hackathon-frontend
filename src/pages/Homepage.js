@@ -18,7 +18,7 @@ const Homepage = () => {
         setLoading(true);
         setError(null);
         
-        // ★★★ 叩くURLを /api/v1/items に変更 ★★★
+        // getItems APIを呼び出す
         const response = await fetch(`${API_URL}/api/v1/items`); 
         
         if (!response.ok) {

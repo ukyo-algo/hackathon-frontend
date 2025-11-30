@@ -1,29 +1,51 @@
 // src/App.js
-
 import React from 'react';
-// ↓↓↓ 3つのコンポーネントを react-router-dom からインポート
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
+import { AuthProvider, useAuth } from './contexts/auth_context';
 
-// ↓↓↓ これから作成する Homepage をインポート
 import Homepage from './pages/Homepage';
-// import ItemDetailPage from './pages/ItemDetailPage'; // (これは将来作成)
+import RegisterPage from './pages/RegisterPage';
+import LoginPage from './pages/Loginpage';
+
+// ナビゲーションバーコンポーネント
+const NavBar = () => {
+  const { currentUser, logout } = useAuth();
+  
+  return (
+    <nav style={{ padding: '10px', borderBottom: '1px solid #ccc', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div>
+        <Link to="/" style={{ marginRight: '10px', textDecoration: 'none', fontWeight: 'bold' }}>FleaMarket</Link>
+      </div>
+      <div>
+        {currentUser ? (
+          <>
+            <span style={{ marginRight: '10px' }}>{currentUser.email}</span>
+            <button onClick={() => logout()}>ログアウト</button>
+          </>
+        ) : (
+          <>
+            <Link to="/login" style={{ marginRight: '10px' }}>ログイン</Link>
+            <Link to="/register">登録</Link>
+          </>
+        )}
+      </div>
+    </nav>
+  );
+};
 
 function App() {
   return (
-    // <BrowserRouter> でアプリ全体を囲みます
     <BrowserRouter>
-      <div>
-        <h1>Flea Market App</h1>
-        
-        {/* <Routes> の中で、URLのルールを定義します */}
-        <Routes>
-          {/* URLが "/" (トップページ) の時は Homepage コンポーネントを表示 */}
-          <Route path="/" element={<Homepage />} />
-          
-          {/* (将来追加) URLが "/items/商品ID" の時は ItemDetailPage を表示 */}
-          {/* <Route path="/items/:itemId" element={<ItemDetailPage />} /> */}
-        </Routes>
-      </div>
+      <AuthProvider>
+        <NavBar />
+        <div style={{ padding: '20px' }}>
+          <Routes>
+            <Route path="/" element={<Homepage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/login" element={<LoginPage />} />
+          </Routes>
+        </div>
+      </AuthProvider>
     </BrowserRouter>
   );
 }
