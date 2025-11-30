@@ -7,7 +7,7 @@ import RegisterPage from './pages/register_page';
 import LoginPage from './pages/login_page';
 
 const NavBar = () => {
-  const { currentUser, logout } = useAuth(); // currentUser・・・ユーザー情報を持ったオブジェクト、logout・・・ログアウト関数
+  const { currentUser, logout } = useAuth();
   
   return (
     <nav style={{ padding: '10px', borderBottom: '1px solid #ccc', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -15,8 +15,11 @@ const NavBar = () => {
         <Link to="/" style={{ marginRight: '10px', textDecoration: 'none', fontWeight: 'bold' }}>FleaMarket</Link>
       </div>
       <div>
-        {currentUser ? ( // ユーザー情報がある場合の処理
+        {currentUser ? (
           <>
+            {/* ↓↓↓ 商品出品ページへのリンクを追加 ↓↓↓ */}
+            <Link to="/items/create" style={{ marginRight: '10px' }}>出品</Link> 
+            
             <span style={{ marginRight: '10px' }}>{currentUser.email}</span>
             <button onClick={() => logout()}>ログアウト</button>
           </>
