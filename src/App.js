@@ -6,6 +6,7 @@ import Homepage from './pages/Homepage';
 import RegisterPage from './pages/register_page';
 import LoginPage from './pages/login_page';
 import ItemCreatePage from './pages/item_create_page';
+import ItemDetailPage from './pages/item_detail_page';
 
 const NavBar = () => {
   const { currentUser, logout } = useAuth();
@@ -46,6 +47,7 @@ function App() {
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/items/create" element={<ItemCreatePage />} />
+            <Route path="/items/:itemId" element={<ItemDetailPage />} />
           </Routes>
         </div>
       </AuthProvider>
