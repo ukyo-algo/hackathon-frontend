@@ -5,6 +5,7 @@ import { AuthProvider, useAuth } from './contexts/auth_context';
 import Homepage from './pages/Homepage';
 import RegisterPage from './pages/register_page';
 import LoginPage from './pages/login_page';
+import ItemCreatePage from './pages/item_create_page';
 
 const NavBar = () => {
   const { currentUser, logout } = useAuth();
@@ -44,6 +45,7 @@ function App() {
             <Route path="/" element={<Homepage />} />
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/items/create" element={<ItemCreatePage />} />
           </Routes>
         </div>
       </AuthProvider>
