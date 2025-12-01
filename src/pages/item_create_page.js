@@ -143,4 +143,19 @@ const ItemCreatePage = () => {
 
         <textarea ref={descriptionRef} placeholder="商品の説明 (任意)" rows="4" style={{ padding: '10px' }} />
         
-        <label style={{ display: 'flex', alignItems
+        <label style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <input type="checkbox" ref={instantBuyRef} defaultChecked />
+          クイックモード対応 (即購入OK)
+        </label>
+        
+        <button type="submit" disabled={loading} style={{ padding: '10px', backgroundColor: loading ? '#ccc' : '#007bff', color: 'white', border: 'none', cursor: loading ? 'not-allowed' : 'pointer' }}>
+          {loading ? '出品中...' : '出品する'}
+        </button>
+        
+        <p style={{ fontSize: '0.8em', color: '#666' }}>* は必須項目です。</p>
+      </form>
+    </div>
+  );
+};
+
+export default ItemCreatePage;
