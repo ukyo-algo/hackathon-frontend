@@ -2,10 +2,10 @@
 
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-// ↓↓↓ 追加: Firebase Storage関連のインポート
 import { storage } from '../firebase_config';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-// ↑↑↑
+// ↓↓↓ 1. 追加: useAuth をインポート
+import { useAuth } from '../contexts/auth_context';
 
 const CATEGORIES = ["ファッション", "家電・スマホ・カメラ", "靴", "PC周辺機器", "その他"];
 const CONDITIONS = ["新品、未使用", "未使用に近い", "目立った傷や汚れなし", "やや傷や汚れあり", "傷や汚れあり", "全体的に状態が悪い"];
@@ -13,12 +13,12 @@ const CONDITIONS = ["新品、未使用", "未使用に近い", "目立った傷
 const ItemCreatePage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  // ↓↓↓ 追加: 画像プレビュー用のState
   const [imagePreview, setImagePreview] = useState(null);
   const [imageFile, setImageFile] = useState(null);
-  // ↑↑↑
 
   const navigate = useNavigate();
+  // ↓↓↓ 2. 追加: currentUser を取得
+  const { currentUser } = useAuth();
   
   const nameRef = useRef();
   const descriptionRef = useRef();
@@ -28,22 +28,24 @@ const ItemCreatePage = () => {
   const brandRef = useRef();
   const conditionRef = useRef();
   
-  // imageUrlRef はもう使いません（アップロード後にURLを取得するため）
-
   const API_URL = process.env.REACT_APP_API_URL;
 
-  // ↓↓↓ 画像ファイルが選択されたときの処理
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
       setImageFile(file);
-      // プレビュー表示用にローカルURLを生成
       setImagePreview(URL.createObjectURL(file));
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // ログインチェック（念のため）
+    if (!currentUser) {
+      setError("ログインが必要です。");
+      return;
+    }
 
     if (!imageFile) {
       setError("商品画像は必須です。");
@@ -54,20 +56,14 @@ const ItemCreatePage = () => {
       setLoading(true);
       setError(null);
 
-      // 1. 画像をFirebase Storageにアップロード
-      // ファイル名: items/{現在時刻}_{ファイル名} で一意にする
       const storageRef = ref(storage, `items/${Date.now()}_${imageFile.name}`);
       await uploadBytes(storageRef, imageFile);
-      
-      // 2. アップロードした画像のURLを取得
       const downloadURL = await getDownloadURL(storageRef);
 
-      // 3. バックエンドAPIに送信するデータを作成
       const itemData = {
         name: nameRef.current.value,
         description: descriptionRef.current.value || null,
         price: parseInt(priceRef.current.value, 10),
-        // ↓↓↓ 取得したFirebaseのURLをセット
         image_url: downloadURL, 
         is_instant_buy_ok: instantBuyRef.current.checked,
         category: categoryRef.current.value,
@@ -81,11 +77,12 @@ const ItemCreatePage = () => {
           return;
       }
 
-      // 4. バックエンドAPIを叩く
       const response = await fetch(`${API_URL}/api/v1/items`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          // ↓↓↓ 3. 追加: ヘッダーにUIDをセットする
+          'X-Firebase-Uid': currentUser.uid,
         },
         body: JSON.stringify(itemData),
       });
@@ -112,7 +109,6 @@ const ItemCreatePage = () => {
       
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px', maxWidth: '400px', border: '1px solid #ddd', padding: '20px' }}>
         
-        {/* ↓↓↓ 画像アップロードエリア ↓↓↓ */}
         <div>
           <label style={{display: 'block', marginBottom: '5px', fontWeight: 'bold'}}>商品画像 *</label>
           <input 
@@ -128,7 +124,6 @@ const ItemCreatePage = () => {
             </div>
           )}
         </div>
-        {/* ↑↑↑ 画像アップロードエリア ↑↑↑ */}
 
         <input type="text" ref={nameRef} placeholder="商品名 *" required style={{ padding: '10px' }} />
         
@@ -148,19 +143,4 @@ const ItemCreatePage = () => {
 
         <textarea ref={descriptionRef} placeholder="商品の説明 (任意)" rows="4" style={{ padding: '10px' }} />
         
-        <label style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <input type="checkbox" ref={instantBuyRef} defaultChecked />
-          クイックモード対応 (即購入OK)
-        </label>
-        
-        <button type="submit" disabled={loading} style={{ padding: '10px', backgroundColor: loading ? '#ccc' : '#007bff', color: 'white', border: 'none', cursor: loading ? 'not-allowed' : 'pointer' }}>
-          {loading ? '出品中...' : '出品する'}
-        </button>
-        
-        <p style={{ fontSize: '0.8em', color: '#666' }}>* は必須項目です。</p>
-      </form>
-    </div>
-  );
-};
-
-export default ItemCreatePage;
+        <label style={{ display: 'flex', alignItems
