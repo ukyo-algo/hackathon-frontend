@@ -25,7 +25,7 @@ const RegisterPage = () => {
       const userCredential = await signup(emailRef.current.value, passwordRef.current.value);
       const user = userCredential.user;
 
-      const response = await fetch(`${API_URL}/api/v1/users`, {
+      const response = await fetch(`${API_URL}/api/v1/users/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
