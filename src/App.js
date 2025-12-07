@@ -8,6 +8,8 @@ import LoginPage from './pages/login_page';
 import ItemCreatePage from './pages/item_create_page';
 import ItemDetailPage from './pages/item_detail_page';
 import MyPage from './pages/my_page';
+console.log("現在のAPI_URL設定値:", process.env.REACT_APP_API_URL);
+
 
 const NavBar = () => {
   const { currentUser, logout } = useAuth();
