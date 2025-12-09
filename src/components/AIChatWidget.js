@@ -29,7 +29,7 @@ const AIChatWidget = () => {
   // ここでは仮にcurrentUserの中にキャラ情報があると仮定、なければデフォルト
   const persona = currentUser?.current_persona || {
     name: "ドット絵の青年",
-    avatar_url: "/avatars/male1.png", // publicフォルダに配置予定の画像
+    avatar_url: "/public/avatars/male1.png",
     theme_color: "#1976d2"
   };
 

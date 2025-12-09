@@ -1,4 +1,4 @@
-// src/pages/Homepage.js
+// src/pages/homepage.js
 
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom'; // 詳細ページへのリンクを使うため
