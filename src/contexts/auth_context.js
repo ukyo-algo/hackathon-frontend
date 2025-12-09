@@ -33,25 +33,25 @@ export function AuthProvider({ children }) {
     return signOut(auth);
   }
 
-  // ★ここを修正: バックエンドとの整合性をチェックするロジック
-  useEffect(() => {
+seEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       try {
         if (firebaseUser) {
           // 1. Firebase上はログインしている
-          // IDトークンを取得 (バックエンドへの認証ヘッダー用)
-          const token = await firebaseUser.getIdToken();
+          
+          // ※現状のバックエンドはトークン検証ではなく生UIDを求めているため、
+          // トークン取得(getIdToken)は必須ではありませんが、将来のために残してもOKです。
+          // const token = await firebaseUser.getIdToken(); 
 
           // 2. バックエンドに「本当にこのユーザーは有効か？」と問い合わせる
-          // ※ axiosの設定はご自身の環境に合わせてください (baseURLなど)
           const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/v1/users/me`, {
             headers: {
-              Authorization: `Bearer ${token}` 
+              // ★ここを修正！ バックエンドが求めている「X-Firebase-Uid」を送ります
+              "X-Firebase-Uid": firebaseUser.uid
             }
           });
 
           // 3. バックエンドもOKなら、Firebaseの情報とバックエンドの情報を合体させてセット
-          // (右上の表示用にバックエンドの最新emailなどを使う場合便利です)
           setCurrentUser({ ...firebaseUser, ...response.data });
           
         } else {
@@ -61,7 +61,6 @@ export function AuthProvider({ children }) {
       } catch (error) {
         console.error("認証同期エラー:", error);
         // ★重要: バックエンドで拒否されたら、Firebase側も強制ログアウトさせる
-        // これで「見た目はログイン、中身はログアウト」を防ぐ
         await signOut(auth);
         setCurrentUser(null);
       } finally {
