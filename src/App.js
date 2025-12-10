@@ -26,7 +26,7 @@ const NavBar = () => {
         <nav style={{ padding: '10px 20px', background: '#f8f8f8', borderBottom: '1px solid #eee', display: 'flex', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', gap: '15px' }}>
                 {/* ロゴやホームリンク */}
-                <Link to="/" style={{ fontWeight: 'bold' }}>FreaMarketApp</Link>
+                <Link to="/" style={{ fontWeight: 'bold' }}>FleaMarketApp</Link>
                 {/* ログインユーザーのみ出品可能 */}
                 {currentUser && <Link to="/items/create">出品</Link>}
             </div>
