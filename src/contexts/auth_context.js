@@ -33,7 +33,7 @@ export function AuthProvider({ children }) {
     return signOut(auth);
   }
 
-seEffect(() => {
+useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       try {
         if (firebaseUser) {
