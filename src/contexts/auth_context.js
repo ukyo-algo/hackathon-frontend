@@ -51,6 +51,8 @@ useEffect(() => {
             }
           });
 
+          console.log("【確認】バックエンドから届いたユーザー情報:", response.data);
+
           // 3. バックエンドもOKなら、Firebaseの情報とバックエンドの情報を合体させてセット
           setCurrentUser({ ...firebaseUser, ...response.data });
           
