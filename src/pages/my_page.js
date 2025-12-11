@@ -57,14 +57,29 @@ const MyPage = () => {
   return (
     <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
       {/* ユーザー情報ヘッダー */}
-      <div style={{ display: 'flex', alignItems: 'center', marginBottom: '30px' }}>
-        <div style={{ width: '60px', height: '60px', borderRadius: '50%', backgroundColor: '#eee', marginRight: '15px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'30px' }}>
-          👤
+      <div style={{ display: 'flex', alignItems: 'center', marginBottom: '30px', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <div style={{ width: '60px', height: '60px', borderRadius: '50%', backgroundColor: '#eee', marginRight: '15px', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'30px' }}>
+            👤
+          </div>
+          <div>
+            <h2 style={{ margin: 0 }}>{currentUser.email.split('@')[0]}</h2>
+            <p style={{ margin: 0, color: '#666' }}>{currentUser.email}</p>
+          </div>
         </div>
-        <div>
-          <h2 style={{ margin: 0 }}>{currentUser.email.split('@')[0]}</h2>
-          <p style={{ margin: 0, color: '#666' }}>{currentUser.email}</p>
-        </div>
+        <Link to="/persona-selection" style={{ textDecoration: 'none' }}>
+          <button style={{
+            padding: '8px 16px',
+            backgroundColor: '#1976d2',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            fontWeight: 'bold'
+          }}>
+            キャラ変更
+          </button>
+        </Link>
       </div>
 
       {/* タブ切り替えボタン */}
