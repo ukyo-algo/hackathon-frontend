@@ -62,9 +62,17 @@ useEffect(() => {
         }
       } catch (error) {
         console.error("認証同期エラー:", error);
-        // ★重要: バックエンドで拒否されたら、Firebase側も強制ログアウトさせる
-        await signOut(auth);
-        setCurrentUser(null);
+        
+        // ★ 404 (Not Found) の場合は、まだバックエンドに登録されていないだけの可能性が高いので
+        // 強制ログアウトさせずに、Firebaseユーザー情報だけで続行させる
+        if (error.response && error.response.status === 404) {
+             console.log("バックエンドにユーザーがいません (新規登録中など)");
+             setCurrentUser(firebaseUser); // Firebase情報だけでセット
+        } else {
+            // その他のエラー（認証トークン不正など）の場合はログアウト
+            await signOut(auth);
+            setCurrentUser(null);
+        }
       } finally {
         // 全てのチェックが終わってからローディングを解除
         setLoading(false);
