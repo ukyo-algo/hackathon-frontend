@@ -161,9 +161,9 @@ const PersonaSelectionPage = () => {
                   image={persona.avatar_url || '/avatars/default.png'} 
                   alt={persona.name}
                   sx={{ 
-                    objectFit: 'cover', 
-                    objectPosition: 'top', 
+                    objectFit: 'contain', 
                     bgcolor: '#f5f5f5',
+                    p: 2,
                     imageRendering: 'pixelated'
                   }}
                 />
