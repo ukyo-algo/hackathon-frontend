@@ -106,7 +106,7 @@ const PersonaSelectionPage = () => {
           const isSelected = persona.id === currentPersonaId;
           
           return (
-            <Grid item xs={6} sm={4} md={4} key={persona.id}>
+            <Grid item xs={6} sm={6} md={6} key={persona.id}>
               <Card
                 sx={{
                   cursor: isOwned ? 'pointer' : 'not-allowed',
