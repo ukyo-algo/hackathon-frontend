@@ -160,7 +160,12 @@ const PersonaSelectionPage = () => {
                   // アバターがない場合のフォールバック画像パスは適宜調整してください
                   image={persona.avatar_url || '/avatars/default.png'} 
                   alt={persona.name}
-                  sx={{ objectFit: 'contain', bgcolor: '#f5f5f5', p: 1 }}
+                  sx={{ 
+                    objectFit: 'cover', 
+                    objectPosition: 'top', 
+                    bgcolor: '#f5f5f5',
+                    imageRendering: 'pixelated'
+                  }}
                 />
                 <CardContent>
                   <Typography gutterBottom variant="h6" component="div" align="center" fontWeight="bold">
