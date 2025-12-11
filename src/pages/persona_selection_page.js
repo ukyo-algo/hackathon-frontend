@@ -154,19 +154,29 @@ const PersonaSelectionPage = () => {
                     <LockIcon sx={{ fontSize: 60, color: '#757575' }} />
                   </Box>
                 )}
-                <CardMedia
-                  component="img"
-                  height="200"
-                  // アバターがない場合のフォールバック画像パスは適宜調整してください
-                  image={persona.avatar_url || '/avatars/default.png'} 
-                  alt={persona.name}
-                  sx={{ 
-                    objectFit: 'contain', 
+                <Box
+                  sx={{
+                    height: 200,
+                    width: '100%',
                     bgcolor: '#f5f5f5',
-                    p: 2,
-                    imageRendering: 'pixelated'
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    p: 2
                   }}
-                />
+                >
+                  <Box
+                    component="img"
+                    src={persona.avatar_url || '/avatars/default.png'}
+                    alt={persona.name}
+                    sx={{
+                      maxWidth: '100%',
+                      maxHeight: '100%',
+                      objectFit: 'contain',
+                      imageRendering: 'pixelated'
+                    }}
+                  />
+                </Box>
                 <CardContent>
                   <Typography gutterBottom variant="h6" component="div" align="center" fontWeight="bold">
                     {persona.name}
