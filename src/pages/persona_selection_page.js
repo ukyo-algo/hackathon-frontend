@@ -15,10 +15,12 @@ import {
   Chip
 } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import LockIcon from '@mui/icons-material/Lock';
 
 const PersonaSelectionPage = () => {
   const navigate = useNavigate();
-  const [personas, setPersonas] = useState([]);
+  const [allPersonas, setAllPersonas] = useState([]);
+  const [ownedPersonas, setOwnedPersonas] = useState([]);
   const [currentPersonaId, setCurrentPersonaId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -32,9 +34,13 @@ const PersonaSelectionPage = () => {
         const userRes = await api.get('/users/me');
         setCurrentPersonaId(userRes.data.current_persona_id);
 
+        // 全ペルソナ一覧を取得
+        const allRes = await api.get('/users/personas');
+        setAllPersonas(allRes.data);
+
         // 所有しているペルソナ一覧を取得
-        const personasRes = await api.get('/users/me/personas');
-        setPersonas(personasRes.data);
+        const ownedRes = await api.get('/users/me/personas');
+        setOwnedPersonas(ownedRes.data);
       } catch (err) {
         console.error('Error fetching data:', err);
         setError('データの取得に失敗しました。');
@@ -95,22 +101,26 @@ const PersonaSelectionPage = () => {
       </Box>
 
       <Grid container spacing={3}>
-        {personas.map((persona) => {
+        {allPersonas.map((persona) => {
+          const isOwned = ownedPersonas.some(p => p.id === persona.id);
           const isSelected = persona.id === currentPersonaId;
+          
           return (
             <Grid item xs={12} sm={6} md={4} key={persona.id}>
               <Card
                 sx={{
-                  cursor: 'pointer',
+                  cursor: isOwned ? 'pointer' : 'not-allowed',
                   border: isSelected ? '3px solid #4caf50' : '1px solid #e0e0e0',
                   position: 'relative',
                   transition: 'transform 0.2s, box-shadow 0.2s',
+                  opacity: isOwned ? 1 : 0.6,
+                  filter: isOwned ? 'none' : 'grayscale(100%)',
                   '&:hover': {
-                    transform: 'scale(1.02)',
-                    boxShadow: 6,
+                    transform: isOwned ? 'scale(1.02)' : 'none',
+                    boxShadow: isOwned ? 6 : 1,
                   },
                 }}
-                onClick={() => handlePersonaSelect(persona.id)}
+                onClick={() => isOwned && handlePersonaSelect(persona.id)}
               >
                 {isSelected && (
                   <Chip
@@ -126,6 +136,24 @@ const PersonaSelectionPage = () => {
                     }}
                   />
                 )}
+                {!isOwned && (
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      bgcolor: 'rgba(0,0,0,0.1)',
+                      zIndex: 2,
+                    }}
+                  >
+                    <LockIcon sx={{ fontSize: 60, color: '#757575' }} />
+                  </Box>
+                )}
                 <CardMedia
                   component="img"
                   height="200"
@@ -138,6 +166,11 @@ const PersonaSelectionPage = () => {
                   <Typography gutterBottom variant="h6" component="div" align="center" fontWeight="bold">
                     {persona.name}
                   </Typography>
+                  {!isOwned && (
+                    <Typography variant="body2" color="text.secondary" align="center">
+                      未所持
+                    </Typography>
+                  )}
                 </CardContent>
               </Card>
             </Grid>
