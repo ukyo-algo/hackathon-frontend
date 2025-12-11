@@ -426,7 +426,7 @@ index.html
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>FREAM App</title>
+    <title>FlEAM App</title>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>

@@ -3,39 +3,36 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   Box, Fab, Paper, TextField, IconButton, Typography, 
-  Avatar, List, ListItem, CircularProgress, Fade 
+  Avatar, Fade 
 } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
 import CloseIcon from '@mui/icons-material/Close';
-import SmartToyIcon from '@mui/icons-material/SmartToy'; // デフォルトアイコン
-import { useAuth } from '../contexts/auth_context'; // AuthContextのパスに合わせて調整
-import apiClient from '../api/axios'; // axiosの設定ファイル
+import SmartToyIcon from '@mui/icons-material/SmartToy';
+import { useAuth } from '../contexts/auth_context';
+import apiClient from '../api/axios';
 
 const AIChatWidget = () => {
-  const { currentUser } = useAuth(); // 現在のユーザー情報（所持ポイントやキャラIDなど）
+  const { currentUser } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   
-  // 吹き出し用（最初は挨拶を表示）
   const [showBubble, setShowBubble] = useState(true);
   const [bubbleText, setBubbleText] = useState("何かお探しですか？");
 
-  // スクロール用
   const messagesEndRef = useRef(null);
 
-  // キャラクター情報の取得 (Contextに含まれていなければAPIで取得してもOK)
-  // ここでは仮にcurrentUserの中にキャラ情報があると仮定、なければデフォルト
+  // ★ 修正1: 画像パスを修正 (publicフォルダ内のファイルはルート相対パスで指定)
   const persona = currentUser?.current_persona || {
     name: "ドット絵の青年",
-    avatar_url: "/public/avatars/model1.png",
+    avatar_url: "/avatars/model1.png",
     theme_color: "#1976d2"
   };
 
   const toggleChat = () => {
     setIsOpen(!isOpen);
-    setShowBubble(false); // チャットを開いたら吹き出しは消す
+    setShowBubble(false);
   };
 
   const scrollToBottom = () => {
@@ -46,7 +43,6 @@ const AIChatWidget = () => {
     scrollToBottom();
   }, [messages, isOpen]);
 
-  // メッセージ送信処理
   const handleSend = async () => {
     if (!input.trim()) return;
 
@@ -56,9 +52,7 @@ const AIChatWidget = () => {
     setIsLoading(true);
 
     try {
-      // バックエンドのチャットAPIを叩く
       const res = await apiClient.post('/chat', { message: userMessage.content });
-      
       const aiMessage = { 
         role: 'ai', 
         content: res.data.reply,
@@ -83,7 +77,7 @@ const AIChatWidget = () => {
   return (
     <Box sx={{ position: 'fixed', bottom: 20, right: 20, zIndex: 1000, display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
       
-      {/* 1. 吹き出し (Greeting Bubble) */}
+      {/* 吹き出し (変更なし) */}
       <Fade in={showBubble && !isOpen}>
         <Paper 
           elevation={3} 
@@ -97,7 +91,6 @@ const AIChatWidget = () => {
           <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
             {bubbleText}
           </Typography>
-          {/* 吹き出しの三角形 */}
           <Box sx={{
             position: 'absolute', bottom: -10, right: 24,
             width: 0, height: 0,
@@ -108,94 +101,121 @@ const AIChatWidget = () => {
         </Paper>
       </Fade>
 
-      {/* 2. チャットウィンドウ (展開時) */}
+      {/* ★ 修正2: Undertale風チャットウィンドウ */}
       <Fade in={isOpen} unmountOnExit>
         <Paper 
           elevation={6}
           sx={{ 
-            width: 320, height: 450, mb: 2, 
+            width: 320, height: 500, mb: 2, 
             display: 'flex', flexDirection: 'column', 
-            borderRadius: 3, overflow: 'hidden',
-            border: `2px solid ${persona.theme_color || '#1976d2'}`
+            borderRadius: 2, overflow: 'hidden',
+            border: '4px solid white', // 白枠
+            bgcolor: 'rgba(0, 0, 0, 0.8)', // 背景を半透明の黒に
+            color: 'white',
+            fontFamily: '"Press Start 2P", cursive, sans-serif' // ドット絵風フォントがあれば適用
           }}
         >
-          {/* ヘッダー */}
-          <Box sx={{ p: 1.5, bgcolor: persona.theme_color || '#1976d2', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Avatar src={persona.avatar_url} sx={{ width: 32, height: 32, bgcolor: 'white' }}>
-                <SmartToyIcon color="primary" /> 
-              </Avatar>
-              <Typography variant="subtitle2">{persona.name}</Typography>
-            </Box>
-            <IconButton size="small" onClick={toggleChat} sx={{ color: 'white' }}>
+          {/* 上部: キャラクター表示エリア (背景透ける) */}
+          <Box sx={{ 
+            flex: 1, 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            position: 'relative',
+            minHeight: '250px'
+          }}>
+            {/* 閉じるボタン */}
+            <IconButton 
+              size="small" 
+              onClick={toggleChat} 
+              sx={{ position: 'absolute', top: 5, right: 5, color: 'white' }}
+            >
               <CloseIcon />
             </IconButton>
+
+            {/* キャラクター画像 (大きく表示) */}
+            <img 
+              src={persona.avatar_url} 
+              alt={persona.name} 
+              style={{ 
+                width: '180px', // サイズ調整
+                height: 'auto', 
+                imageRendering: 'pixelated' // ドット絵をくっきり表示
+              }} 
+            />
           </Box>
 
-          {/* メッセージリスト */}
-          <Box sx={{ flex: 1, p: 2, overflowY: 'auto', bgcolor: '#f5f5f5' }}>
+          {/* 下部: メッセージログエリア (RPGのメッセージウィンドウ風) */}
+          <Box sx={{ 
+            height: '200px', 
+            borderTop: '4px solid white', 
+            p: 2, 
+            overflowY: 'auto',
+            bgcolor: 'black', // ここは不透明の黒でもOK
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 1
+          }}>
             {messages.length === 0 && (
-              <Typography variant="caption" sx={{ color: 'gray', textAlign: 'center', display: 'block', mt: 4 }}>
-                {persona.name}とお話ししてみましょう！
+              <Typography variant="body2" sx={{ color: '#aaa' }}>
+                * {persona.name} が こちらをみている。
               </Typography>
             )}
             
-            <List>
-              {messages.map((msg, index) => (
-                <ListItem key={index} sx={{ display: 'flex', justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start', px: 0 }}>
-                  <Paper sx={{ 
-                    p: 1.5, 
-                    maxWidth: '80%', 
-                    borderRadius: 2,
-                    bgcolor: msg.role === 'user' ? (persona.theme_color || '#1976d2') : 'white',
-                    color: msg.role === 'user' ? 'white' : 'text.primary'
-                  }}>
-                    <Typography variant="body2">{msg.content}</Typography>
-                  </Paper>
-                </ListItem>
-              ))}
-              {isLoading && (
-                <ListItem sx={{ justifyContent: 'flex-start', px: 0 }}>
-                   <CircularProgress size={20} />
-                </ListItem>
-              )}
-              <div ref={messagesEndRef} />
-            </List>
+            {messages.map((msg, index) => (
+              <Box key={index} sx={{ mb: 1 }}>
+                <Typography variant="caption" sx={{ color: msg.role === 'user' ? '#FFFF00' : '#00FFFF', display: 'block', mb: 0.5 }}>
+                  {msg.role === 'user' ? 'YOU' : persona.name}
+                </Typography>
+                <Typography variant="body1" sx={{ lineHeight: 1.5 }}>
+                  {msg.role === 'user' ? `> ${msg.content}` : `* ${msg.content}`}
+                </Typography>
+              </Box>
+            ))}
+            
+            {isLoading && (
+              <Typography variant="body2" sx={{ color: '#aaa' }}>
+                * ...
+              </Typography>
+            )}
+            <div ref={messagesEndRef} />
           </Box>
 
-          {/* 入力エリア */}
-          <Box sx={{ p: 1, bgcolor: 'white', borderTop: '1px solid #ddd', display: 'flex' }}>
+          {/* 入力エリア (シンプルに) */}
+          <Box sx={{ p: 1, bgcolor: 'black', borderTop: '2px solid #333', display: 'flex' }}>
             <TextField 
-              fullWidth size="small" placeholder="メッセージを入力..." variant="outlined"
+              fullWidth size="small" placeholder="..." variant="standard"
               value={input} onChange={(e) => setInput(e.target.value)}
               onKeyPress={handleKeyPress}
-              sx={{ '& .MuiOutlinedInput-root': { borderRadius: 20 } }}
+              InputProps={{ 
+                disableUnderline: true,
+                style: { color: 'white', paddingLeft: '10px' } 
+              }}
             />
             <IconButton color="primary" onClick={handleSend} disabled={!input.trim() || isLoading}>
-              <SendIcon />
+              <SendIcon sx={{ color: 'white' }} />
             </IconButton>
           </Box>
         </Paper>
       </Fade>
 
-      {/* 3. FAB (アバターボタン) */}
+      {/* FAB (アバターボタン) - 画像パス修正済み */}
       <Fab 
         color="primary" aria-label="chat" 
         onClick={toggleChat}
         sx={{ 
           width: 64, height: 64, 
-          bgcolor: persona.theme_color || '#1976d2',
+          bgcolor: 'black', // アイコン背景も黒に
           border: '3px solid white',
           boxShadow: 4
         }}
       >
-        {isOpen ? <CloseIcon /> : (
+        {isOpen ? <CloseIcon sx={{ color: 'white' }} /> : (
           <Avatar 
             src={persona.avatar_url} 
             sx={{ width: 56, height: 56 }} 
             alt={persona.name}
           >
-             {/* 画像がない場合のフォールバック */}
              <SmartToyIcon /> 
           </Avatar>
         )}
