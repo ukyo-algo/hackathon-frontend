@@ -33,6 +33,24 @@ export function AuthProvider({ children }) {
     return signOut(auth);
   }
 
+  // ユーザー情報を最新化する関数
+  const refreshUser = async () => {
+    if (!auth.currentUser) return null;
+    try {
+      const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/v1/users/me`, {
+        headers: {
+          "X-Firebase-Uid": auth.currentUser.uid
+        }
+      });
+      const updatedUser = { ...auth.currentUser, ...response.data };
+      setCurrentUser(updatedUser);
+      return updatedUser;
+    } catch (error) {
+      console.error("ユーザー情報更新エラー:", error);
+      return auth.currentUser;
+    }
+  };
+
 useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       try {
@@ -95,21 +113,4 @@ useEffect(() => {
       {!loading && children}
     </AuthContext.Provider>
   );
-}
-
-async function  refreshUser() {
-  if (!auth.currentUser) return;
-  try {
-    const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/v1/users/me`, {
-      headers: {
-        "X-Firebase-Uid": auth.currentUser.uid
-      }
-    });
-    const updatedUser = { ...auth.currentUser, ...response.data };
-    setCurrentUser(updatedUser);
-    return updatedUser;
-  } catch (error) {
-    console.error("ユーザー情報更新エラー:", error);
-    return auth.currentUser; // エラー時は既存の情報を返す
-  }
 }
