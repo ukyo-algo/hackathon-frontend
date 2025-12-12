@@ -106,6 +106,7 @@ async function  refreshUser() {
       }
     });
     const updatedUser = { ...auth.currentUser, ...response.data };
+    setCurrentUser(updatedUser);
     return updatedUser;
   } catch (error) {
     console.error("ユーザー情報更新エラー:", error);
