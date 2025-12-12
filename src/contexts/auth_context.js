@@ -86,7 +86,8 @@ useEffect(() => {
     currentUser,
     signup,
     login,
-    logout
+    logout,
+    refreshUser, // ユーザー情報を最新化する関数を提供
   };
 
   return (
@@ -94,4 +95,20 @@ useEffect(() => {
       {!loading && children}
     </AuthContext.Provider>
   );
+}
+
+async function  refreshUser() {
+  if (!auth.currentUser) return;
+  try {
+    const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/v1/users/me`, {
+      headers: {
+        "X-Firebase-Uid": auth.currentUser.uid
+      }
+    });
+    const updatedUser = { ...auth.currentUser, ...response.data };
+    return updatedUser;
+  } catch (error) {
+    console.error("ユーザー情報更新エラー:", error);
+    return auth.currentUser; // エラー時は既存の情報を返す
+  }
 }

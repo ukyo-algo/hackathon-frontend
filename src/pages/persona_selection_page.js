@@ -16,6 +16,7 @@ import {
 } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import LockIcon from '@mui/icons-material/Lock';
+import { useAuth } from '../contexts/auth_context';
 
 const PersonaSelectionPage = () => {
   const navigate = useNavigate();
@@ -25,6 +26,7 @@ const PersonaSelectionPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [updating, setUpdating] = useState(false);
+  const { refreshUser } = useAuth();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -59,7 +61,7 @@ const PersonaSelectionPage = () => {
       setUpdating(true);
       // ペルソナを変更するAPI呼び出し
       await api.put(`/users/me/persona?persona_id=${personaId}`);
-      
+      await refreshUser();
       // 状態を更新
       setCurrentPersonaId(personaId);
     } catch (err) {
