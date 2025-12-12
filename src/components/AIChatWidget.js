@@ -24,11 +24,13 @@ const AIChatWidget = () => {
 
   const messagesEndRef = useRef(null);
 
-  const persona = currentUser?.current_persona || {
+  const defaultPersona = {
     name: "ドット絵の青年",
     avatar_url: "/avatars/model1.png",
     theme_color: "#1976d2"
   };
+
+  const [persona, setPersona] = useState(defaultPersona);
 
   const toggleChat = () => {
     setIsOpen(!isOpen);
@@ -38,6 +40,17 @@ const AIChatWidget = () => {
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
+
+  // ペルソナが変更されたらUIを即反映し、チャット履歴もリセット
+  useEffect(() => {
+    if (currentUser?.current_persona) {
+      setPersona(currentUser.current_persona);
+    } else {
+      setPersona(defaultPersona);
+    }
+    setMessages([]);
+    setBubbleText("何かお探しですか？");
+  }, [currentUser?.current_persona?.id]);
 
   useEffect(() => {
     scrollToBottom();
