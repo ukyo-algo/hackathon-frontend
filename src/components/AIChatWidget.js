@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   Box, Paper, TextField, IconButton, Typography, 
-  Avatar, Divider, Chip
+  Avatar
 } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
 import SmartToyIcon from '@mui/icons-material/SmartToy';
@@ -39,7 +39,7 @@ const AIChatWidget = () => {
     setMessages([
       { 
         role: 'ai', 
-        content: `こんにちは！${currentUser?.current_persona?.name || 'アシスタント'}です。商品選びのお手伝いをしますね！` 
+        content: `こんにちは！${currentUser?.current_persona?.name || 'アシスタント'}です。何かお手伝いできることはありますか？` 
       }
     ]);
   }, [currentUser?.current_persona?.id]);
@@ -84,104 +84,160 @@ const AIChatWidget = () => {
       display: 'flex',
       flexDirection: 'column',
       height: '100%',
-      backgroundColor: '#fafafa'
+      backgroundColor: '#1a1a1a',
+      color: 'white'
     }}>
       {/* ヘッダー */}
       <Box sx={{ 
-        p: 1.5, 
-        borderBottom: '1px solid #e0e0e0',
+        p: 2, 
+        borderBottom: '2px solid #333',
         display: 'flex',
         alignItems: 'center',
-        gap: 1,
-        backgroundColor: 'white'
+        gap: 1.5,
+        backgroundColor: '#0d0d0d'
       }}>
         <Avatar 
           src={persona.avatar_url} 
-          sx={{ width: 36, height: 36 }} 
+          sx={{ width: 40, height: 40 }} 
           alt={persona.name}
         >
           <SmartToyIcon />
         </Avatar>
         <div>
-          <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
+          <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: 'white' }}>
             {persona.name}
           </Typography>
-          <Typography variant="caption" sx={{ color: '#666' }}>
+          <Typography variant="caption" sx={{ color: '#999' }}>
             オンライン
           </Typography>
         </div>
       </Box>
 
-      {/* メッセージエリア */}
+      {/* キャラクター大表示エリア + メッセージ */}
       <Box sx={{ 
         flex: 1,
-        overflowY: 'auto',
-        p: 2,
         display: 'flex',
-        flexDirection: 'column',
-        gap: 1.5
+        overflow: 'hidden'
       }}>
-        {messages.map((msg, index) => (
-          <Box 
-            key={index} 
-            sx={{ 
-              display: 'flex',
-              justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start'
-            }}
-          >
-            <Paper
-              sx={{
-                maxWidth: '85%',
-                p: 1.5,
-                backgroundColor: msg.role === 'user' ? '#1976d2' : '#fff',
-                color: msg.role === 'user' ? 'white' : '#333',
-                borderRadius: 2,
-                wordBreak: 'break-word',
-                boxShadow: msg.role === 'user' ? 1 : 0,
-                border: msg.role === 'ai' ? '1px solid #e0e0e0' : 'none'
+        {/* 左側：キャラクター画像（大） */}
+        <Box sx={{ 
+          width: '45%',
+          borderRight: '2px solid #333',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          p: 2,
+          backgroundColor: '#0d0d0d'
+        }}>
+          <img 
+            src={persona.avatar_url} 
+            alt={persona.name} 
+            style={{ 
+              width: '100%', 
+              height: 'auto', 
+              maxWidth: '280px',
+              imageRendering: 'auto'
+            }} 
+          />
+        </Box>
+
+        {/* 右側：メッセージエリア */}
+        <Box sx={{ 
+          flex: 1,
+          overflowY: 'auto',
+          p: 2,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 1.5,
+          backgroundColor: '#1a1a1a'
+        }}>
+          {messages.map((msg, index) => (
+            <Box 
+              key={index} 
+              sx={{ 
+                display: 'flex',
+                justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start'
               }}
             >
-              <Typography variant="body2" sx={{ lineHeight: 1.6 }}>
-                {msg.content}
-              </Typography>
-            </Paper>
-          </Box>
-        ))}
-        {isLoading && (
-          <Box sx={{ display: 'flex', justifyContent: 'flex-start' }}>
-            <Paper sx={{ p: 1.5, backgroundColor: '#fff', border: '1px solid #e0e0e0', borderRadius: 2 }}>
-              <Typography variant="body2" sx={{ color: '#999' }}>
-                入力中...
-              </Typography>
-            </Paper>
-          </Box>
-        )}
-        <div ref={messagesEndRef} />
+              <Paper
+                sx={{
+                  maxWidth: '85%',
+                  p: 1.5,
+                  backgroundColor: msg.role === 'user' ? '#00ff00' : '#333',
+                  color: msg.role === 'user' ? '#000' : '#00ff00',
+                  borderRadius: 1,
+                  wordBreak: 'break-word',
+                  boxShadow: 'none',
+                  border: '1px solid ' + (msg.role === 'user' ? '#00ff00' : '#444'),
+                  fontFamily: '"Courier New", monospace',
+                  fontSize: '0.9rem'
+                }}
+              >
+                <Typography variant="body2" sx={{ lineHeight: 1.6, color: 'inherit', fontFamily: 'inherit' }}>
+                  {msg.role === 'user' ? `> ${msg.content}` : `* ${msg.content}`}
+                </Typography>
+              </Paper>
+            </Box>
+          ))}
+          {isLoading && (
+            <Box sx={{ display: 'flex', justifyContent: 'flex-start' }}>
+              <Paper sx={{ 
+                p: 1.5, 
+                backgroundColor: '#333', 
+                border: '1px solid #444',
+                borderRadius: 1,
+                fontFamily: '"Courier New", monospace',
+                color: '#00ff00'
+              }}>
+                <Typography variant="body2" sx={{ color: 'inherit', fontFamily: 'inherit' }}>
+                  * ...
+                </Typography>
+              </Paper>
+            </Box>
+          )}
+          <div ref={messagesEndRef} />
+        </Box>
       </Box>
 
       {/* 入力エリア */}
       <Box sx={{ 
         p: 1.5, 
-        borderTop: '1px solid #e0e0e0',
-        backgroundColor: 'white',
+        borderTop: '2px solid #333',
+        backgroundColor: '#0d0d0d',
         display: 'flex',
         gap: 1,
         alignItems: 'flex-end'
       }}>
+        <Typography sx={{ color: '#00ff00', fontFamily: '"Courier New", monospace' }}>
+          {'>'}
+        </Typography>
         <TextField 
           fullWidth 
           multiline
-          maxRows={3}
+          maxRows={2}
           minRows={1}
           placeholder="メッセージを入力..."
           value={input} 
           onChange={(e) => setInput(e.target.value)}
           onKeyPress={handleKeyPress}
-          variant="outlined"
-          size="small"
-          sx={{ 
+          variant="standard"
+          InputProps={{
+            disableUnderline: true,
+            style: { 
+              color: '#00ff00',
+              fontFamily: '"Courier New", monospace',
+              fontSize: '0.9rem'
+            }
+          }}
+          sx={{
+            '& .MuiInput-root::before': {
+              borderBottom: 'none !important'
+            },
+            '& .MuiInput-root::after': {
+              borderBottom: 'none !important'
+            },
             '& .MuiOutlinedInput-root': {
-              borderRadius: 1
+              color: '#00ff00'
             }
           }}
         />
@@ -190,6 +246,7 @@ const AIChatWidget = () => {
           onClick={handleSend} 
           disabled={!input.trim() || isLoading}
           size="small"
+          sx={{ color: isLoading || !input.trim() ? '#666' : '#00ff00' }}
         >
           <SendIcon />
         </IconButton>
