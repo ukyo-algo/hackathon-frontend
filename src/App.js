@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
+import { Box, Container } from '@mui/material';
 import { AuthProvider, useAuth } from './contexts/auth_context';
 
 // ★ ファイル名のエラー回避のため、パスを小文字に統一します（これが正しいファイル名と仮定）
@@ -59,26 +60,41 @@ function App() {
     return (
         <BrowserRouter>
             <AuthProvider>
-                {/* 1. ナビゲーションバー */}
-                <NavBar /> 
-                
-                {/* 2. メインコンテンツ領域 */}
-                <div style={{ padding: '20px' }}>
-                    <Routes>
-                        <Route path="/" element={<Homepage />} />
-                        <Route path="/register" element={<RegisterPage />} />
-                        <Route path="/login" element={<LoginPage />} />
-                        <Route path="/items/create" element={<ItemCreatePage />} />
-                        <Route path="/items/:itemId" element={<ItemDetailPage />} />
-                        <Route path="/mypage" element={<MyPage />} />
-                        <Route path="/persona-selection" element={<PersonaSelectionPage />} />
-                        <Route path="/gacha" element={<GachaPage />} />
-                    </Routes>
-                </div>
-                
-                {/* 3. AIチャットウィジェット (全ページ共通の固定表示) */}
-                <AIChatWidget />
-                
+                <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+                    {/* 1. ナビゲーションバー */}
+                    <NavBar /> 
+                    
+                    {/* 2. メインコンテンツとサイドバーを横並びで配置 */}
+                    <Box sx={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+                        {/* メインコンテンツ領域 */}
+                        <Box sx={{ flex: 1, overflowY: 'auto', padding: '20px' }}>
+                            <Container maxWidth="lg">
+                                <Routes>
+                                    <Route path="/" element={<Homepage />} />
+                                    <Route path="/register" element={<RegisterPage />} />
+                                    <Route path="/login" element={<LoginPage />} />
+                                    <Route path="/items/create" element={<ItemCreatePage />} />
+                                    <Route path="/items/:itemId" element={<ItemDetailPage />} />
+                                    <Route path="/mypage" element={<MyPage />} />
+                                    <Route path="/persona-selection" element={<PersonaSelectionPage />} />
+                                    <Route path="/gacha" element={<GachaPage />} />
+                                </Routes>
+                            </Container>
+                        </Box>
+                        
+                        {/* 右サイドバー: AIチャットウィジェット */}
+                        <Box 
+                            sx={{ 
+                                width: '350px', 
+                                borderLeft: '1px solid #e0e0e0',
+                                overflowY: 'auto',
+                                backgroundColor: '#fafafa'
+                            }}
+                        >
+                            <AIChatWidget />
+                        </Box>
+                    </Box>
+                </Box>
             </AuthProvider>
         </BrowserRouter>
     );
