@@ -27,12 +27,17 @@ const SearchResults = () => {
             try {
                 setLoading(true);
                 setError(null);
+                console.log('🔍 Search request:', { query, url: `${API_BASE_URL}${API_ENDPOINTS.SEARCH}` });
                 const response = await axios.get(`${API_BASE_URL}${API_ENDPOINTS.SEARCH}`, {
                     params: { query }
                 });
-                setResults(response.data.items || []);
+                console.log('✅ Search response:', response.data);
+                // バックエンドは直接配列を返すので、そのまま使用
+                const items = Array.isArray(response.data) ? response.data : (response.data.items || []);
+                setResults(items);
             } catch (err) {
-                console.error('Search error:', err);
+                console.error('❌ Search error:', err);
+                console.error('Error details:', err.response?.data);
                 setError(MESSAGES.ERROR.SEARCH_FAILED);
             } finally {
                 setLoading(false);

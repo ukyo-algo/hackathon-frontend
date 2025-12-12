@@ -6,6 +6,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import {
   COLORS,
   NAV_CATEGORIES,
+  CATEGORIES,
   SIDEBAR,
   DEBUG
 } from './config';
@@ -150,8 +151,19 @@ const NavBar = () => {
                 borderTop: `1px solid ${COLORS.BORDER}`,
                 '&::-webkit-scrollbar': { height: '4px' }
             }}>
-                {NAV_CATEGORIES.map(cat => (
-                    <Link key={cat} to="/" style={{ textDecoration: 'none' }}>
+                <Link to="/" style={{ textDecoration: 'none' }}>
+                    <Box sx={{ 
+                        whiteSpace: 'nowrap',
+                        color: COLORS.TEXT_SECONDARY,
+                        fontSize: '14px',
+                        cursor: 'pointer',
+                        '&:hover': { color: COLORS.PRIMARY }
+                    }}>
+                        おすすめ
+                    </Box>
+                </Link>
+                {CATEGORIES.map(cat => (
+                    <Link key={cat} to={`/?category=${encodeURIComponent(cat)}`} style={{ textDecoration: 'none' }}>
                         <Box sx={{ 
                             whiteSpace: 'nowrap',
                             color: COLORS.TEXT_SECONDARY,
