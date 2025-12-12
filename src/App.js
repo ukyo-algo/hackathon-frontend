@@ -82,13 +82,16 @@ function App() {
                             </Container>
                         </Box>
                         
-                        {/* 右サイドバー: AIチャットウィジェット */}
+                        {/* 右サイドバー: AIチャットウィジェット (固定高さ) */}
                         <Box 
                             sx={{ 
                                 width: '350px', 
+                                height: 'calc(100vh - 64px)',
                                 borderLeft: '1px solid #e0e0e0',
                                 overflowY: 'auto',
-                                backgroundColor: '#fafafa'
+                                backgroundColor: '#fafafa',
+                                position: 'sticky',
+                                top: 0
                             }}
                         >
                             <AIChatWidget />

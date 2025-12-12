@@ -18,7 +18,7 @@ const AIChatWidget = () => {
   const messagesEndRef = useRef(null);
 
   const defaultPersona = {
-    name: "アシスタント",
+    name: "キャラクター",
     avatar_url: "/avatars/model1.png",
     theme_color: "#1976d2"
   };
@@ -39,7 +39,7 @@ const AIChatWidget = () => {
     setMessages([
       { 
         role: 'ai', 
-        content: `こんにちは！${currentUser?.current_persona?.name || 'アシスタント'}です。何かお手伝いできることはありますか？` 
+        content: `<${currentUser?.current_persona?.name || 'キャラクター'}がお買い物を手伝ってくれるようです>` 
       }
     ]);
   }, [currentUser?.current_persona?.id]);
@@ -91,112 +91,92 @@ const AIChatWidget = () => {
       <Box sx={{ 
         p: 2, 
         borderBottom: '2px solid #333',
-        display: 'flex',
-        alignItems: 'center',
-        gap: 1.5,
         backgroundColor: '#0d0d0d'
       }}>
-        <Avatar 
-          src={persona.avatar_url} 
-          sx={{ width: 40, height: 40 }} 
-          alt={persona.name}
-        >
-          <SmartToyIcon />
-        </Avatar>
-        <div>
-          <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: 'white' }}>
-            {persona.name}
-          </Typography>
-          <Typography variant="caption" sx={{ color: '#999' }}>
-            オンライン
-          </Typography>
-        </div>
+        <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: 'white' }}>
+          {persona.name}
+        </Typography>
+        <Typography variant="caption" sx={{ color: '#999' }}>
+          オンライン
+        </Typography>
       </Box>
 
-      {/* キャラクター大表示エリア + メッセージ */}
+      {/* キャラクター画像 */}
+      <Box sx={{ 
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        p: 2,
+        backgroundColor: '#0d0d0d',
+        borderBottom: '2px solid #333',
+        minHeight: '150px'
+      }}>
+        <img 
+          src={persona.avatar_url} 
+          alt={persona.name} 
+          style={{ 
+            maxWidth: '120px',
+            maxHeight: '150px',
+            imageRendering: 'auto'
+          }} 
+        />
+      </Box>
+
+      {/* メッセージエリア */}
       <Box sx={{ 
         flex: 1,
+        overflowY: 'auto',
+        p: 2,
         display: 'flex',
-        overflow: 'hidden'
+        flexDirection: 'column',
+        gap: 1.5,
+        backgroundColor: '#1a1a1a'
       }}>
-        {/* 左側：キャラクター画像（大） */}
-        <Box sx={{ 
-          width: '45%',
-          borderRight: '2px solid #333',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          p: 2,
-          backgroundColor: '#0d0d0d'
-        }}>
-          <img 
-            src={persona.avatar_url} 
-            alt={persona.name} 
-            style={{ 
-              width: '100%', 
-              height: 'auto', 
-              maxWidth: '280px',
-              imageRendering: 'auto'
-            }} 
-          />
-        </Box>
-
-        {/* 右側：メッセージエリア */}
-        <Box sx={{ 
-          flex: 1,
-          overflowY: 'auto',
-          p: 2,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 1.5,
-          backgroundColor: '#1a1a1a'
-        }}>
-          {messages.map((msg, index) => (
-            <Box 
-              key={index} 
-              sx={{ 
-                display: 'flex',
-                justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start'
+        {messages.map((msg, index) => (
+          <Box 
+            key={index} 
+            sx={{ 
+              display: 'flex',
+              justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start'
+            }}
+          >
+            <Paper
+              sx={{
+                maxWidth: '85%',
+                p: 1.5,
+                backgroundColor: msg.role === 'user' ? '#00ff00' : '#333',
+                color: msg.role === 'user' ? '#000' : '#00ff00',
+                borderRadius: 1,
+                wordBreak: 'break-word',
+                boxShadow: 'none',
+                border: '1px solid ' + (msg.role === 'user' ? '#00ff00' : '#444'),
+                fontFamily: '"Courier New", monospace',
+                fontSize: '0.9rem'
               }}
             >
-              <Paper
-                sx={{
-                  maxWidth: '85%',
-                  p: 1.5,
-                  backgroundColor: msg.role === 'user' ? '#00ff00' : '#333',
-                  color: msg.role === 'user' ? '#000' : '#00ff00',
-                  borderRadius: 1,
-                  wordBreak: 'break-word',
-                  boxShadow: 'none',
-                  border: '1px solid ' + (msg.role === 'user' ? '#00ff00' : '#444'),
-                  fontFamily: '"Courier New", monospace',
-                  fontSize: '0.9rem'
-                }}
-              >
-                <Typography variant="body2" sx={{ lineHeight: 1.6, color: 'inherit', fontFamily: 'inherit' }}>
-                  {msg.role === 'user' ? `> ${msg.content}` : `* ${msg.content}`}
-                </Typography>
-              </Paper>
-            </Box>
-          ))}
-          {isLoading && (
-            <Box sx={{ display: 'flex', justifyContent: 'flex-start' }}>
-              <Paper sx={{ 
-                p: 1.5, 
-                backgroundColor: '#333', 
-                border: '1px solid #444',
-                borderRadius: 1,
-                fontFamily: '"Courier New", monospace',
-                color: '#00ff00'
-              }}>
-                <Typography variant="body2" sx={{ color: 'inherit', fontFamily: 'inherit' }}>
-                  * ...
-                </Typography>
-              </Paper>
-            </Box>
-          )}
-          <div ref={messagesEndRef} />
-        </Box>
+              <Typography variant="body2" sx={{ lineHeight: 1.6, color: 'inherit', fontFamily: 'inherit' }}>
+                {msg.role === 'user' ? `> ${msg.content}` : `* ${msg.content}`}
+              </Typography>
+            </Paper>
+          </Box>
+        ))}
+        {isLoading && (
+          <Box sx={{ display: 'flex', justifyContent: 'flex-start' }}>
+            <Paper sx={{ 
+              p: 1.5, 
+              backgroundColor: '#333', 
+              border: '1px solid #444',
+              borderRadius: 1,
+              fontFamily: '"Courier New", monospace',
+              color: '#00ff00'
+            }}>
+              <Typography variant="body2" sx={{ color: 'inherit', fontFamily: 'inherit' }}>
+                * ...
+              </Typography>
+            </Paper>
+          </Box>
+        )}
+        <div ref={messagesEndRef} />
       </Box>
 
       {/* 入力エリア */}
