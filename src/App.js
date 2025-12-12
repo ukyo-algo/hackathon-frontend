@@ -12,6 +12,7 @@ import ItemCreatePage from './pages/item_create_page';
 import ItemDetailPage from './pages/item_detail_page';
 import MyPage from './pages/my_page';
 import PersonaSelectionPage from './pages/persona_selection_page';
+import GachaPage from './pages/gacha_page';
 // ★ LLM機能を追加
 import AIChatWidget from './components/AIChatWidget'; 
 
@@ -71,6 +72,7 @@ function App() {
                         <Route path="/items/:itemId" element={<ItemDetailPage />} />
                         <Route path="/mypage" element={<MyPage />} />
                         <Route path="/persona-selection" element={<PersonaSelectionPage />} />
+                        <Route path="/gacha" element={<GachaPage />} />
                     </Routes>
                 </div>
                 

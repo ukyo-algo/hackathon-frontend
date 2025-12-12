@@ -109,6 +109,9 @@ const PersonaSelectionPage = () => {
             <Grid item xs={6} sm={6} md={6} key={persona.id}>
               <Card
                 sx={{
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
                   cursor: isOwned ? 'pointer' : 'not-allowed',
                   border: isSelected ? '3px solid #4caf50' : '1px solid #e0e0e0',
                   position: 'relative',
