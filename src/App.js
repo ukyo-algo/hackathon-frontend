@@ -1,11 +1,16 @@
-// hackathon-frontend/src/App.js
-
 import React from 'react';
-import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
-import { Box, Container } from '@mui/material';
+import { BrowserRouter, Routes, Route, Link, useNavigate } from 'react-router-dom';
+import { Box, Container, TextField, InputAdornment } from '@mui/material';
 import { AuthProvider, useAuth } from './contexts/auth_context';
+import SearchIcon from '@mui/icons-material/Search';
+import {
+  COLORS,
+  NAV_CATEGORIES,
+  SIDEBAR,
+  DEBUG
+} from './config';
 
-// ★ ファイル名のエラー回避のため、パスを小文字に統一します（これが正しいファイル名と仮定）
+// Pages
 import Homepage from './pages/homepage'; 
 import RegisterPage from './pages/register_page';
 import LoginPage from './pages/login_page';
@@ -14,46 +19,155 @@ import ItemDetailPage from './pages/item_detail_page';
 import MyPage from './pages/my_page';
 import PersonaSelectionPage from './pages/persona_selection_page';
 import GachaPage from './pages/gacha_page';
-// ★ LLM機能を追加
-import AIChatWidget from './components/AIChatWidget'; 
+import SearchResults from './pages/SearchResults';
 
-console.log("現在のAPI_URL設定値:", process.env.REACT_APP_API_URL);
+// Components
+import AIChatWidget from './components/AIChatWidget';
+
+if (DEBUG) {
+  console.log('🚀 FleaMarket Frontend started in development mode');
+}
 
 
-// ★★★ NavBar コンポーネント定義の完全版（未定義エラー回避） ★★★
+// ========== NavBar コンポーネント ==========
 const NavBar = () => {
-    // 認証情報を使用
     const { currentUser, logout } = useAuth();
+    const navigate = useNavigate();
+    const [searchQuery, setSearchQuery] = React.useState('');
+    
+    const handleSearch = (e) => {
+        e.preventDefault();
+        if (searchQuery.trim()) {
+            navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
+            setSearchQuery('');
+        }
+    };
     
     return (
-        <nav style={{ padding: '10px 20px', background: '#f8f8f8', borderBottom: '1px solid #eee', display: 'flex', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', gap: '15px' }}>
-                {/* ロゴやホームリンク */}
-                <Link to="/" style={{ fontWeight: 'bold' }}>FleaMarketApp</Link>
-                {/* ログインユーザーのみ出品可能 */}
-                {currentUser && <Link to="/items/create">出品</Link>}
-            </div>
-            <div>
-                {currentUser ? (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                        {/* ユーザー名表示 */}
-                        <Link to="/mypage" style={{ textDecoration: 'none', color: '#333' }}>
-                            ようこそ、{currentUser.username}さん
-                        </Link>
-                        {/* ログアウトボタン */}
-                        <button onClick={logout} style={{ marginLeft: '10px', padding: '5px 10px', cursor: 'pointer' }}>ログアウト</button>
-                    </div>
-                ) : (
-                    <>
-                        {/* ログイン/新規登録リンク */}
-                        <Link to="/login">ログイン</Link> / <Link to="/register">新規登録</Link>
-                    </>
-                )}
-            </div>
-        </nav>
+        <Box sx={{ backgroundColor: '#fff', borderBottom: `1px solid ${COLORS.BORDER}` }}>
+            {/* 上部: ロゴ・検索・ログイン */}
+            <Box sx={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'space-between',
+                px: 2,
+                py: 1,
+            }}>
+                {/* ロゴ */}
+                <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Box sx={{ fontSize: '24px', fontWeight: 'bold', color: COLORS.PRIMARY }}>
+                        🏪 FleaMarket
+                    </Box>
+                </Link>
+
+                {/* 検索バー */}
+                <form onSubmit={handleSearch} style={{ flex: 1, maxWidth: '400px', marginLeft: '20px' }}>
+                    <TextField
+                        placeholder="何をお探しですか？"
+                        variant="outlined"
+                        size="small"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        fullWidth
+                        InputProps={{
+                            endAdornment: (
+                                <InputAdornment position="end">
+                                    <SearchIcon sx={{ cursor: 'pointer', color: COLORS.TEXT_TERTIARY }} />
+                                </InputAdornment>
+                            )
+                        }}
+                        sx={{
+                            '& .MuiOutlinedInput-root': {
+                                borderRadius: '4px',
+                                backgroundColor: COLORS.BACKGROUND
+                            }
+                        }}
+                    />
+                </form>
+
+                {/* ログイン・出品ボタン */}
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    {currentUser ? (
+                        <>
+                            <Link to="/mypage" style={{ textDecoration: 'none' }}>
+                                <Box sx={{ cursor: 'pointer', color: COLORS.TEXT_SECONDARY }}>
+                                    {currentUser.username}
+                                </Box>
+                            </Link>
+                            <Link to="/items/create" style={{ textDecoration: 'none' }}>
+                                <Box 
+                                    component="button"
+                                    sx={{
+                                        backgroundColor: COLORS.PRIMARY,
+                                        color: 'white',
+                                        border: 'none',
+                                        padding: '8px 16px',
+                                        borderRadius: '4px',
+                                        fontWeight: 'bold',
+                                        cursor: 'pointer',
+                                        '&:hover': { backgroundColor: COLORS.PRIMARY_DARK }
+                                    }}
+                                >
+                                    出品
+                                </Box>
+                            </Link>
+                            <Box 
+                                component="button"
+                                onClick={logout}
+                                sx={{
+                                    backgroundColor: 'transparent',
+                                    color: COLORS.TEXT_SECONDARY,
+                                    border: `1px solid ${COLORS.BORDER}`,
+                                    padding: '6px 12px',
+                                    borderRadius: '4px',
+                                    cursor: 'pointer',
+                                    '&:hover': { backgroundColor: COLORS.BACKGROUND }
+                                }}
+                            >
+                                ログアウト
+                            </Box>
+                        </>
+                    ) : (
+                        <>
+                            <Link to="/login" style={{ textDecoration: 'none' }}>
+                                <Box sx={{ cursor: 'pointer', color: COLORS.TEXT_SECONDARY }}>ログイン</Box>
+                            </Link>
+                            <Link to="/register" style={{ textDecoration: 'none' }}>
+                                <Box sx={{ cursor: 'pointer', color: COLORS.TEXT_SECONDARY }}>会員登録</Box>
+                            </Link>
+                        </>
+                    )}
+                </Box>
+            </Box>
+
+            {/* 下部: カテゴリメニュー */}
+            <Box sx={{ 
+                display: 'flex', 
+                gap: 2,
+                px: 2,
+                py: 1,
+                overflowX: 'auto',
+                borderTop: `1px solid ${COLORS.BORDER}`,
+                '&::-webkit-scrollbar': { height: '4px' }
+            }}>
+                {NAV_CATEGORIES.map(cat => (
+                    <Link key={cat} to="/" style={{ textDecoration: 'none' }}>
+                        <Box sx={{ 
+                            whiteSpace: 'nowrap',
+                            color: COLORS.TEXT_SECONDARY,
+                            fontSize: '14px',
+                            cursor: 'pointer',
+                            '&:hover': { color: COLORS.PRIMARY }
+                        }}>
+                            {cat}
+                        </Box>
+                    </Link>
+                ))}
+            </Box>
+        </Box>
     );
 };
-// ★★★ NavBar コンポーネント定義の終わり ★★★
+// ========== NavBar コンポーネント終わり ==========
 
 
 function App() {
@@ -61,10 +175,10 @@ function App() {
         <BrowserRouter>
             <AuthProvider>
                 <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-                    {/* 1. ナビゲーションバー */}
+                    {/* ナビゲーションバー */}
                     <NavBar /> 
                     
-                    {/* 2. メインコンテンツとサイドバーを横並びで配置 */}
+                    {/* メインコンテンツとサイドバー */}
                     <Box sx={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
                         {/* メインコンテンツ領域 */}
                         <Box sx={{ flex: 1, overflowY: 'auto', padding: '20px' }}>
@@ -78,18 +192,19 @@ function App() {
                                     <Route path="/mypage" element={<MyPage />} />
                                     <Route path="/persona-selection" element={<PersonaSelectionPage />} />
                                     <Route path="/gacha" element={<GachaPage />} />
+                                    <Route path="/search" element={<SearchResults />} />
                                 </Routes>
                             </Container>
                         </Box>
                         
-                        {/* 右サイドバー: AIチャットウィジェット (固定高さ) */}
+                        {/* 右サイドバー: AIチャットウィジェット */}
                         <Box 
                             sx={{ 
-                                width: '350px', 
-                                height: 'calc(100vh - 64px)',
-                                borderLeft: '1px solid #e0e0e0',
+                                width: `${SIDEBAR.WIDTH}px`, 
+                                height: `calc(100vh - ${SIDEBAR.HEADER_HEIGHT}px)`,
+                                borderLeft: `1px solid ${COLORS.BORDER}`,
                                 overflowY: 'auto',
-                                backgroundColor: '#fafafa',
+                                backgroundColor: COLORS.BACKGROUND,
                                 position: 'sticky',
                                 top: 0
                             }}

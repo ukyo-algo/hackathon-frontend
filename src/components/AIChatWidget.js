@@ -9,6 +9,7 @@ import SendIcon from '@mui/icons-material/Send';
 import SmartToyIcon from '@mui/icons-material/SmartToy';
 import { useAuth } from '../contexts/auth_context';
 import apiClient from '../api/axios';
+import { COLORS } from '../config';
 
 const AIChatWidget = () => {
   const { currentUser } = useAuth();
@@ -96,7 +97,7 @@ const AIChatWidget = () => {
         <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: 'white' }}>
           {persona.name}
         </Typography>
-        <Typography variant="caption" sx={{ color: '#999' }}>
+        <Typography variant="caption" sx={{ color: COLORS.TEXT_TERTIARY }}>
           オンライン
         </Typography>
       </Box>

@@ -4,17 +4,25 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   Grid, Card, CardContent, CardMedia, CardActions, Button, 
-  Typography, Box, Skeleton, Alert, Chip, Rating
+  Typography, Box, Skeleton, Alert, Select, MenuItem, FormControl
 } from '@mui/material';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
-import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
-
-const API_URL = process.env.REACT_APP_API_URL;
+import {
+  API_BASE_URL,
+  API_ENDPOINTS,
+  CATEGORIES,
+  SORT_OPTIONS,
+  PAGINATION,
+  COLORS,
+  MESSAGES,
+  PLACEHOLDER_IMAGE
+} from '../config';
 
 const Homepage = () => {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [sortBy, setSortBy] = useState('newest');
 
   useEffect(() => {
     const loadItems = async () => {
@@ -22,7 +30,7 @@ const Homepage = () => {
         setLoading(true);
         setError(null);
         
-        const response = await fetch(`${API_URL}/api/v1/items`); 
+        const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.ITEMS}`);
         
         if (!response.ok) {
           throw new Error('Network response was not ok');
@@ -31,8 +39,8 @@ const Homepage = () => {
         setItems(data);
       
       } catch (err) {
-        setError('商品の読み込みに失敗しました。');
-        console.error("Error fetching items:", err);
+        setError(MESSAGES.ERROR.ITEMS_LOAD_FAILED);
+        console.error('Error fetching items:', err);
       } finally {
         setLoading(false);
       }
@@ -45,135 +53,122 @@ const Homepage = () => {
     return <Alert severity="error">{error}</Alert>;
   }
 
+  // ソート関数
+  const sortItems = (itemsToSort) => {
+    const sorted = [...itemsToSort];
+    switch(sortBy) {
+      case 'price_low':
+        return sorted.sort((a, b) => a.price - b.price);
+      case 'price_high':
+        return sorted.sort((a, b) => b.price - a.price);
+      case 'newest':
+      default:
+        return sorted;
+    }
+  };
+
+  // カテゴリごとにグループ化
+  const itemsByCategory = {};
+  CATEGORIES.forEach(cat => {
+    itemsByCategory[cat] = sortItems(
+      items.filter(item => item.category === cat)
+    );
+  });
+
   return (
     <Box>
-      {/* ページヘッダー */}
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 1 }}>
-          いらっしゃいませ！
-        </Typography>
-        <Typography variant="body1" sx={{ color: '#666' }}>
-          {loading ? '商品を読み込み中...' : `全 ${items.length} 件の商品`}
-        </Typography>
+      {/* ヒーローバナー */}
+      <Box
+        sx={{
+          height: '300px',
+          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          borderRadius: 2,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: 'white',
+          marginBottom: 4,
+          cursor: 'pointer',
+          transition: 'all 0.3s ease',
+          '&:hover': {
+            boxShadow: 4
+          }
+        }}
+      >
+        <Box sx={{ textAlign: 'center' }}>
+          <Typography variant="h3" sx={{ fontWeight: 'bold', mb: 2 }}>
+            🎉 新しい出会いを見つけよう
+          </Typography>
+          <Typography variant="h6" sx={{ color: 'rgba(255,255,255,0.9)' }}>
+            あなたの「欲しい」がここにある
+          </Typography>
+        </Box>
       </Box>
 
-      {/* 商品グリッド */}
-      <Grid container spacing={2}>
-        {loading ? (
-          // ローディングスケルトン
-          Array.from({ length: 8 }).map((_, idx) => (
-            <Grid item xs={12} sm={6} md={4} lg={3} key={idx}>
-              <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-                <Skeleton variant="rectangular" height={200} />
-                <CardContent>
-                  <Skeleton width="80%" sx={{ mb: 1 }} />
-                  <Skeleton width="60%" sx={{ mb: 2 }} />
-                  <Skeleton width="40%" />
-                </CardContent>
-              </Card>
+      {/* ソートコントロール */}
+      <Box sx={{ mb: 4, display: 'flex', justifyContent: 'flex-end' }}>
+        <FormControl sx={{ minWidth: 150 }}>
+          <Select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+            size="small"
+          >
+            {SORT_OPTIONS.map(opt => (
+              <MenuItem key={opt.value} value={opt.value}>
+                {opt.label}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      </Box>
+
+      {/* カテゴリごとのセクション */}
+      {CATEGORIES.map(category => {
+        const categoryItems = itemsByCategory[category];
+        
+        if (categoryItems.length === 0) return null;
+
+        return (
+          <Box key={category} sx={{ mb: 6 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+              <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
+                📦 {category}
+              </Typography>
+              <Button color="inherit" sx={{ color: '#ff0099' }}>
+                すべて見る →
+              </Button>
+            </Box>
+
+            <Grid container spacing={2}>
+              {loading ? (
+                Array.from({ length: PAGINATION.ITEMS_PER_ROW }).map((_, idx) => (
+                  <Grid item xs={12} sm={6} md={3} key={idx}>
+                    <Card sx={{ height: '100%' }}>
+                      <Skeleton variant="rectangular" height={200} />
+                      <CardContent>
+                        <Skeleton width="80%" sx={{ mb: 1 }} />
+                        <Skeleton width="60%" />
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                ))
+              ) : (
+                categoryItems.slice(0, PAGINATION.ITEMS_PER_ROW).map((item) => (
+                  <Grid item xs={12} sm={6} md={3} key={item.item_id}>
+                    <ProductCard item={item} />
+                  </Grid>
+                ))
+              )}
             </Grid>
-          ))
-        ) : (
-          items.map((item) => (
-            <Grid item xs={12} sm={6} md={4} lg={3} key={item.item_id}>
-              <Card 
-                sx={{ 
-                  height: '100%',
-                  display: 'flex', 
-                  flexDirection: 'column',
-                  transition: 'all 0.3s ease',
-                  cursor: 'pointer',
-                  '&:hover': {
-                    transform: 'translateY(-8px)',
-                    boxShadow: 4
-                  }
-                }}
-                component={Link}
-                to={`/items/${item.item_id}`}
-                style={{ textDecoration: 'none', color: 'inherit' }}
-              >
-                {/* 商品画像 */}
-                <CardMedia
-                  component="img"
-                  height={200}
-                  image={item.image_url || '/placeholder.png'}
-                  alt={item.name}
-                  sx={{ 
-                    objectFit: 'cover',
-                    backgroundColor: '#f5f5f5'
-                  }}
-                />
-
-                {/* 商品情報 */}
-                <CardContent sx={{ flex: 1 }}>
-                  {/* 商品名 */}
-                  <Typography 
-                    variant="subtitle1" 
-                    sx={{ 
-                      fontWeight: 'bold',
-                      mb: 1,
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      display: '-webkit-box',
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: 'vertical'
-                    }}
-                  >
-                    {item.name}
-                  </Typography>
-
-                  {/* 価格 */}
-                  <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1, mb: 1 }}>
-                    <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#d32f2f' }}>
-                      ¥{item.price?.toLocaleString() || '0'}
-                    </Typography>
-                  </Box>
-
-                  {/* 出品者 */}
-                  <Typography variant="caption" sx={{ color: '#999', display: 'block', mb: 1 }}>
-                    出品者: {item.seller?.username || '不明'}
-                  </Typography>
-
-                  {/* 評価 */}
-                  {item.rating && (
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                      <Rating value={item.rating} readOnly size="small" />
-                      <Typography variant="caption" sx={{ color: '#999' }}>
-                        ({item.review_count || 0})
-                      </Typography>
-                    </Box>
-                  )}
-                </CardContent>
-
-                {/* アクションボタン */}
-                <CardActions sx={{ justifyContent: 'space-between', pt: 0 }}>
-                  <Button 
-                    size="small" 
-                    startIcon={<ShoppingCartIcon />}
-                    variant="contained"
-                    sx={{ flex: 1 }}
-                  >
-                    購入
-                  </Button>
-                  <Button 
-                    size="small" 
-                    icon={<FavoriteBorderIcon />}
-                    sx={{ minWidth: 'auto' }}
-                  >
-                    <FavoriteBorderIcon />
-                  </Button>
-                </CardActions>
-              </Card>
-            </Grid>
-          ))
-        )}
-      </Grid>
+          </Box>
+        );
+      })}
 
       {/* 商品がない場合 */}
       {!loading && items.length === 0 && (
         <Box sx={{ textAlign: 'center', py: 8 }}>
-          <Typography variant="h6" sx={{ color: '#999', mb: 2 }}>
-            商品がありません
+          <Typography variant="h6" sx={{ color: COLORS.TEXT_TERTIARY, mb: 2 }}>
+            {MESSAGES.EMPTY_STATE.NO_ITEMS}
           </Typography>
           <Button variant="contained" href="/" sx={{ mt: 2 }}>
             戻る
@@ -181,6 +176,91 @@ const Homepage = () => {
         </Box>
       )}
     </Box>
+  );
+};
+
+// 商品カードコンポーネント
+/**
+ * @param {Object} item - 商品データ
+ */
+const ProductCard = ({ item }) => {
+  return (
+    <Card 
+      sx={{ 
+        height: '100%',
+        display: 'flex', 
+        flexDirection: 'column',
+        transition: 'all 0.3s ease',
+        cursor: 'pointer',
+        '&:hover': {
+          transform: 'translateY(-4px)',
+          boxShadow: 3
+        }
+      }}
+      component={Link}
+      to={`/items/${item.item_id}`}
+      style={{ textDecoration: 'none', color: 'inherit' }}
+    >
+      {/* 商品画像 */}
+      <CardMedia
+        component="img"
+        height={200}
+        image={item.image_url || PLACEHOLDER_IMAGE}
+        alt={item.name}
+        sx={{ 
+          objectFit: 'cover',
+          backgroundColor: COLORS.BACKGROUND
+        }}
+      />
+
+      {/* 商品情報 */}
+      <CardContent sx={{ flex: 1 }}>
+        {/* 商品名 */}
+        <Typography 
+          variant="subtitle2" 
+          sx={{ 
+            fontWeight: '600',
+            mb: 1,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical',
+            minHeight: '40px'
+          }}
+        >
+          {item.name}
+        </Typography>
+
+        {/* 価格 */}
+        <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1, mb: 1 }}>
+          <Typography variant="h6" sx={{ fontWeight: 'bold', color: COLORS.PRIMARY }}>
+            ¥{item.price?.toLocaleString() || '0'}
+          </Typography>
+        </Box>
+
+        {/* 出品者 */}
+        <Typography variant="caption" sx={{ color: COLORS.TEXT_TERTIARY, display: 'block', mb: 1 }}>
+          {item.seller?.username || '不明'}
+        </Typography>
+      </CardContent>
+
+      {/* アクションボタン */}
+      <CardActions sx={{ pt: 0 }}>
+        <Button 
+          size="small" 
+          startIcon={<ShoppingCartIcon />}
+          variant="contained"
+          sx={{ 
+            flex: 1, 
+            backgroundColor: COLORS.PRIMARY, 
+            '&:hover': { backgroundColor: COLORS.PRIMARY_DARK } 
+          }}
+        >
+          購入
+        </Button>
+      </CardActions>
+    </Card>
   );
 };
 
