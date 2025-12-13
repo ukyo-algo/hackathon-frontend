@@ -9,7 +9,7 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 const CHAT_WIDTH = 360; // px
 
 const AIChatWidgetSlide = () => {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
 
   return (
     <>
@@ -34,7 +34,6 @@ const AIChatWidgetSlide = () => {
           height: '100%',
           background: '#fff',
           borderLeft: '1px solid #eee',
-          display: open ? 'block' : 'none',
         }}>
           {/* ヘッダー右端に閉じるボタン */}
           <Box sx={{
@@ -43,6 +42,7 @@ const AIChatWidgetSlide = () => {
             right: 0,
             zIndex: 10,
             p: 1,
+            display: open ? 'block' : 'none',
           }}>
             <IconButton onClick={() => setOpen(false)} size="small">
               <ChevronRightIcon />
