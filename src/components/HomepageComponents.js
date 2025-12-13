@@ -23,7 +23,8 @@ export const ProductCard = ({ item }) => {
   return (
     <Card
       sx={{
-        height: '100%',
+        width: '100%',
+        height: '340px',
         display: 'flex',
         flexDirection: 'column',
         transition: 'all 0.3s ease',
@@ -40,13 +41,15 @@ export const ProductCard = ({ item }) => {
       {/* 商品画像 */}
       <CardMedia
         component="img"
-        height={200}
+        sx={{
+          width: '100%',
+          height: '180px',
+          objectFit: 'cover',
+          backgroundColor: COLORS.BACKGROUND,
+          borderRadius: '8px 8px 0 0'
+        }}
         image={item.image_url || PLACEHOLDER_IMAGE}
         alt={item.name}
-        sx={{
-          objectFit: 'cover',
-          backgroundColor: COLORS.BACKGROUND
-        }}
       />
 
       {/* 商品情報 */}
@@ -148,16 +151,16 @@ export const SectionHeader = ({ title, onSeeAll, showSeeAll = true }) => {
  */
 export const ProductGrid = ({ items, loading, skeletonCount = 4 }) => {
   return (
-    <Grid container spacing={2}>
+    <Grid container spacing={2} alignItems="stretch">
       {loading ? (
         Array.from({ length: skeletonCount }).map((_, idx) => (
-          <Grid item xs={12} sm={6} md={3} key={idx}>
+          <Grid item xs={12} sm={6} key={idx} sx={{ display: 'flex', height: '340px' }}>
             <SkeletonCard />
           </Grid>
         ))
       ) : (
         items.map((item) => (
-          <Grid item xs={12} sm={6} md={3} key={item.item_id}>
+          <Grid item xs={12} sm={6} key={item.item_id} sx={{ display: 'flex', height: '340px' }}>
             <ProductCard item={item} />
           </Grid>
         ))
