@@ -6,7 +6,6 @@ import {
   Grid,
   Card,
   CardContent,
-  CardMedia,
   Typography,
   Button,
   Box,
@@ -32,15 +31,12 @@ const PersonaSelectionPage = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        // 現在のユーザー情報を取得して current_persona_id を得る
         const userRes = await api.get('/users/me');
         setCurrentPersonaId(userRes.data.current_persona_id);
 
-        // 全ペルソナ一覧を取得
         const allRes = await api.get('/users/personas');
         setAllPersonas(allRes.data);
 
-        // 所有しているペルソナ一覧を取得
         const ownedRes = await api.get('/users/me/personas');
         setOwnedPersonas(ownedRes.data);
       } catch (err) {
@@ -59,10 +55,8 @@ const PersonaSelectionPage = () => {
 
     try {
       setUpdating(true);
-      // ペルソナを変更するAPI呼び出し
       await api.put(`/users/me/persona?persona_id=${personaId}`);
       await refreshUser();
-      // 状態を更新
       setCurrentPersonaId(personaId);
     } catch (err) {
       console.error('Error updating persona:', err);
@@ -111,7 +105,7 @@ const PersonaSelectionPage = () => {
             <Grid item xs={6} sm={6} md={6} key={persona.id}>
               <Card
                 sx={{
-                  height: '100%',
+                  height: '100%', // Gridの高さいっぱいに広げる
                   display: 'flex',
                   flexDirection: 'column',
                   cursor: isOwned ? 'pointer' : 'not-allowed',
@@ -127,6 +121,7 @@ const PersonaSelectionPage = () => {
                 }}
                 onClick={() => isOwned && handlePersonaSelect(persona.id)}
               >
+                {/* 選択中バッジ */}
                 {isSelected && (
                   <Chip
                     icon={<CheckCircleIcon />}
@@ -141,6 +136,8 @@ const PersonaSelectionPage = () => {
                     }}
                   />
                 )}
+
+                {/* 未所持ロックアイコン */}
                 {!isOwned && (
                   <Box
                     sx={{
@@ -159,15 +156,18 @@ const PersonaSelectionPage = () => {
                     <LockIcon sx={{ fontSize: 60, color: '#757575' }} />
                   </Box>
                 )}
+
+                {/* ★画像エリアの修正ポイント★ */}
                 <Box
                   sx={{
-                    height: 200,
-                    width: '100%',
+                    height: '220px', // 高さを固定（少し余裕を持たせる）
+                    width: '100%',   // 横幅いっぱい
                     bgcolor: '#f5f5f5',
                     display: 'flex',
                     justifyContent: 'center',
                     alignItems: 'center',
-                    p: 2
+                    p: 2,            // 画像周りの余白
+                    boxSizing: 'border-box'
                   }}
                 >
                   <Box
@@ -175,17 +175,32 @@ const PersonaSelectionPage = () => {
                     src={persona.avatar_url || '/avatars/default.png'}
                     alt={persona.name}
                     sx={{
-                      maxWidth: '100%',
-                      maxHeight: '100%',
-                      objectFit: 'contain',
-                      imageRendering: 'pixelated'
+                      width: '100%',       // 親の幅に合わせる
+                      height: '100%',      // 親の高さに合わせる
+                      objectFit: 'contain', // アスペクト比を維持して全体を表示（切れないようにする）
+                      imageRendering: 'pixelated' // ドット絵用
                     }}
                   />
                 </Box>
-                <CardContent>
-                  <Typography gutterBottom variant="h6" component="div" align="center" fontWeight="bold">
+
+                <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                   {/* 名前エリアの高さを固定して、1行でも2行でもカードの高さが変わらないようにする */}
+                  <Typography 
+                    gutterBottom 
+                    variant="h6" 
+                    component="div" 
+                    align="center" 
+                    fontWeight="bold"
+                    sx={{
+                      minHeight: '2em', // 最低2行分確保
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                  >
                     {persona.name}
                   </Typography>
+                  
                   {!isOwned && (
                     <Typography variant="body2" color="text.secondary" align="center">
                       未所持
