@@ -30,7 +30,8 @@ export const ProductCard = ({ item, width = 400, height = 340 }) => {
         overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',
-        cursor: 'pointer'
+        cursor: 'pointer',
+        p: 0, // 余白をゼロに
       }}
       component={Link}
       to={`/items/${item.item_id}`}
@@ -44,17 +45,17 @@ export const ProductCard = ({ item, width = 400, height = 340 }) => {
           display: 'block',
           height: `${height * 0.55}px`,
           maxHeight: `${height * 0.55}px`,
-          objectFit: 'cover',
+          objectFit: 'contain', // 縦横比維持で内側に収める
           overflow: 'hidden',
           backgroundColor: COLORS.BACKGROUND,
-          borderRadius: '8px 8px 0 0'
+          borderRadius: 0
         }}
         image={item.image_url || PLACEHOLDER_IMAGE}
         alt={item.name}
       />
 
       {/* 商品情報 */}
-      <CardContent sx={{ flex: 1, overflow: 'hidden' }}>
+      <CardContent sx={{ flex: 1, overflow: 'hidden', p: 1 }}>
         {/* 商品名 */}
         <Typography
           variant="subtitle2"
