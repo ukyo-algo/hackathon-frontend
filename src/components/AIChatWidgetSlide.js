@@ -44,7 +44,7 @@ const AIChatWidgetSlide = () => {
             p: 1,
             display: open ? 'block' : 'none',
           }}>
-            <IconButton onClick={() => setOpen(false)} size="small">
+            <IconButton onClick={() => setOpen(false)} size="small" sx={{ color: '#fff' }}>
               <ChevronRightIcon />
             </IconButton>
           </Box>
