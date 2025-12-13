@@ -16,13 +16,11 @@ import { COLORS, PLACEHOLDER_IMAGE } from '../config';
  * 商品カードコンポーネント
  * @param {Object} item - 商品データ
  */
-export const ProductCard = ({ item, width = 400, height = 340 }) => {
+export const ProductCard = ({ item, height = 334 }) => {
   return (
     <Card
       sx={{
-        width: `${width}px`,
-        minWidth: `${width}px`,
-        maxWidth: `${width}px`,
+        width: '100%',
         height: `${height}px`,
         minHeight: `${height}px`,
         maxHeight: `${height}px`,
@@ -31,27 +29,23 @@ export const ProductCard = ({ item, width = 400, height = 340 }) => {
         display: 'flex',
         flexDirection: 'column',
         cursor: 'pointer',
-        p: 0, // 余白をゼロに
+        p: 0,
       }}
       component={Link}
-      to={`/items/${item.item_id}`}
+      to={item.item_id ? `/items/${item.item_id}` : '#'}
       style={{ textDecoration: 'none', color: 'inherit' }}
     >
       <CardMedia
         component="img"
         sx={{
           width: '100%',
-          maxWidth: '100%',
-          display: 'block',
-          height: `${height * 0.55}px`,
-          maxHeight: `${height * 0.55}px`,
-          objectFit: 'contain', // 縦横比維持で内側に収める
-          overflow: 'hidden',
+          height: '55%',
+          objectFit: 'contain',
           backgroundColor: COLORS.BACKGROUND,
-          borderRadius: 0
+          borderRadius: 0,
         }}
         image={item.image_url || PLACEHOLDER_IMAGE}
-        alt={item.name}
+        alt={item.name || ''}
       />
 
       {/* 商品情報 */}
@@ -139,46 +133,21 @@ export const ProductGrid = ({ items, loading, skeletonCount = 4 }) => {
   const CARD_WIDTH = 400;
   const CARD_HEIGHT = 340;
   const GAP = 16; // px
-  return (
-    <Box
-      sx={{
-        display: 'grid',
-        gridTemplateColumns: `repeat(2, ${CARD_WIDTH}px)`,
-        justifyContent: 'center',
-        gap: `${GAP}px`,
-        width: '100%',
-        boxSizing: 'border-box'
-      }}
-    >
-      {loading
-        ? Array.from({ length: skeletonCount }).map((_, idx) => (
-            <Box
-              key={idx}
-              sx={{
-                width: `${CARD_WIDTH}px`,
-                height: `${CARD_HEIGHT}px`,
-                boxSizing: 'border-box',
-                overflow: 'hidden'
-              }}
-            >
-              <SkeletonCard />
-            </Box>
-          ))
-        : items.map((item) => (
-            <Box
-              key={item.item_id}
-              sx={{
-                width: `${CARD_WIDTH}px`,
-                height: `${CARD_HEIGHT}px`,
-                boxSizing: 'border-box',
-                overflow: 'hidden'
-              }}
-            >
-              <ProductCard item={item} width={CARD_WIDTH} height={CARD_HEIGHT} />
-            </Box>
-          ))}
-    </Box>
-  );
+    return (
+      <Grid container spacing={2} alignItems="stretch">
+        {loading
+          ? Array.from({ length: skeletonCount }).map((_, idx) => (
+              <Grid item xs={12} sm={6} key={idx} sx={{ display: 'flex', alignItems: 'stretch' }}>
+                <ProductCard item={{}} height={CARD_HEIGHT} />
+              </Grid>
+            ))
+          : items.map((item) => (
+              <Grid item xs={12} sm={6} key={item.item_id} sx={{ display: 'flex', alignItems: 'stretch' }}>
+                <ProductCard item={item} height={CARD_HEIGHT} />
+              </Grid>
+            ))}
+      </Grid>
+    );
 }
 
 /**
@@ -193,20 +162,34 @@ export const HeroBanner = ({ title, subtitle, gradient }) => {
       sx={{
         height: '300px',
         background: gradient,
-        borderRadius: 2,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        color: 'white',
+        return (
+          <Card
+            sx={{
+              width: '100%',
+              height: `${height}px`,
+              minHeight: `${height}px`,
+              maxHeight: `${height}px`,
+              boxSizing: 'border-box',
+              overflow: 'hidden',
+              display: 'flex',
+              flexDirection: 'column',
+              cursor: 'pointer',
+              p: 0,
+            }}
+            component={Link}
+            to={item.item_id ? `/items/${item.item_id}` : '#'}
+            style={{ textDecoration: 'none', color: 'inherit' }}
+          >
+            <CardMedia
+              component="img"
+              sx={{
+                width: '100%',
+                height: '55%',
+                objectFit: 'contain',
+                backgroundColor: COLORS.BACKGROUND,
+                borderRadius: 0,
+              }}
+              image={item.image_url || PLACEHOLDER_IMAGE}
+              alt={item.name || ''}
+            />
         marginBottom: 4,
-        cursor: 'pointer',
-        transition: 'all 0.3s ease',
-      }}
-    >
-      <div>
-        <h1>{title}</h1>
-        <p>{subtitle}</p>
-      </div>
-    </Box>
-  );
-};
