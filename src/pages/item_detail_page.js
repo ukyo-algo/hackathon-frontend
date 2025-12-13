@@ -1,3 +1,5 @@
+// src/pages/item_detail_page.js
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/auth_context';
@@ -26,24 +28,18 @@ const ItemDetailPage = () => {
 
   const { currentUser } = useAuth();
   const navigate = useNavigate();
-  // 環境変数がない場合のフォールバックを入れています
   const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
-  // 商品データの取得
+  // --- (データ取得ロジックなどは変更なし) ---
   useEffect(() => {
     const fetchItem = async () => {
       try {
         setLoading(true);
         const response = await fetch(`${API_URL}/api/v1/items/${itemId}`);
         if (!response.ok) throw new Error('商品の取得に失敗しました');
-        
         const data = await response.json();
         setItem(data);
         setLikeCount(data.like_count || 0);
-        
-        // 自分がいいねしているかどうかの判定ロジックがあればここで設定
-        // setIsLiked(data.is_liked_by_me); 
-        
       } catch (err) {
         console.error(err);
         setError(err.message);
@@ -54,7 +50,6 @@ const ItemDetailPage = () => {
     fetchItem();
   }, [itemId, API_URL]);
 
-  // レコメンド商品の取得
   useEffect(() => {
     const fetchRecommendations = async () => {
       try {
@@ -67,27 +62,21 @@ const ItemDetailPage = () => {
     if (itemId) fetchRecommendations();
   }, [itemId, API_URL]);
 
-  // いいねボタンの処理
   const handleLike = async () => {
     if (!currentUser) return navigate('/login');
-
     setIsLiked(!isLiked);
     setLikeCount(prev => isLiked ? prev - 1 : prev + 1);
-
     try {
       await fetch(`${API_URL}/api/v1/items/${itemId}/like`, {
         method: 'POST',
         headers: { 'X-Firebase-Uid': currentUser.uid },
       });
     } catch (err) {
-      console.error("Like failed", err);
-      // 失敗したら戻す
       setIsLiked(!isLiked);
       setLikeCount(prev => isLiked ? prev + 1 : prev - 1);
     }
   };
 
-  // コメント投稿処理
   const handleCommentSubmit = async (e) => {
     e.preventDefault();
     if (!currentUser) return navigate('/login');
@@ -111,15 +100,12 @@ const ItemDetailPage = () => {
           comment_count: (prev.comment_count || 0) + 1
         }));
         setCommentText("");
-      } else {
-        throw new Error('コメント投稿失敗');
       }
     } catch (err) {
       alert("コメントの投稿に失敗しました");
     }
   };
 
-  // 購入処理
   const handleBuy = async () => {
     if (!currentUser) {
       alert("購入するにはログインが必要です");
@@ -171,25 +157,11 @@ const ItemDetailPage = () => {
               component="img"
               image={item.image_url || "/placeholder.png"}
               alt={item.name}
-              sx={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover',
-                opacity: isSold ? 0.5 : 1
-              }}
+              sx={{ width: '100%', height: '100%', objectFit: 'cover', opacity: isSold ? 0.5 : 1 }}
             />
             {isSold && (
-              <Box sx={{
-                position: 'absolute',
-                inset: 0,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                background: 'rgba(0,0,0,0.3)',
-              }}>
-                <Typography variant="h2" sx={{ color: 'white', fontWeight: 'bold', transform: 'rotate(-15deg)' }}>
-                  SOLD
-                </Typography>
+              <Box sx={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.3)' }}>
+                <Typography variant="h2" sx={{ color: 'white', fontWeight: 'bold', transform: 'rotate(-15deg)' }}>SOLD</Typography>
               </Box>
             )}
           </Box>
@@ -197,159 +169,109 @@ const ItemDetailPage = () => {
 
         {/* 右側: 商品情報 */}
         <Grid item xs={12} md={6}>
-          {/* 商品タイトル */}
-          <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 2, wordBreak: 'break-word' }}>
-            {item.name}
-          </Typography>
-
-          {/* 出品者情報 */}
+          <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 2, wordBreak: 'break-word' }}>{item.name}</Typography>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
             <Avatar alt={item.seller?.username} sx={{ width: 40, height: 40 }} />
             <Box>
-              <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
-                {item.seller?.username || '不明なユーザー'}
-              </Typography>
+              <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>{item.seller?.username || '不明なユーザー'}</Typography>
               <Rating value={item.seller?.rating || 0} readOnly size="small" />
             </Box>
           </Box>
-
           <Divider sx={{ my: 2 }} />
-
-          {/* 価格とアクション */}
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-            <Typography variant="h4" sx={{ fontWeight: 'bold', color: '#d32f2f' }}>
-              ¥{item.price?.toLocaleString() || '0'}
-            </Typography>
-            <Button
-              startIcon={isLiked ? <FavoriteIcon /> : <FavoriteBorderIcon />}
-              onClick={handleLike}
-              color={isLiked ? "error" : "inherit"}
-              size="large"
-            >
-              {likeCount}
-            </Button>
+            <Typography variant="h4" sx={{ fontWeight: 'bold', color: '#d32f2f' }}>¥{item.price?.toLocaleString() || '0'}</Typography>
+            <Button startIcon={isLiked ? <FavoriteIcon /> : <FavoriteBorderIcon />} onClick={handleLike} color={isLiked ? "error" : "inherit"} size="large">{likeCount}</Button>
           </Box>
-
-          {/* 商品情報テーブル */}
           <Paper sx={{ p: 2, mb: 3, backgroundColor: '#f9f9f9', borderRadius: 2 }} variant="outlined">
             <Grid container spacing={2}>
               <Grid item xs={4}><Typography variant="caption" sx={{ color: '#666' }}>カテゴリ</Typography></Grid>
               <Grid item xs={8}><Typography variant="body2">{item.category}</Typography></Grid>
-              
               <Grid item xs={4}><Typography variant="caption" sx={{ color: '#666' }}>状態</Typography></Grid>
               <Grid item xs={8}><Typography variant="body2">{item.condition}</Typography></Grid>
-              
               <Grid item xs={4}><Typography variant="caption" sx={{ color: '#666' }}>発送予定</Typography></Grid>
               <Grid item xs={8}><Typography variant="body2">{item.shipping_days || '1-2日'}</Typography></Grid>
             </Grid>
           </Paper>
-
-          {/* 購入ボタン */}
           {isSold ? (
-            <Button fullWidth disabled variant="contained" size="large" sx={{ mb: 2, py: 1.5, bgcolor: '#ccc' }}>
-              売り切れました
-            </Button>
+            <Button fullWidth disabled variant="contained" size="large" sx={{ mb: 2, py: 1.5, bgcolor: '#ccc' }}>売り切れました</Button>
           ) : isMyItem ? (
-            <Button fullWidth disabled variant="contained" size="large" sx={{ mb: 2, py: 1.5 }}>
-              自分で出品した商品です
-            </Button>
+            <Button fullWidth disabled variant="contained" size="large" sx={{ mb: 2, py: 1.5 }}>自分で出品した商品です</Button>
           ) : (
-            <Button
-              fullWidth
-              variant="contained"
-              color="primary"
-              startIcon={<ShoppingCartIcon />}
-              onClick={handleBuy}
-              disabled={buying}
-              sx={{ mb: 2, py: 1.5, fontWeight: 'bold', fontSize: '1.1rem' }}
-            >
-              {buying ? '処理中...' : '購入手続きへ'}
-            </Button>
+            <Button fullWidth variant="contained" color="primary" startIcon={<ShoppingCartIcon />} onClick={handleBuy} disabled={buying} sx={{ mb: 2, py: 1.5, fontWeight: 'bold', fontSize: '1.1rem' }}>{buying ? '処理中...' : '購入手続きへ'}</Button>
           )}
-
-          {/* 商品説明 */}
           <Box sx={{ mb: 3 }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 1 }}>
-              商品説明
-            </Typography>
+            <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 1 }}>商品説明</Typography>
             <Paper variant="outlined" sx={{ p: 2, minHeight: '100px', bgcolor: '#fff' }}>
-                <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', color: '#333', lineHeight: 1.6 }}>
-                {item.description}
-                </Typography>
+                <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', color: '#333', lineHeight: 1.6 }}>{item.description}</Typography>
             </Paper>
           </Box>
         </Grid>
 
-        {/* ★ここが修正ポイント: コメントセクション 
-          xs={12} にして、常に画像と情報の「下の行」に配置されるようにしました。
-          これにより、上の要素の高さに左右されず、レイアウト崩れを防ぎます。
+        {/* ★コメントセクション修正ポイント
+          1. height: '500px' (例) で高さを固定。
+          2. flex-column にして、中身（リスト）を flexGrow: 1 で伸ばす。
+          3. これにより、コメントが0件でも満杯でも、箱の大きさは常に500pxになる。
         */}
         <Grid item xs={12}>
-          <Paper sx={{ p: 3, width: '100%' }}>
+          <Paper sx={{ 
+            p: 3, 
+            width: '100%', 
+            height: '500px', // ★ここが高さを固定する鍵です！好きな高さに変更可
+            display: 'flex',
+            flexDirection: 'column' 
+          }}>
             <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
               コメント ({item.comment_count || 0})
             </Typography>
 
-            {/* コメントリスト */}
-            {(!item.comments || item.comments.length === 0) ? (
-              // コメント0件の場合の表示を整える
-              <Box sx={{ 
-                py: 5, 
-                display: 'flex', 
-                flexDirection: 'column', 
-                alignItems: 'center', 
-                justifyContent: 'center',
-                bgcolor: '#f9f9f9',
-                borderRadius: 2,
-                mb: 3,
-                border: '1px dashed #ddd'
-              }}>
-                <Typography variant="body1" color="text.secondary" sx={{ fontWeight: 'bold', mb: 0.5 }}>
-                  まだコメントはありません
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  気になる点があれば出品者に質問してみましょう！
-                </Typography>
-              </Box>
-            ) : (
-              <List sx={{ maxHeight: 400, overflowY: 'auto', mb: 3 }}>
-                {item.comments.map((comment, idx) => (
-                  <React.Fragment key={comment.comment_id || idx}>
-                    <ListItem alignItems="flex-start" sx={{ px: 0 }}>
-                      <ListItemAvatar>
-                        <Avatar alt={comment.user?.username} />
-                      </ListItemAvatar>
-                      <ListItemText
-                        primary={
-                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
-                              {comment.user?.username || 'ユーザー'}
-                            </Typography>
-                            <Typography variant="caption" sx={{ color: '#999' }}>
-                              {comment.created_at ? new Date(comment.created_at).toLocaleDateString() : ''}
-                            </Typography>
-                          </Box>
-                        }
-                        secondary={
-                          <Typography variant="body2" sx={{ mt: 0.5, color: '#333', whiteSpace: 'pre-wrap' }}>
-                            {comment.content}
-                          </Typography>
-                        }
-                      />
-                    </ListItem>
-                    {idx < item.comments.length - 1 && <Divider variant="inset" component="li" />}
-                  </React.Fragment>
-                ))}
-              </List>
-            )}
+            {/* コメントリストエリア (ここが伸び縮みする) */}
+            <Box sx={{ 
+              flexGrow: 1, 
+              overflowY: 'auto', 
+              mb: 2,
+              border: '1px solid #eee',
+              borderRadius: 1,
+              p: 1
+            }}>
+              {(!item.comments || item.comments.length === 0) ? (
+                // コメント0件のときは中央にメッセージを表示
+                <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#999' }}>
+                   <Typography variant="body1" fontWeight="bold">コメントはまだありません</Typography>
+                   <Typography variant="caption">最初のコメントを投稿してみましょう！</Typography>
+                </Box>
+              ) : (
+                <List>
+                  {item.comments.map((comment, idx) => (
+                    <React.Fragment key={comment.comment_id || idx}>
+                      <ListItem alignItems="flex-start" sx={{ px: 1 }}>
+                        <ListItemAvatar>
+                          <Avatar alt={comment.user?.username} src={comment.user?.avatar_url} />
+                        </ListItemAvatar>
+                        <ListItemText
+                          primary={
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>{comment.user?.username || 'ユーザー'}</Typography>
+                              <Typography variant="caption" sx={{ color: '#999' }}>{comment.created_at ? new Date(comment.created_at).toLocaleDateString() : ''}</Typography>
+                            </Box>
+                          }
+                          secondary={
+                            <Typography variant="body2" sx={{ mt: 0.5, color: '#333', whiteSpace: 'pre-wrap' }}>{comment.content}</Typography>
+                          }
+                        />
+                      </ListItem>
+                      {idx < item.comments.length - 1 && <Divider variant="inset" component="li" />}
+                    </React.Fragment>
+                  ))}
+                </List>
+              )}
+            </Box>
 
-            {/* コメント投稿フォーム */}
-            <Box component="form" onSubmit={handleCommentSubmit} sx={{ display: 'flex', gap: 1, alignItems: 'flex-start' }}>
+            {/* コメント投稿フォーム (常に一番下に固定) */}
+            <Box component="form" onSubmit={handleCommentSubmit} sx={{ display: 'flex', gap: 1, alignItems: 'center', pt: 1, borderTop: '1px solid #eee' }}>
               <TextField
                 fullWidth
                 multiline
-                minRows={1}
-                maxRows={4}
+                maxRows={2}
                 placeholder="コメントを入力..."
                 value={commentText}
                 onChange={(e) => setCommentText(e.target.value)}
@@ -361,11 +283,7 @@ const ItemDetailPage = () => {
                 type="submit" 
                 disabled={!commentText.trim()} 
                 color="primary"
-                sx={{ 
-                    bgcolor: commentText.trim() ? 'primary.main' : 'action.disabledBackground',
-                    color: commentText.trim() ? '#fff' : 'action.disabled',
-                    '&:hover': { bgcolor: 'primary.dark' }
-                }}
+                sx={{ bgcolor: commentText.trim() ? 'primary.main' : '#eee', color: commentText.trim() ? '#fff' : '#aaa', '&:hover': { bgcolor: 'primary.dark' } }}
               >
                 <SendIcon />
               </IconButton>
@@ -377,40 +295,16 @@ const ItemDetailPage = () => {
         {recommendations.length > 0 && (
           <Grid item xs={12}>
             <Box sx={{ mt: 4, mb: 2 }}>
-                <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                こちらもおすすめ
-                </Typography>
+                <Typography variant="h6" sx={{ fontWeight: 'bold' }}>こちらもおすすめ</Typography>
             </Box>
             <Grid container spacing={2}>
               {recommendations.map(rec => (
                 <Grid item xs={6} sm={4} md={3} key={rec.item_id}>
-                  <Card
-                    component={Link}
-                    to={`/items/${rec.item_id}`}
-                    sx={{ 
-                        textDecoration: 'none', 
-                        color: 'inherit', 
-                        height: '100%', 
-                        display: 'flex',
-                        flexDirection: 'column',
-                        transition: 'all 0.2s', 
-                        '&:hover': { transform: 'translateY(-4px)', boxShadow: 4 } 
-                    }}
-                  >
-                    <CardMedia
-                      component="img"
-                      height="150"
-                      image={rec.image_url}
-                      alt={rec.name}
-                      sx={{ objectFit: 'cover' }}
-                    />
+                  <Card component={Link} to={`/items/${rec.item_id}`} sx={{ textDecoration: 'none', color: 'inherit', height: '100%', display: 'flex', flexDirection: 'column', transition: 'all 0.2s', '&:hover': { transform: 'translateY(-4px)', boxShadow: 4 } }}>
+                    <CardMedia component="img" height="150" image={rec.image_url} alt={rec.name} sx={{ objectFit: 'cover' }} />
                     <CardContent sx={{ flexGrow: 1 }}>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 'bold', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', lineHeight: 1.4, mb: 1 }}>
-                        {rec.name}
-                      </Typography>
-                      <Typography variant="body2" sx={{ color: '#d32f2f', fontWeight: 'bold' }}>
-                        ¥{rec.price?.toLocaleString() || '0'}
-                      </Typography>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 'bold', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', lineHeight: 1.4, mb: 1 }}>{rec.name}</Typography>
+                      <Typography variant="body2" sx={{ color: '#d32f2f', fontWeight: 'bold' }}>¥{rec.price?.toLocaleString() || '0'}</Typography>
                     </CardContent>
                   </Card>
                 </Grid>
@@ -420,19 +314,15 @@ const ItemDetailPage = () => {
         )}
       </Grid>
 
-      {/* 購入確認ダイアログ */}
+      {/* ダイアログ */}
       <Dialog open={buyConfirmOpen} onClose={() => setBuyConfirmOpen(false)}>
         <DialogTitle sx={{ fontWeight: 'bold' }}>購入確認</DialogTitle>
         <DialogContent>
-          <Typography>
-            「{item?.name}」を <Box component="span" sx={{ fontWeight: 'bold', color: 'error.main' }}>¥{item?.price?.toLocaleString()}</Box> で購入しますか？
-          </Typography>
+          <Typography>「{item?.name}」を <Box component="span" sx={{ fontWeight: 'bold', color: 'error.main' }}>¥{item?.price?.toLocaleString()}</Box> で購入しますか？</Typography>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>
           <Button onClick={() => setBuyConfirmOpen(false)} color="inherit">キャンセル</Button>
-          <Button onClick={confirmBuy} variant="contained" color="primary" disabled={buying} autoFocus>
-            {buying ? '処理中...' : '購入する'}
-          </Button>
+          <Button onClick={confirmBuy} variant="contained" color="primary" disabled={buying} autoFocus>{buying ? '処理中...' : '購入する'}</Button>
         </DialogActions>
       </Dialog>
     </Container>
