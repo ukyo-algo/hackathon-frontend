@@ -22,8 +22,14 @@ export const ProductCard = ({ item, width = 400, height = 340 }) => {
   return (
     <Card
       sx={{
-        width: width,
-        height: height,
+        width: `${width}px`,
+        minWidth: `${width}px`,
+        maxWidth: `${width}px`,
+        height: `${height}px`,
+        minHeight: `${height}px`,
+        maxHeight: `${height}px`,
+        boxSizing: 'border-box',
+        overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',
         transition: 'all 0.3s ease',
@@ -42,8 +48,12 @@ export const ProductCard = ({ item, width = 400, height = 340 }) => {
         component="img"
         sx={{
           width: '100%',
-          height: height * 0.55,
+          maxWidth: '100%',
+          display: 'block',
+          height: `${height * 0.55}px`,
+          maxHeight: `${height * 0.55}px`,
           objectFit: 'cover',
+          overflow: 'hidden',
           backgroundColor: COLORS.BACKGROUND,
           borderRadius: '8px 8px 0 0'
         }}
@@ -52,7 +62,7 @@ export const ProductCard = ({ item, width = 400, height = 340 }) => {
       />
 
       {/* 商品情報 */}
-      <CardContent sx={{ flex: 1 }}>
+      <CardContent sx={{ flex: 1, overflow: 'hidden' }}>
         {/* 商品名 */}
         <Typography
           variant="subtitle2"
@@ -84,7 +94,7 @@ export const ProductCard = ({ item, width = 400, height = 340 }) => {
       </CardContent>
 
       {/* アクションボタン */}
-      <CardActions sx={{ pt: 0 }}>
+      <CardActions sx={{ pt: 0, overflow: 'hidden' }}>
         <Button
           size="small"
           startIcon={<ShoppingCartIcon />}
@@ -155,14 +165,46 @@ export const ProductGrid = ({ items, loading, skeletonCount = 4 }) => {
     <Grid container spacing={2} alignItems="stretch" justifyContent="center">
         {loading ? (
           Array.from({ length: skeletonCount }).map((_, idx) => (
-            <Grid item key={idx} sx={{ display: 'flex', width: '400px', height: '340px' }}>
+            <Grid
+              item
+              key={idx}
+              sx={{
+                display: 'flex',
+                width: `${CARD_WIDTH}px`,
+                minWidth: `${CARD_WIDTH}px`,
+                maxWidth: `${CARD_WIDTH}px`,
+                height: `${CARD_HEIGHT}px`,
+                minHeight: `${CARD_HEIGHT}px`,
+                maxHeight: `${CARD_HEIGHT}px`,
+                boxSizing: 'border-box',
+                overflow: 'hidden',
+                justifyContent: 'center',
+                alignItems: 'stretch'
+              }}
+            >
               <SkeletonCard />
             </Grid>
           ))
         ) : (
           items.map((item) => (
-            <Grid item key={item.item_id} sx={{ display: 'flex', width: '400px', height: '340px' }}>
-              <ProductCard item={item} width={400} height={340} />
+            <Grid
+              item
+              key={item.item_id}
+              sx={{
+                display: 'flex',
+                width: `${CARD_WIDTH}px`,
+                minWidth: `${CARD_WIDTH}px`,
+                maxWidth: `${CARD_WIDTH}px`,
+                height: `${CARD_HEIGHT}px`,
+                minHeight: `${CARD_HEIGHT}px`,
+                maxHeight: `${CARD_HEIGHT}px`,
+                boxSizing: 'border-box',
+                overflow: 'hidden',
+                justifyContent: 'center',
+                alignItems: 'stretch'
+              }}
+            >
+              <ProductCard item={item} width={CARD_WIDTH} height={CARD_HEIGHT} />
             </Grid>
           ))
         )}
