@@ -23,7 +23,7 @@ import GachaPage from './pages/gacha_page';
 import SearchResults from './pages/SearchResults';
 
 // Components
-import AIChatWidget from './components/AIChatWidget';
+import AIChatWidgetSlide from './components/AIChatWidgetSlide';
 
 if (DEBUG) {
   console.log('🚀 FleaMarket Frontend started in development mode');
@@ -209,20 +209,8 @@ function App() {
                             </Container>
                         </Box>
                         
-                        {/* 右サイドバー: AIチャットウィジェット */}
-                        <Box 
-                            sx={{ 
-                                width: `${SIDEBAR.WIDTH}px`, 
-                                height: `calc(100vh - ${SIDEBAR.HEADER_HEIGHT}px)`,
-                                borderLeft: `1px solid ${COLORS.BORDER}`,
-                                overflowY: 'auto',
-                                backgroundColor: COLORS.BACKGROUND,
-                                position: 'sticky',
-                                top: 0
-                            }}
-                        >
-                            <AIChatWidget />
-                        </Box>
+                        {/* 右端に重ねて表示するAIチャットウィジェット */}
+                        <AIChatWidgetSlide />
                     </Box>
                 </Box>
             </AuthProvider>

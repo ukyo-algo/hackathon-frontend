@@ -1,4 +1,4 @@
-// hackathon-frontend/src/components/AIChatWidget.js
+// LLMチャットをする部分
 
 import React, { useState, useEffect, useRef } from 'react';
 import { 
