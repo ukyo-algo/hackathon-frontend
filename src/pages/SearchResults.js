@@ -1,9 +1,10 @@
-// src/components/SearchResults.js (または app/components/SearchResults.js)
-
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
-import { Box, Grid, Card, CardMedia, CardContent, Typography, Container, CircularProgress, Alert, Stack } from '@mui/material';
-import { FavoriteBorder, ChatBubbleOutline } from '@mui/icons-material';
+import { 
+  Box, Grid, Card, CardMedia, CardContent, Typography, Container, 
+  CircularProgress, Alert, Stack, Slider, FormControlLabel, Switch, Paper 
+} from '@mui/material';
+import { FavoriteBorder, ChatBubbleOutline, ViewComfy, ViewModule } from '@mui/icons-material';
 import axios from 'axios';
 import {
   API_BASE_URL,
@@ -19,7 +20,11 @@ const SearchResults = () => {
     const [loading, setLoading] = React.useState(true);
     const [error, setError] = React.useState(null);
 
-    React.useEffect(() => {
+    // ★追加機能: 列数（グリッド）の管理
+    // デフォルトは4列 (12 / 4 = 3)
+    const [cols, setCols] = useState(4); 
+
+    useEffect(() => {
         if (!query) {
             setLoading(false);
             return;
@@ -29,25 +34,14 @@ const SearchResults = () => {
             try {
                 setLoading(true);
                 setError(null);
-                console.log('🔍 Search request:', { query, url: `${API_BASE_URL}${API_ENDPOINTS.SEARCH}` });
-                
                 const response = await axios.get(`${API_BASE_URL}${API_ENDPOINTS.SEARCH}`, {
                     params: { query }
                 });
-                
-                console.log('✅ Search response:', response.data);
                 const items = Array.isArray(response.data) ? response.data : (response.data.items || []);
                 setResults(items);
             } catch (err) {
-                const detail = err?.response?.data || err?.message || 'Network Error';
-                console.error('❌ Search error:', err);
-                console.error('Error details:', detail);
-                
-                if (err?.code === 'ERR_NETWORK') {
-                    setError(MESSAGES.ERROR.NETWORK_ERROR);
-                } else {
-                    setError(MESSAGES.ERROR.SEARCH_FAILED);
-                }
+                console.error('Search error:', err);
+                setError(MESSAGES.ERROR.SEARCH_FAILED);
             } finally {
                 setLoading(false);
             }
@@ -56,162 +50,135 @@ const SearchResults = () => {
         fetchResults();
     }, [query]);
 
+    // グリッドのサイズ計算 (12分割システム)
+    // cols=2 -> xs=6, cols=3 -> xs=4, cols=4 -> xs=3, cols=6 -> xs=2
+    const gridSize = 12 / cols;
+
     return (
         <Container maxWidth="lg" sx={{ py: 4 }}>
-            {/* タイトル */}
-            <Box sx={{ mb: 4 }}>
-                <Typography variant="h5" sx={{ fontWeight: 'bold', mb: 1 }}>
-                    「{query}」の検索結果
-                </Typography>
-                {!loading && !error && (
-                    <Typography variant="body2" color="textSecondary">
-                        {results.length}件の商品が見つかりました
+            {/* ヘッダーエリア */}
+            <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: 2 }}>
+                <Box>
+                    <Typography variant="h5" sx={{ fontWeight: 'bold', mb: 1 }}>
+                        「{query}」の検索結果
                     </Typography>
+                    {!loading && !error && (
+                        <Typography variant="body2" color="textSecondary">
+                            {results.length}件の商品が見つかりました
+                        </Typography>
+                    )}
+                </Box>
+
+                {/* ★列数変更コントローラー */}
+                {!loading && !error && results.length > 0 && (
+                    <Paper variant="outlined" sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 2, bgcolor: '#f9f9f9' }}>
+                        <Typography variant="caption" sx={{ whiteSpace: 'nowrap' }}>表示サイズ</Typography>
+                        <ViewModule color="action" />
+                        <Slider
+                            value={cols}
+                            onChange={(e, newVal) => setCols(newVal)}
+                            step={null} // ステップ固定
+                            marks={[
+                                { value: 2, label: '大' },
+                                { value: 3, label: '中' },
+                                { value: 4, label: '小' },
+                                { value: 6, label: '極小' },
+                            ]}
+                            min={2}
+                            max={6}
+                            sx={{ width: 100 }}
+                        />
+                        <ViewComfy color="action" />
+                    </Paper>
                 )}
             </Box>
 
-            {/* ローディング */}
             {loading && (
-                <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
-                    <CircularProgress />
-                </Box>
+                <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}><CircularProgress /></Box>
             )}
 
-            {/* エラー表示 */}
-            {error && (
-                <Alert severity="error" sx={{ mb: 4 }}>
-                    {error}
-                </Alert>
-            )}
+            {error && <Alert severity="error" sx={{ mb: 4 }}>{error}</Alert>}
 
-            {/* 結果がない場合 */}
             {!loading && !error && results.length === 0 && (
-                <Alert severity="info">
-                    {MESSAGES.EMPTY_STATE.NO_SEARCH_RESULTS}
-                </Alert>
+                <Alert severity="info">{MESSAGES.EMPTY_STATE.NO_SEARCH_RESULTS}</Alert>
             )}
 
-            {/* 検索結果グリッド */}
+            {/* 結果グリッド */}
             {!loading && !error && results.length > 0 && (
                 <Grid container spacing={2}>
                     {results.map((item) => (
-                        <Grid item xs={12} sm={6} md={4} lg={3} key={item.item_id}>
+                        // ★ユーザー指定の列数を反映 (xsのみ指定で全サイズ強制適用)
+                        <Grid item xs={6} sm={gridSize} md={gridSize} key={item.item_id}>
                             <Link 
                                 to={`/items/${item.item_id}`} 
-                                style={{ 
-                                    textDecoration: 'none',
-                                    display: 'block',    // ★重要: Linkをブロック要素にして幅を確保
-                                    width: '100%',       // ★重要: 幅を親要素(Grid)いっぱいに広げる
-                                    height: '100%'       // ★重要: 高さを合わせる
-                                }}
+                                style={{ textDecoration: 'none', display: 'block', width: '100%', height: '100%' }}
                             >
                                 <Card sx={{
-                                    width: '100%',       // ★重要: カード幅を強制的に親に合わせる
-                                    height: '100%',      // 高さを揃える
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    transition: 'transform 0.2s, box-shadow 0.2s',
-                                    cursor: 'pointer',
-                                    '&:hover': {
-                                        transform: 'translateY(-4px)',
-                                        boxShadow: '0 8px 16px rgba(0,0,0,0.1)'
-                                    }
+                                    width: '100%', height: '100%',
+                                    display: 'flex', flexDirection: 'column',
+                                    transition: 'transform 0.2s',
+                                    '&:hover': { transform: 'translateY(-4px)', boxShadow: 4 }
                                 }}>
-                                    {/* 画像 */}
-                                    {item.image_url ? (
-                                        <CardMedia
-                                            component="img"
-                                            image={item.image_url}
-                                            alt={item.name}
-                                            sx={{ 
-                                                height: '180px',    // 高さを固定
-                                                width: '100%',      // ★最重要: 画像の横幅をカードに強制的に合わせる
-                                                objectFit: 'cover', // 比率を維持したまま枠を埋める
-                                                display: 'block'    // 隙間対策
-                                            }}
-                                        />
-                                    ) : (
-                                        <Box sx={{
-                                            height: '180px',
-                                            width: '100%',
-                                            backgroundColor: COLORS.BACKGROUND,
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center'
-                                        }}>
-                                            <Typography color="textSecondary">画像なし</Typography>
-                                        </Box>
-                                    )}
-
-                                    {/* 商品情報 */}
-                                    <CardContent sx={{ 
-                                        flex: 1, 
-                                        display: 'flex', 
-                                        flexDirection: 'column',
-                                        p: 2 
+                                    
+                                    {/* ★画像エリア (最強の固定方法) */}
+                                    <Box sx={{
+                                        width: '100%',
+                                        position: 'relative',
+                                        // padding-topで高さを「横幅に対する比率」で確保 (例: 100% = 正方形)
+                                        // ここでは少し横長に見える 75% (4:3) などを設定しても良いし、
+                                        // 完全固定高さにするなら height: '180px' でも良い。今回は固定高さでいきます。
+                                        height: '180px', 
+                                        bgcolor: COLORS.BACKGROUND,
+                                        overflow: 'hidden'
                                     }}>
-                                        {/* 商品名（高さを固定してガタツキ防止） */}
-                                        <Box sx={{ minHeight: '3em', mb: 1 }}>
-                                            <Typography
-                                                variant="body2"
+                                        {item.image_url ? (
+                                            <Box
+                                                component="img"
+                                                src={item.image_url}
+                                                alt={item.name}
                                                 sx={{
-                                                    overflow: 'hidden',
-                                                    textOverflow: 'ellipsis',
-                                                    display: '-webkit-box',
-                                                    WebkitLineClamp: 2,
-                                                    WebkitBoxOrient: 'vertical',
-                                                    color: '#333',
-                                                    lineHeight: '1.5em',
-                                                    maxHeight: '3em',
-                                                    wordBreak: 'break-word', // 長い英数字の折り返し
-                                                    overflowWrap: 'anywhere'
+                                                    position: 'absolute',
+                                                    top: 0, left: 0,
+                                                    width: '100%', height: '100%',
+                                                    objectFit: 'cover', // 商品写真は埋める
                                                 }}
-                                            >
+                                            />
+                                        ) : (
+                                            <Box sx={{ 
+                                                position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', 
+                                                display: 'flex', alignItems: 'center', justifyContent: 'center' 
+                                            }}>
+                                                <Typography variant="caption" color="textSecondary">No Image</Typography>
+                                            </Box>
+                                        )}
+                                    </Box>
+
+                                    <CardContent sx={{ flex: 1, display: 'flex', flexDirection: 'column', p: 2 }}>
+                                        <Box sx={{ minHeight: '3em', mb: 1 }}>
+                                            <Typography variant="body2" sx={{
+                                                overflow: 'hidden', textOverflow: 'ellipsis',
+                                                display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical',
+                                                lineHeight: '1.5em', maxHeight: '3em', wordBreak: 'break-word'
+                                            }}>
                                                 {item.name}
                                             </Typography>
                                         </Box>
 
-                                        {/* カテゴリ */}
-                                        <Typography variant="caption" color="textSecondary" sx={{ display: 'block', mb: 1 }}>
-                                            {item.category || 'その他'}
-                                        </Typography>
-
-                                        {/* 価格などの下部情報（最下部に固定） */}
                                         <Box sx={{ mt: 'auto' }}>
                                             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
                                                 <Typography variant="h6" sx={{ color: COLORS.PRIMARY, fontWeight: 'bold' }}>
                                                     ¥{item.price?.toLocaleString('ja-JP')}
                                                 </Typography>
-                                                
                                                 {item.status === 'sold' && (
-                                                    <Typography
-                                                        variant="caption"
-                                                        sx={{
-                                                            px: 1,
-                                                            py: 0.5,
-                                                            backgroundColor: '#ddd',
-                                                            color: COLORS.TEXT_TERTIARY,
-                                                            borderRadius: '4px'
-                                                        }}
-                                                    >
-                                                        売却済み
-                                                    </Typography>
+                                                    <Typography variant="caption" sx={{ px: 1, bgcolor: '#ddd', borderRadius: 1 }}>売却済</Typography>
                                                 )}
                                             </Box>
-
-                                            {/* いいね数・コメント数 */}
-                                            <Stack direction="row" spacing={2} alignItems="center">
+                                            <Stack direction="row" spacing={2}>
                                                 <Box sx={{ display: 'flex', alignItems: 'center', color: 'text.secondary' }}>
-                                                    <FavoriteBorder sx={{ fontSize: 16, mr: 0.5 }} />
-                                                    <Typography variant="caption">
-                                                        {item.like_count || 0}
-                                                    </Typography>
+                                                    <FavoriteBorder sx={{ fontSize: 16, mr: 0.5 }} /> {item.like_count || 0}
                                                 </Box>
                                                 <Box sx={{ display: 'flex', alignItems: 'center', color: 'text.secondary' }}>
-                                                    <ChatBubbleOutline sx={{ fontSize: 16, mr: 0.5 }} />
-                                                    <Typography variant="caption">
-                                                        {item.comment_count || 0}
-                                                    </Typography>
+                                                    <ChatBubbleOutline sx={{ fontSize: 16, mr: 0.5 }} /> {item.comment_count || 0}
                                                 </Box>
                                             </Stack>
                                         </Box>
