@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
-  Box, Alert, Select, MenuItem, FormControl, Tabs, Tab
+  Box, Alert, Select, MenuItem, FormControl, Button
 } from '@mui/material';
 import {
   API_BASE_URL,
@@ -128,29 +128,14 @@ const Homepage = () => {
         />
       )}
 
-      {/* カテゴリタブ */}
-      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
-        <Tabs
-          value={selectedCategory}
-          onChange={handleCategoryChange}
-          variant="scrollable"
-          scrollButtons="auto"
-          sx={{
-            '& .MuiTab-root': {
-              textTransform: 'none',
-              fontWeight: 'bold'
-            },
-            '& .Mui-selected': {
-              color: COLORS.PRIMARY
-            }
-          }}
-        >
-          <Tab label="おすすめ" value="recommended" />
-          <Tab label="すべて" value="all" />
-          {CATEGORIES.map(cat => (
-            <Tab key={cat} label={cat} value={cat} />
-          ))}
-        </Tabs>
+      {/* 主要ページ遷移ボタン群 */}
+      <Box sx={{ display: 'flex', gap: 2, mb: 3, justifyContent: 'center' }}>
+        <Button variant="contained" color="primary" href="/items/create">出品</Button>
+        <Button variant="outlined" color="primary" href="/mypage">マイページへ行く</Button>
+        <Button variant="outlined" color="secondary" href="/persona-selection">キャラを変更する</Button>
+        <Button variant="outlined" color="success" href="/gacha">ガチャを引く</Button>
+        <Button variant="outlined" color="error" href="/mypage">マイページ</Button>
+        <Button variant="outlined" color="inherit" onClick={() => { window.localStorage.clear(); window.location.href = '/login'; }}>ログアウト</Button>
       </Box>
 
       {/* ソートコントロール */}
