@@ -161,56 +161,48 @@ export const SectionHeader = ({ title, onSeeAll, showSeeAll = true }) => {
 export const ProductGrid = ({ items, loading, skeletonCount = 4 }) => {
   const CARD_WIDTH = 400;
   const CARD_HEIGHT = 340;
+  const GAP = 16; // px
   return (
-    <Grid container spacing={2} alignItems="stretch" justifyContent="center">
-        {loading ? (
-          Array.from({ length: skeletonCount }).map((_, idx) => (
-            <Grid
-              item
+    <Box
+      sx={{
+        display: 'grid',
+        gridTemplateColumns: `repeat(2, ${CARD_WIDTH}px)`,
+        justifyContent: 'center',
+        gap: `${GAP}px`,
+        width: '100%',
+        boxSizing: 'border-box'
+      }}
+    >
+      {loading
+        ? Array.from({ length: skeletonCount }).map((_, idx) => (
+            <Box
               key={idx}
               sx={{
-                display: 'flex',
                 width: `${CARD_WIDTH}px`,
-                minWidth: `${CARD_WIDTH}px`,
-                maxWidth: `${CARD_WIDTH}px`,
                 height: `${CARD_HEIGHT}px`,
-                minHeight: `${CARD_HEIGHT}px`,
-                maxHeight: `${CARD_HEIGHT}px`,
                 boxSizing: 'border-box',
-                overflow: 'hidden',
-                justifyContent: 'center',
-                alignItems: 'stretch'
+                overflow: 'hidden'
               }}
             >
               <SkeletonCard />
-            </Grid>
+            </Box>
           ))
-        ) : (
-          items.map((item) => (
-            <Grid
-              item
+        : items.map((item) => (
+            <Box
               key={item.item_id}
               sx={{
-                display: 'flex',
                 width: `${CARD_WIDTH}px`,
-                minWidth: `${CARD_WIDTH}px`,
-                maxWidth: `${CARD_WIDTH}px`,
                 height: `${CARD_HEIGHT}px`,
-                minHeight: `${CARD_HEIGHT}px`,
-                maxHeight: `${CARD_HEIGHT}px`,
                 boxSizing: 'border-box',
-                overflow: 'hidden',
-                justifyContent: 'center',
-                alignItems: 'stretch'
+                overflow: 'hidden'
               }}
             >
               <ProductCard item={item} width={CARD_WIDTH} height={CARD_HEIGHT} />
-            </Grid>
-          ))
-        )}
-    </Grid>
+            </Box>
+          ))}
+    </Box>
   );
-};
+}
 
 /**
  * ヒーローバナー
