@@ -2,19 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import {
-  Container,
-  Grid,
-  Card,
-  CardContent,
-  Typography,
-  Button,
-  Box,
-  CircularProgress,
-  Alert,
-  Chip
+  Container, Grid, Card, CardContent, Typography, Button, Box, 
+  CircularProgress, Alert, Chip, Slider, Paper
 } from '@mui/material';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import LockIcon from '@mui/icons-material/Lock';
+import { CheckCircle, Lock, GridView, ViewComfy } from '@mui/icons-material';
 import { useAuth } from '../contexts/auth_context';
 
 const PersonaSelectionPage = () => {
@@ -27,73 +18,72 @@ const PersonaSelectionPage = () => {
   const [updating, setUpdating] = useState(false);
   const { refreshUser } = useAuth();
 
+  // ★追加機能: 列数管理 (デフォルト3列)
+  const [cols, setCols] = useState(3);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const userRes = await api.get('/users/me');
+        const [userRes, allRes, ownedRes] = await Promise.all([
+          api.get('/users/me'),
+          api.get('/users/personas'),
+          api.get('/users/me/personas')
+        ]);
         setCurrentPersonaId(userRes.data.current_persona_id);
-
-        const allRes = await api.get('/users/personas');
         setAllPersonas(allRes.data);
-
-        const ownedRes = await api.get('/users/me/personas');
         setOwnedPersonas(ownedRes.data);
       } catch (err) {
-        console.error('Error fetching data:', err);
+        console.error('Error:', err);
         setError('データの取得に失敗しました。');
       } finally {
         setLoading(false);
       }
     };
-
     fetchData();
   }, []);
 
   const handlePersonaSelect = async (personaId) => {
     if (personaId === currentPersonaId) return;
-
     try {
       setUpdating(true);
       await api.put(`/users/me/persona?persona_id=${personaId}`);
       await refreshUser();
       setCurrentPersonaId(personaId);
     } catch (err) {
-      console.error('Error updating persona:', err);
-      setError('ペルソナの変更に失敗しました。');
+      setError('変更に失敗しました。');
     } finally {
       setUpdating(false);
     }
   };
 
-  if (loading) {
-    return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="50vh">
-        <CircularProgress />
-      </Box>
-    );
-  }
+  const gridSize = 12 / cols;
 
-  if (error) {
-    return (
-      <Container maxWidth="md" sx={{ mt: 4 }}>
-        <Alert severity="error">{error}</Alert>
-        <Button variant="contained" onClick={() => navigate('/mypage')} sx={{ mt: 2 }}>
-          マイページに戻る
-        </Button>
-      </Container>
-    );
-  }
+  if (loading) return <Box display="flex" justifyContent="center" minHeight="50vh" alignItems="center"><CircularProgress /></Box>;
+  if (error) return <Container sx={{ mt: 4 }}><Alert severity="error">{error}</Alert></Container>;
 
   return (
-    <Container maxWidth="md" sx={{ mt: 4, mb: 4 }}>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
-        <Typography variant="h4" component="h1" fontWeight="bold">
-          ペルソナ選択
-        </Typography>
-        <Button variant="outlined" onClick={() => navigate('/mypage')}>
-          マイページに戻る
-        </Button>
+    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+      {/* ヘッダー & コントローラー */}
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={4} flexWrap="wrap" gap={2}>
+        <Typography variant="h4" fontWeight="bold">ペルソナ選択</Typography>
+        
+        <Box display="flex" gap={2} alignItems="center">
+            {/* ★列数スライダー */}
+            <Paper variant="outlined" sx={{ px: 2, py: 1, display: 'flex', alignItems: 'center', gap: 1, bgcolor: '#f9f9f9' }}>
+                <GridView fontSize="small" color="action" />
+                <Slider
+                    value={cols}
+                    onChange={(e, v) => setCols(v)}
+                    step={null}
+                    marks={[{ value: 2 }, { value: 3 }, { value: 4 }, { value: 6 }]}
+                    min={2}
+                    max={6}
+                    sx={{ width: 80 }}
+                />
+            </Paper>
+            <Button variant="outlined" onClick={() => navigate('/mypage')}>戻る</Button>
+        </Box>
       </Box>
 
       <Grid container spacing={3}>
@@ -102,110 +92,62 @@ const PersonaSelectionPage = () => {
           const isSelected = persona.id === currentPersonaId;
           
           return (
-            <Grid item xs={6} sm={6} md={6} key={persona.id}>
+            <Grid item xs={6} sm={gridSize} md={gridSize} key={persona.id}>
               <Card
                 sx={{
-                  height: '100%', // Gridの高さいっぱいに広げる
-                  display: 'flex',
-                  flexDirection: 'column',
+                  height: '100%',
+                  display: 'flex', flexDirection: 'column',
                   cursor: isOwned ? 'pointer' : 'not-allowed',
                   border: isSelected ? '3px solid #4caf50' : '1px solid #e0e0e0',
                   position: 'relative',
-                  transition: 'transform 0.2s, box-shadow 0.2s',
+                  transition: '0.2s',
                   opacity: isOwned ? 1 : 0.6,
                   filter: isOwned ? 'none' : 'grayscale(100%)',
-                  '&:hover': {
-                    transform: isOwned ? 'scale(1.02)' : 'none',
-                    boxShadow: isOwned ? 6 : 1,
-                  },
+                  '&:hover': { transform: isOwned ? 'scale(1.02)' : 'none', boxShadow: isOwned ? 6 : 1 },
                 }}
                 onClick={() => isOwned && handlePersonaSelect(persona.id)}
               >
-                {/* 選択中バッジ */}
                 {isSelected && (
-                  <Chip
-                    icon={<CheckCircleIcon />}
-                    label="選択中"
-                    color="success"
-                    sx={{
-                      position: 'absolute',
-                      top: 10,
-                      right: 10,
-                      zIndex: 1,
-                      fontWeight: 'bold',
-                    }}
-                  />
+                  <Chip icon={<CheckCircle />} label="選択中" color="success" size="small" sx={{ position: 'absolute', top: 8, right: 8, zIndex: 1 }} />
                 )}
-
-                {/* 未所持ロックアイコン */}
                 {!isOwned && (
-                  <Box
-                    sx={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                      display: 'flex',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      bgcolor: 'rgba(0,0,0,0.1)',
-                      zIndex: 2,
-                    }}
-                  >
-                    <LockIcon sx={{ fontSize: 60, color: '#757575' }} />
+                  <Box sx={{ position: 'absolute', inset: 0, display: 'flex', justifyContent: 'center', alignItems: 'center', bgcolor: 'rgba(0,0,0,0.1)', zIndex: 2 }}>
+                    <Lock sx={{ fontSize: 40, color: '#757575' }} />
                   </Box>
                 )}
 
-                {/* ★画像エリアの修正ポイント★ */}
-                <Box
-                  sx={{
-                    height: '220px', // 高さを固定（少し余裕を持たせる）
-                    width: '100%',   // 横幅いっぱい
+                {/* ★画像エリア (Safari/Chrome対策済) */}
+                {/* 親BOXに heightを指定し、position: relativeを設定。
+                   子画像に position: absolute を設定。
+                   これにより「画像自身のサイズ」がレイアウトを押し広げることがなくなります。
+                */}
+                <Box sx={{
+                    width: '100%',
+                    height: '220px', // ここで高さをガチガチに固定
+                    position: 'relative',
                     bgcolor: '#f5f5f5',
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    p: 2,            // 画像周りの余白
-                    boxSizing: 'border-box'
-                  }}
-                >
+                    overflow: 'hidden'
+                }}>
                   <Box
                     component="img"
                     src={persona.avatar_url || '/avatars/default.png'}
                     alt={persona.name}
                     sx={{
-                      width: '100%',       // 親の幅に合わせる
-                      height: '100%',      // 親の高さに合わせる
-                      objectFit: 'contain', // アスペクト比を維持して全体を表示（切れないようにする）
-                      imageRendering: 'pixelated' // ドット絵用
+                      position: 'absolute', // 浮遊させて親枠に従わせる
+                      top: 0, left: 0,
+                      width: '100%', height: '100%',
+                      objectFit: 'contain', // ドット絵全体を見せる
+                      imageRendering: 'pixelated',
+                      p: 2,
+                      boxSizing: 'border-box'
                     }}
                   />
                 </Box>
 
-                <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                   {/* 名前エリアの高さを固定して、1行でも2行でもカードの高さが変わらないようにする */}
-                  <Typography 
-                    gutterBottom 
-                    variant="h6" 
-                    component="div" 
-                    align="center" 
-                    fontWeight="bold"
-                    sx={{
-                      minHeight: '2em', // 最低2行分確保
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center'
-                    }}
-                  >
+                <CardContent sx={{ flexGrow: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '80px' }}>
+                  <Typography variant="subtitle1" align="center" fontWeight="bold" sx={{ lineHeight: 1.2 }}>
                     {persona.name}
                   </Typography>
-                  
-                  {!isOwned && (
-                    <Typography variant="body2" color="text.secondary" align="center">
-                      未所持
-                    </Typography>
-                  )}
                 </CardContent>
               </Card>
             </Grid>
@@ -214,15 +156,7 @@ const PersonaSelectionPage = () => {
       </Grid>
       
       {updating && (
-         <Box sx={{ 
-           position: 'fixed', 
-           top: 0, left: 0, right: 0, bottom: 0, 
-           bgcolor: 'rgba(255,255,255,0.7)', 
-           zIndex: 9999,
-           display: 'flex',
-           justifyContent: 'center',
-           alignItems: 'center'
-         }}>
+         <Box sx={{ position: 'fixed', inset: 0, bgcolor: 'rgba(255,255,255,0.7)', zIndex: 9999, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
             <CircularProgress />
          </Box>
       )}
