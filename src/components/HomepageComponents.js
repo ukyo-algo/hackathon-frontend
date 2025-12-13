@@ -150,18 +150,20 @@ export const SectionHeader = ({ title, onSeeAll, showSeeAll = true }) => {
  * @param {number} skeletonCount - スケルトン表示数
  */
 export const ProductGrid = ({ items, loading, skeletonCount = 4 }) => {
+  const CARD_WIDTH = 400;
+  const CARD_HEIGHT = 340;
   return (
-    <Grid container spacing={2} alignItems="stretch">
+    <Grid container spacing={2} alignItems="stretch" justifyContent="center">
       {loading ? (
         Array.from({ length: skeletonCount }).map((_, idx) => (
-          <Grid item xs={12} sm={6} key={idx} sx={{ display: 'flex', height: '340px' }}>
+          <Grid item key={idx} sx={{ display: 'flex', width: CARD_WIDTH, height: CARD_HEIGHT }}>
             <SkeletonCard />
           </Grid>
         ))
       ) : (
         items.map((item) => (
-          <Grid item xs={12} sm={6} key={item.item_id} sx={{ display: 'flex', height: '340px' }}>
-            <ProductCard item={item} />
+          <Grid item key={item.item_id} sx={{ display: 'flex', width: CARD_WIDTH, height: CARD_HEIGHT }}>
+            <ProductCard item={item} width={CARD_WIDTH} height={CARD_HEIGHT} />
           </Grid>
         ))
       )}
@@ -189,19 +191,37 @@ export const HeroBanner = ({ title, subtitle, gradient }) => {
         marginBottom: 4,
         cursor: 'pointer',
         transition: 'all 0.3s ease',
-        '&:hover': {
-          boxShadow: 4
-        }
-      }}
-    >
-      <Box sx={{ textAlign: 'center' }}>
-        <Typography variant="h3" sx={{ fontWeight: 'bold', mb: 2 }}>
-          {title}
-        </Typography>
-        <Typography variant="h6" sx={{ color: 'rgba(255,255,255,0.9)' }}>
-          {subtitle}
-        </Typography>
-      </Box>
-    </Box>
-  );
-};
+        // width, heightはProductGridからpropsで受け取る
+        const width = 400;
+        const height = 340;
+        return (
+          <Card
+            sx={{
+              width: width,
+              height: height,
+              display: 'flex',
+              flexDirection: 'column',
+              transition: 'all 0.3s ease',
+              cursor: 'pointer',
+              '&:hover': {
+                transform: 'translateY(-4px)',
+                boxShadow: 3
+              }
+            }}
+            component={Link}
+            to={`/items/${item.item_id}`}
+            style={{ textDecoration: 'none', color: 'inherit' }}
+          >
+            {/* 商品画像 */}
+            <CardMedia
+              component="img"
+              sx={{
+                width: '100%',
+                height: height * 0.55, // 画像部分を高さの55%に固定
+                objectFit: 'cover',
+                backgroundColor: COLORS.BACKGROUND,
+                borderRadius: '8px 8px 0 0'
+              }}
+              image={item.image_url || PLACEHOLDER_IMAGE}
+              alt={item.name}
+            />
