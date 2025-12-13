@@ -123,7 +123,8 @@ const GachaPage = () => {
                   {result.persona.name}
                 </Typography>
                   <Typography variant="subtitle1" color="text.secondary">
-                    レアリティ: {'⭐️'.repeat(result.persona.rarity)}{result.persona.rarity_name}
+                    レアリティ: {'★'.repeat(result.persona.rarity)}
+                    {result.persona.rarity_name ? `（${result.persona.rarity_name}）` : ''}
                   </Typography>
                 
                 {!result.is_new && (
