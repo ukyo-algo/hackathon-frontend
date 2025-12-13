@@ -4,8 +4,7 @@
  */
 
 // ========== API設定 ==========
-// API_BASE_URL の末尾スラッシュを除去して二重スラッシュを防止
-export const API_BASE_URL = (process.env.REACT_APP_API_URL || 'http://localhost:8000').replace(/\/+$/, '');
+export const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 export const API_ENDPOINTS = {
   // アイテム関連
   ITEMS: '/api/v1/items',

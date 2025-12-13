@@ -38,7 +38,7 @@ const Homepage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [sortBy, setSortBy] = useState('newest');
-  const [selectedCategory, setSelectedCategory] = useState(categoryParam || 'all');
+  const [selectedCategory, setSelectedCategory] = useState(categoryParam || 'recommended');
 
   useEffect(() => {
     const loadItems = async () => {
@@ -77,7 +77,9 @@ const Homepage = () => {
   // カテゴリ変更ハンドラー
   const handleCategoryChange = (event, newValue) => {
     setSelectedCategory(newValue);
-    if (newValue === 'all') {
+    if (newValue === 'recommended') {
+      setSearchParams({ category: 'recommended' });
+    } else if (newValue === 'all') {
       setSearchParams({});
     } else {
       setSearchParams({ category: newValue });
@@ -90,7 +92,7 @@ const Homepage = () => {
 
   // フィルター＆ソート済み商品を取得
   const filteredItems = applyFilters(items, {
-    category: selectedCategory !== 'all' ? selectedCategory : null,
+    category: selectedCategory !== 'all' && selectedCategory !== 'recommended' ? selectedCategory : null,
     sortBy: sortBy
   });
 
@@ -143,6 +145,7 @@ const Homepage = () => {
             }
           }}
         >
+          <Tab label="おすすめ" value="recommended" />
           <Tab label="すべて" value="all" />
           {CATEGORIES.map(cat => (
             <Tab key={cat} label={cat} value={cat} />
@@ -168,7 +171,7 @@ const Homepage = () => {
       </Box>
 
       {/* 商品表示 */}
-      {selectedCategory !== 'all' ? (
+      {selectedCategory !== 'all' && selectedCategory !== 'recommended' ? (
         // 単一カテゴリ表示
         <Box>
           <SectionHeader title={`📦 ${selectedCategory}`} showSeeAll={false} />
@@ -180,6 +183,17 @@ const Homepage = () => {
           {!loading && filteredItems.length === 0 && (
             <Alert severity="info">このカテゴリには商品がありません</Alert>
           )}
+        </Box>
+      ) : selectedCategory === 'recommended' ? (
+        // おすすめタブ
+        <Box>
+          <SectionHeader title="✨ おすすめ" showSeeAll={false} />
+          {/* おすすめ商品リストをここに（現状は全商品を表示、将来LLM連携可） */}
+          <ProductGrid
+            items={items.slice(0, PAGINATION.ITEMS_PER_ROW)}
+            loading={loading}
+            skeletonCount={PAGINATION.ITEMS_PER_ROW}
+          />
         </Box>
       ) : (
         // 全表示モード：セクションベース
