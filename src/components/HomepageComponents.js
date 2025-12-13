@@ -16,15 +16,14 @@ import { COLORS, PLACEHOLDER_IMAGE } from '../config';
  * 商品カードコンポーネント
  * @param {Object} item - 商品データ
  */
-export const ProductCard = ({ item }) => {
+export const ProductCard = ({ item, width = 400, height = 340 }) => {
   // 画像URLのデバッグログ
   console.log('ProductCard image_url:', item.image_url, 'for item:', item.name);
-  
   return (
     <Card
       sx={{
-        width: '100%',
-        height: '340px',
+        width: width,
+        height: height,
         display: 'flex',
         flexDirection: 'column',
         transition: 'all 0.3s ease',
@@ -43,7 +42,7 @@ export const ProductCard = ({ item }) => {
         component="img"
         sx={{
           width: '100%',
-          height: '180px',
+          height: height * 0.55,
           objectFit: 'cover',
           backgroundColor: COLORS.BACKGROUND,
           borderRadius: '8px 8px 0 0'
@@ -154,19 +153,19 @@ export const ProductGrid = ({ items, loading, skeletonCount = 4 }) => {
   const CARD_HEIGHT = 340;
   return (
     <Grid container spacing={2} alignItems="stretch" justifyContent="center">
-      {loading ? (
-        Array.from({ length: skeletonCount }).map((_, idx) => (
-          <Grid item key={idx} sx={{ display: 'flex', width: CARD_WIDTH, height: CARD_HEIGHT }}>
-            <SkeletonCard />
-          </Grid>
-        ))
-      ) : (
-        items.map((item) => (
-          <Grid item key={item.item_id} sx={{ display: 'flex', width: CARD_WIDTH, height: CARD_HEIGHT }}>
-            <ProductCard item={item} width={CARD_WIDTH} height={CARD_HEIGHT} />
-          </Grid>
-        ))
-      )}
+        {loading ? (
+          Array.from({ length: skeletonCount }).map((_, idx) => (
+            <Grid item key={idx} sx={{ display: 'flex', width: '400px', height: '340px' }}>
+              <SkeletonCard />
+            </Grid>
+          ))
+        ) : (
+          items.map((item) => (
+            <Grid item key={item.item_id} sx={{ display: 'flex', width: '400px', height: '340px' }}>
+              <ProductCard item={item} width={400} height={340} />
+            </Grid>
+          ))
+        )}
     </Grid>
   );
 };
@@ -191,37 +190,12 @@ export const HeroBanner = ({ title, subtitle, gradient }) => {
         marginBottom: 4,
         cursor: 'pointer',
         transition: 'all 0.3s ease',
-        // width, heightはProductGridからpropsで受け取る
-        const width = 400;
-        const height = 340;
-        return (
-          <Card
-            sx={{
-              width: width,
-              height: height,
-              display: 'flex',
-              flexDirection: 'column',
-              transition: 'all 0.3s ease',
-              cursor: 'pointer',
-              '&:hover': {
-                transform: 'translateY(-4px)',
-                boxShadow: 3
-              }
-            }}
-            component={Link}
-            to={`/items/${item.item_id}`}
-            style={{ textDecoration: 'none', color: 'inherit' }}
-          >
-            {/* 商品画像 */}
-            <CardMedia
-              component="img"
-              sx={{
-                width: '100%',
-                height: height * 0.55, // 画像部分を高さの55%に固定
-                objectFit: 'cover',
-                backgroundColor: COLORS.BACKGROUND,
-                borderRadius: '8px 8px 0 0'
-              }}
-              image={item.image_url || PLACEHOLDER_IMAGE}
-              alt={item.name}
-            />
+      }}
+    >
+      <div>
+        <h1>{title}</h1>
+        <p>{subtitle}</p>
+      </div>
+    </Box>
+  );
+};
