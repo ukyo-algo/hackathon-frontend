@@ -102,7 +102,7 @@ const PersonaSelectionPage = () => {
           const isSelected = persona.id === currentPersonaId;
           
           return (
-            // ★自動レスポンシブ設定 (スマホ2列/タブレット3列/PC4列)
+            // スマホ2列 / タブレット3列 / PC4列
             <Grid item xs={6} sm={4} md={3} key={persona.id}>
               <Card
                 sx={{
@@ -149,11 +149,14 @@ const PersonaSelectionPage = () => {
                   </Box>
                 )}
 
-                {/* ★画像エリア (Safari/Chrome対策済み) */}
+                {/* ★画像エリアの修正ポイント
+                    height: 220px を削除し、aspectRatio: '1/1' に変更。
+                    これにより、カードの幅に応じて常に正方形が維持されます。
+                */}
                 <Box
                   sx={{
                     width: '100%',
-                    height: '220px',    // 高さを固定
+                    aspectRatio: '1 / 1', // ★ここを変更！常に正方形にする
                     position: 'relative',
                     bgcolor: '#f5f5f5',
                     overflow: 'hidden'
@@ -169,9 +172,9 @@ const PersonaSelectionPage = () => {
                       left: 0,
                       width: '100%',
                       height: '100%',
-                      objectFit: 'contain', // ドット絵全体を表示
-                      imageRendering: 'pixelated',
-                      p: 2,
+                      objectFit: 'contain', // ドット絵全体を収める（切れないようにする）
+                      imageRendering: 'pixelated', // ドット絵をくっきり表示
+                      p: 2, // 余白（枠いっぱいになりすぎないように）
                       boxSizing: 'border-box'
                     }}
                   />
@@ -185,10 +188,12 @@ const PersonaSelectionPage = () => {
                     align="center" 
                     fontWeight="bold"
                     sx={{
-                      minHeight: '2em',
+                      minHeight: '2em', // 名前が長くてもカードの高さがズレないように
                       display: 'flex',
                       alignItems: 'center',
-                      justifyContent: 'center'
+                      justifyContent: 'center',
+                      lineHeight: 1.2,
+                      fontSize: '1rem'
                     }}
                   >
                     {persona.name}

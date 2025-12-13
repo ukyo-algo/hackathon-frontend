@@ -45,7 +45,6 @@ const SearchResults = () => {
 
     return (
         <Container maxWidth="lg" sx={{ py: 4 }}>
-            {/* タイトル */}
             <Box sx={{ mb: 4 }}>
                 <Typography variant="h5" sx={{ fontWeight: 'bold', mb: 1 }}>
                     「{query}」の検索結果
@@ -75,11 +74,9 @@ const SearchResults = () => {
                 </Alert>
             )}
 
-            {/* 検索結果グリッド */}
             {!loading && !error && results.length > 0 && (
                 <Grid container spacing={2}>
                     {results.map((item) => (
-                        // ★自動レスポンシブ設定 (スマホ1列/タブレット2-3列/PC4列)
                         <Grid item xs={12} sm={6} md={4} lg={3} key={item.item_id}>
                             <Link 
                                 to={`/items/${item.item_id}`} 
@@ -96,15 +93,16 @@ const SearchResults = () => {
                                     display: 'flex',
                                     flexDirection: 'column',
                                     transition: 'transform 0.2s',
-                                    '&:hover': {
-                                        transform: 'translateY(-4px)',
-                                        boxShadow: 4
-                                    }
+                                    '&:hover': { transform: 'translateY(-4px)', boxShadow: 4 }
                                 }}>
-                                    {/* ★画像エリア (Safari/Chrome対策済み) */}
+                                    
+                                    {/* ★修正ポイント: 画像エリア
+                                        height: 180px を削除し、aspectRatio: '1/1' を指定。
+                                        これでカードの横幅に合わせて、高さが自動的に正方形になります。
+                                    */}
                                     <Box sx={{
                                         width: '100%',
-                                        height: '180px',    // 高さを固定
+                                        aspectRatio: '1 / 1', // ★ここが魔法のプロパティ (正方形)
                                         position: 'relative',
                                         bgcolor: COLORS.BACKGROUND,
                                         overflow: 'hidden'
@@ -120,7 +118,7 @@ const SearchResults = () => {
                                                     left: 0,
                                                     width: '100%',
                                                     height: '100%',
-                                                    objectFit: 'cover', // 枠を埋める
+                                                    objectFit: 'cover', // 枠に合わせてトリミング
                                                 }}
                                             />
                                         ) : (
@@ -133,13 +131,8 @@ const SearchResults = () => {
                                         )}
                                     </Box>
 
-                                    {/* 商品情報 */}
-                                    <CardContent sx={{ 
-                                        flex: 1, 
-                                        display: 'flex', 
-                                        flexDirection: 'column',
-                                        p: 2 
-                                    }}>
+                                    <CardContent sx={{ flex: 1, display: 'flex', flexDirection: 'column', p: 2 }}>
+                                        {/* 商品名 */}
                                         <Box sx={{ minHeight: '3em', mb: 1 }}>
                                             <Typography
                                                 variant="body2"
@@ -165,17 +158,8 @@ const SearchResults = () => {
                                                 <Typography variant="h6" sx={{ color: COLORS.PRIMARY, fontWeight: 'bold' }}>
                                                     ¥{item.price?.toLocaleString('ja-JP')}
                                                 </Typography>
-                                                
                                                 {item.status === 'sold' && (
-                                                    <Typography
-                                                        variant="caption"
-                                                        sx={{
-                                                            px: 1,
-                                                            py: 0.5,
-                                                            backgroundColor: '#ddd',
-                                                            borderRadius: '4px'
-                                                        }}
-                                                    >
+                                                    <Typography variant="caption" sx={{ px: 1, py: 0.5, backgroundColor: '#ddd', borderRadius: '4px' }}>
                                                         売却済み
                                                     </Typography>
                                                 )}
@@ -184,15 +168,11 @@ const SearchResults = () => {
                                             <Stack direction="row" spacing={2} alignItems="center">
                                                 <Box sx={{ display: 'flex', alignItems: 'center', color: 'text.secondary' }}>
                                                     <FavoriteBorder sx={{ fontSize: 16, mr: 0.5 }} />
-                                                    <Typography variant="caption">
-                                                        {item.like_count || 0}
-                                                    </Typography>
+                                                    <Typography variant="caption">{item.like_count || 0}</Typography>
                                                 </Box>
                                                 <Box sx={{ display: 'flex', alignItems: 'center', color: 'text.secondary' }}>
                                                     <ChatBubbleOutline sx={{ fontSize: 16, mr: 0.5 }} />
-                                                    <Typography variant="caption">
-                                                        {item.comment_count || 0}
-                                                    </Typography>
+                                                    <Typography variant="caption">{item.comment_count || 0}</Typography>
                                                 </Box>
                                             </Stack>
                                         </Box>
