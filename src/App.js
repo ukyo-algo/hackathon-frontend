@@ -141,40 +141,24 @@ const NavBar = () => {
                 </Box>
             </Box>
 
-            {/* 下部: カテゴリメニュー */}
-            <Box sx={{ 
-                display: 'flex', 
-                gap: 2,
-                px: 2,
-                py: 1,
-                overflowX: 'auto',
-                borderTop: `1px solid ${COLORS.BORDER}`,
-                '&::-webkit-scrollbar': { height: '4px' }
-            }}>
-                <Link to="/" style={{ textDecoration: 'none' }}>
-                    <Box sx={{ 
-                        whiteSpace: 'nowrap',
-                        color: COLORS.TEXT_SECONDARY,
-                        fontSize: '14px',
-                        cursor: 'pointer',
-                        '&:hover': { color: COLORS.PRIMARY }
-                    }}>
-                        おすすめ
-                    </Box>
+            {/* 下部: 主要ページ遷移ボタン群 */}
+            <Box sx={{ display: 'flex', gap: 2, px: 2, py: 1, borderTop: `1px solid ${COLORS.BORDER}`, justifyContent: 'flex-start' }}>
+                <Link to="/items/create" style={{ textDecoration: 'none' }}>
+                    <Box component="button" sx={{ backgroundColor: COLORS.PRIMARY, color: 'white', border: 'none', px: 2, py: 1, borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer', '&:hover': { backgroundColor: COLORS.PRIMARY_DARK } }}>出品</Box>
                 </Link>
-                {CATEGORIES.map(cat => (
-                    <Link key={cat} to={`/?category=${encodeURIComponent(cat)}`} style={{ textDecoration: 'none' }}>
-                        <Box sx={{ 
-                            whiteSpace: 'nowrap',
-                            color: COLORS.TEXT_SECONDARY,
-                            fontSize: '14px',
-                            cursor: 'pointer',
-                            '&:hover': { color: COLORS.PRIMARY }
-                        }}>
-                            {cat}
-                        </Box>
-                    </Link>
-                ))}
+                <Link to="/mypage" style={{ textDecoration: 'none' }}>
+                    <Box component="button" sx={{ backgroundColor: 'white', color: COLORS.PRIMARY, border: `1px solid ${COLORS.PRIMARY}`, px: 2, py: 1, borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer', '&:hover': { backgroundColor: COLORS.BACKGROUND } }}>マイページへ行く</Box>
+                </Link>
+                <Link to="/persona-selection" style={{ textDecoration: 'none' }}>
+                    <Box component="button" sx={{ backgroundColor: 'white', color: COLORS.SECONDARY, border: `1px solid ${COLORS.SECONDARY}`, px: 2, py: 1, borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer', '&:hover': { backgroundColor: COLORS.BACKGROUND } }}>キャラを変更する</Box>
+                </Link>
+                <Link to="/gacha" style={{ textDecoration: 'none' }}>
+                    <Box component="button" sx={{ backgroundColor: 'white', color: COLORS.SUCCESS, border: `1px solid ${COLORS.SUCCESS}`, px: 2, py: 1, borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer', '&:hover': { backgroundColor: COLORS.BACKGROUND } }}>ガチャを引く</Box>
+                </Link>
+                <Link to="/mypage" style={{ textDecoration: 'none' }}>
+                    <Box component="button" sx={{ backgroundColor: 'white', color: COLORS.ERROR, border: `1px solid ${COLORS.ERROR}`, px: 2, py: 1, borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer', '&:hover': { backgroundColor: COLORS.BACKGROUND } }}>マイページ</Box>
+                </Link>
+                <Box component="button" onClick={logout} sx={{ backgroundColor: 'white', color: COLORS.TEXT_SECONDARY, border: `1px solid ${COLORS.BORDER}`, px: 2, py: 1, borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer', '&:hover': { backgroundColor: COLORS.BACKGROUND } }}>ログアウト</Box>
             </Box>
         </Box>
     );
