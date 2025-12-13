@@ -66,39 +66,42 @@ export const SectionHeader = ({ title, onSeeAll, showSeeAll = true }) => {
 export const ProductGrid = ({ items, loading, skeletonCount = 4 }) => {
   const CARD_WIDTH = 400;
   const CARD_HEIGHT = 334;
-  const GAP = 16; // px
-    return (
-      <Box
-        sx={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          gap: `${GAP}px`,
-          width: '100%',
-          boxSizing: 'border-box',
-          p: 0,
-          m: 0,
-        }}
-      >
-        {(loading
-          ? Array.from({ length: skeletonCount }).map((_, idx) => ({ item: {}, key: idx }))
-          : items.map((item) => ({ item, key: item.item_id })))
-          .map(({ item, key }) => (
-            <Box
-              key={key}
-              sx={{
-                width: `${CARD_WIDTH}px`,
-                height: `${CARD_HEIGHT}px`,
-                boxSizing: 'border-box',
-                overflow: 'hidden',
-                p: 0,
-                m: 0,
-              }}
-            >
-              <ProductCard item={item} height={CARD_HEIGHT} width={CARD_WIDTH} />
-            </Box>
-          ))}
-      </Box>
-    );
+  return (
+    <Box
+      sx={{
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: 0,
+        justifyContent: 'flex-start',
+        width: 'fit-content',
+        margin: '0 auto',
+        boxSizing: 'border-box',
+        p: 0,
+        m: 0,
+      }}
+    >
+      {(loading
+        ? Array.from({ length: skeletonCount }).map((_, idx) => ({ item: {}, key: idx }))
+        : items.map((item) => ({ item, key: item.item_id })))
+        .map(({ item, key }) => (
+          <Box
+            key={key}
+            sx={{
+              width: '400px',
+              minWidth: '400px',
+              maxWidth: '400px',
+              height: `${CARD_HEIGHT}px`,
+              boxSizing: 'border-box',
+              overflow: 'hidden',
+              p: 0,
+              m: 0,
+            }}
+          >
+            <ProductCard item={item} height={CARD_HEIGHT} width={CARD_WIDTH} />
+          </Box>
+        ))}
+    </Box>
+  );
 }
 
 /**
@@ -133,6 +136,7 @@ export const HeroBanner = ({ title, subtitle, gradient }) => {
 
 // ProductCardの正しい定義
 export const ProductCard = ({ item, height = 334, width = 400 }) => {
+  const IMAGE_HEIGHT = Math.round(height * 0.55); // 334pxの55% ≒ 184px
   return (
     <Card
       sx={{
@@ -157,10 +161,12 @@ export const ProductCard = ({ item, height = 334, width = 400 }) => {
         component="img"
         sx={{
           width: '100%',
-          height: '55%',
+          height: `${IMAGE_HEIGHT}px`,
+          maxHeight: `${IMAGE_HEIGHT}px`,
           objectFit: 'contain',
           backgroundColor: COLORS.BACKGROUND,
           borderRadius: 0,
+          display: 'block',
         }}
         image={item.image_url || PLACEHOLDER_IMAGE}
         alt={item.name || ''}
