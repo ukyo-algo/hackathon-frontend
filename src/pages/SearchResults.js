@@ -37,9 +37,16 @@ const SearchResults = () => {
                 const items = Array.isArray(response.data) ? response.data : (response.data.items || []);
                 setResults(items);
             } catch (err) {
+                // ネットワーク/レスポンス別に詳細を出す（undefined防止）
+                const detail = err?.response?.data || err?.message || 'Network Error';
                 console.error('❌ Search error:', err);
-                console.error('Error details:', err.response?.data);
-                setError(MESSAGES.ERROR.SEARCH_FAILED);
+                console.error('Error details:', detail);
+                // Axiosのネットワークエラー時（CORS/500など）にユーザ向けメッセージを分岐
+                if (err?.code === 'ERR_NETWORK') {
+                    setError(MESSAGES.ERROR.NETWORK_ERROR);
+                } else {
+                    setError(MESSAGES.ERROR.SEARCH_FAILED);
+                }
             } finally {
                 setLoading(false);
             }
