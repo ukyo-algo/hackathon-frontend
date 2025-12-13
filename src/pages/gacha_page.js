@@ -122,9 +122,10 @@ const GachaPage = () => {
                 <Typography variant="h4" fontWeight="bold">
                   {result.persona.name}
                 </Typography>
-                <Typography variant="subtitle1" color="text.secondary">
-                  レアリティ: {'★'.repeat(result.persona.rarity)}
-                </Typography>
+                  <Typography variant="subtitle1" color="text.secondary">
+                    レアリティ: {'★'.repeat(result.persona.rarity)}
+                    {result.rarity_label ? `（${result.rarity_label}）` : ''}
+                  </Typography>
                 
                 {!result.is_new && (
                   <Typography variant="body2" sx={{ mt: 1, bgcolor: '#eee', display: 'inline-block', px: 2, py: 0.5, borderRadius: 4 }}>
