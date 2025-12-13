@@ -110,12 +110,6 @@ export const SIDEBAR = {
   HEADER_HEIGHT: 64,
 };
 
-// ========== ガチャ確率設定 ==========
-export const GACHA_PROBABILITIES = {
-  COMMON: 0.60,    // 60%
-  RARE: 0.30,      // 30%
-  LEGENDARY: 0.10, // 10%
-};
 
 // ========== その他の定数 ==========
 export const PLACEHOLDER_IMAGE = '/placeholder.png';
