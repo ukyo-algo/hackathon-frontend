@@ -17,8 +17,6 @@ import { COLORS, PLACEHOLDER_IMAGE } from '../config';
  * @param {Object} item - 商品データ
  */
 export const ProductCard = ({ item, width = 400, height = 340 }) => {
-  // 画像URLのデバッグログ
-  console.log('ProductCard image_url:', item.image_url, 'for item:', item.name);
   return (
     <Card
       sx={{
@@ -32,18 +30,12 @@ export const ProductCard = ({ item, width = 400, height = 340 }) => {
         overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',
-        transition: 'all 0.3s ease',
-        cursor: 'pointer',
-        '&:hover': {
-          transform: 'translateY(-4px)',
-          boxShadow: 3
-        }
+        cursor: 'pointer'
       }}
       component={Link}
       to={`/items/${item.item_id}`}
       style={{ textDecoration: 'none', color: 'inherit' }}
     >
-      {/* 商品画像 */}
       <CardMedia
         component="img"
         sx={{
@@ -81,11 +73,9 @@ export const ProductCard = ({ item, width = 400, height = 340 }) => {
         </Typography>
 
         {/* 価格 */}
-        <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1, mb: 1 }}>
-          <Typography variant="h6" sx={{ fontWeight: 'bold', color: COLORS.PRIMARY }}>
-            ¥{item.price?.toLocaleString() || '0'}
-          </Typography>
-        </Box>
+        <Typography variant="h6" sx={{ fontWeight: 'bold', color: COLORS.PRIMARY, mb: 1 }}>
+          ¥{item.price?.toLocaleString() || '0'}
+        </Typography>
 
         {/* 出品者 */}
         <Typography variant="caption" sx={{ color: COLORS.TEXT_TERTIARY, display: 'block', mb: 1 }}>
@@ -93,21 +83,7 @@ export const ProductCard = ({ item, width = 400, height = 340 }) => {
         </Typography>
       </CardContent>
 
-      {/* アクションボタン */}
-      <CardActions sx={{ pt: 0, overflow: 'hidden' }}>
-        <Button
-          size="small"
-          startIcon={<ShoppingCartIcon />}
-          variant="contained"
-          sx={{
-            flex: 1,
-            backgroundColor: COLORS.PRIMARY,
-            '&:hover': { backgroundColor: COLORS.PRIMARY_DARK }
-          }}
-        >
-          購入
-        </Button>
-      </CardActions>
+      {/* 余計なアクションは削除して高さ揃え */}
     </Card>
   );
 };
