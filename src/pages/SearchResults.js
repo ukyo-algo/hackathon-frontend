@@ -1,6 +1,7 @@
 import React from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
-import { Box, Grid, Card, CardMedia, CardContent, Typography, Container, CircularProgress, Alert } from '@mui/material';
+import { Box, Grid, Card, CardMedia, CardContent, Typography, Container, CircularProgress, Alert, Stack } from '@mui/material';
+import { FavoriteBorder, ChatBubbleOutline } from '@mui/icons-material';
 import axios from 'axios';
 import {
   API_BASE_URL,
@@ -30,7 +31,7 @@ const SearchResults = () => {
                 console.log('🔍 Search request:', { query, url: `${API_BASE_URL}${API_ENDPOINTS.SEARCH}` });
                 const response = await axios.get(`${API_BASE_URL}${API_ENDPOINTS.SEARCH}`, {
                     params: { query }
-                });
+                }); // search endpointからデータを取得
                 console.log('✅ Search response:', response.data);
                 // バックエンドは直接配列を返すので、そのまま使用
                 const items = Array.isArray(response.data) ? response.data : (response.data.items || []);
@@ -100,7 +101,7 @@ const SearchResults = () => {
                                     }
                                 }}>
                                     {/* 画像 */}
-                                    {item.images && item.images.length > 0 ? (
+                                    {item.image_url ? (
                                         <CardMedia
                                             component="img"
                                             height="180"
@@ -142,26 +143,43 @@ const SearchResults = () => {
                                             {item.category || 'その他'}
                                         </Typography>
 
-                                        {/* 価格 */}
-                                        <Typography variant="h6" sx={{ color: COLORS.PRIMARY, fontWeight: 'bold' }}>
-                                            ¥{item.price?.toLocaleString('ja-JP')}
-                                        </Typography>
+                                        {/* 価格とステータス */}
+                                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                                            <Typography variant="h6" sx={{ color: COLORS.PRIMARY, fontWeight: 'bold' }}>
+                                                ¥{item.price?.toLocaleString('ja-JP')}
+                                            </Typography>
+                                            
+                                            {item.status === 'sold' && (
+                                                <Typography
+                                                    variant="caption"
+                                                    sx={{
+                                                        px: 1,
+                                                        py: 0.5,
+                                                        backgroundColor: '#ddd',
+                                                        color: COLORS.TEXT_TERTIARY,
+                                                        borderRadius: '4px'
+                                                    }}
+                                                >
+                                                    売却済み
+                                                </Typography>
+                                            )}
+                                        </Box>
 
-                                        {/* ステータス */}
-                                        <Typography
-                                            variant="caption"
-                                            sx={{
-                                                display: 'inline-block',
-                                                mt: 1,
-                                                px: 1,
-                                                py: 0.5,
-                                                backgroundColor: item.status === 'sold' ? '#ddd' : COLORS.BACKGROUND,
-                                                color: item.status === 'sold' ? COLORS.TEXT_TERTIARY : COLORS.SUCCESS,
-                                                borderRadius: '4px'
-                                            }}
-                                        >
-                                            {item.status === 'sold' ? '売却済み' : '販売中'}
-                                        </Typography>
+                                        {/* いいね数・コメント数 */}
+                                        <Stack direction="row" spacing={2} alignItems="center">
+                                            <Box sx={{ display: 'flex', alignItems: 'center', color: 'text.secondary' }}>
+                                                <FavoriteBorder sx={{ fontSize: 16, mr: 0.5 }} />
+                                                <Typography variant="caption">
+                                                    {item.like_count || 0}
+                                                </Typography>
+                                            </Box>
+                                            <Box sx={{ display: 'flex', alignItems: 'center', color: 'text.secondary' }}>
+                                                <ChatBubbleOutline sx={{ fontSize: 16, mr: 0.5 }} />
+                                                <Typography variant="caption">
+                                                    {item.comment_count || 0}
+                                                </Typography>
+                                            </Box>
+                                        </Stack>
                                     </CardContent>
                                 </Card>
                             </Link>
