@@ -271,10 +271,10 @@ const ItemDetailPage = () => {
         </Grid>
 
         {/* コメントセクション */}
-        <Grid item xs={12}>
+        <Grid item xs={12} md={6}>
           <Paper sx={{ p: 3 }}>
             <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
-              コメント ({item.comments?.length || 0})
+              コメント ({item.comment_count || 0})
             </Typography>
 
             {/* コメントリスト */}
