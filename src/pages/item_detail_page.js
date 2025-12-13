@@ -272,7 +272,7 @@ const ItemDetailPage = () => {
 
         {/* コメントセクション */}
         <Grid item xs={12} md={6}>
-          <Paper sx={{ p: 3 }}>
+          <Paper sx={{ p: 3 ,width: '100%'}}>
             <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
               コメント ({item.comment_count || 0})
             </Typography>
