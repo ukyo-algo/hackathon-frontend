@@ -17,6 +17,9 @@ import { COLORS, PLACEHOLDER_IMAGE } from '../config';
  * @param {Object} item - 商品データ
  */
 export const ProductCard = ({ item }) => {
+  // 画像URLのデバッグログ
+  console.log('ProductCard image_url:', item.image_url, 'for item:', item.name);
+  
   return (
     <Card
       sx={{
