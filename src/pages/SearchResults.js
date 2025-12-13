@@ -86,8 +86,8 @@ const SearchResults = () => {
             {!loading && !error && results.length > 0 && (
                 <Grid container spacing={2}>
                     {results.map((item) => (
-                        <Grid item xs={12} sm={6} md={4} lg={3} key={item.id}>
-                            <Link to={`/items/${item.id}`} style={{ textDecoration: 'none' }}>
+                        <Grid item xs={12} sm={6} md={4} lg={3} key={item.item_id}>
+                            <Link to={`/items/${item.item_id}`} style={{ textDecoration: 'none' }}>
                                 <Card sx={{
                                     height: '100%',
                                     display: 'flex',
@@ -104,7 +104,7 @@ const SearchResults = () => {
                                         <CardMedia
                                             component="img"
                                             height="180"
-                                            image={item.images[0].url}
+                                            image={item.image_url}
                                             alt={item.name}
                                             sx={{ objectFit: 'cover' }}
                                         />
