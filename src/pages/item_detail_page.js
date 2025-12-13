@@ -30,7 +30,7 @@ const ItemDetailPage = () => {
   const navigate = useNavigate();
   const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
-  // --- (データ取得ロジックなどは変更なし) ---
+  // --- データ取得 ---
   useEffect(() => {
     const fetchItem = async () => {
       try {
@@ -62,6 +62,7 @@ const ItemDetailPage = () => {
     if (itemId) fetchRecommendations();
   }, [itemId, API_URL]);
 
+  // --- アクションハンドラ ---
   const handleLike = async () => {
     if (!currentUser) return navigate('/login');
     setIsLiked(!isLiked);
@@ -150,7 +151,7 @@ const ItemDetailPage = () => {
   return (
     <Container maxWidth="lg" sx={{ py: 3 }}>
       <Grid container spacing={4}>
-        {/* 左側: 商品画像 */}
+        {/* 左側: 商品画像 (md=6: 画面半分) */}
         <Grid item xs={12} md={6}>
           <Box sx={{ position: 'relative', width: '100%', aspectRatio: '1/1', bgcolor: '#f0f0f0', borderRadius: 2, overflow: 'hidden' }}>
             <CardMedia
@@ -167,9 +168,10 @@ const ItemDetailPage = () => {
           </Box>
         </Grid>
 
-        {/* 右側: 商品情報 */}
+        {/* 右側: 商品情報 (md=6: 画面半分) */}
         <Grid item xs={12} md={6}>
           <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 2, wordBreak: 'break-word' }}>{item.name}</Typography>
+          
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
             <Avatar alt={item.seller?.username} sx={{ width: 40, height: 40 }} />
             <Box>
@@ -177,11 +179,14 @@ const ItemDetailPage = () => {
               <Rating value={item.seller?.rating || 0} readOnly size="small" />
             </Box>
           </Box>
+          
           <Divider sx={{ my: 2 }} />
+          
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
             <Typography variant="h4" sx={{ fontWeight: 'bold', color: '#d32f2f' }}>¥{item.price?.toLocaleString() || '0'}</Typography>
             <Button startIcon={isLiked ? <FavoriteIcon /> : <FavoriteBorderIcon />} onClick={handleLike} color={isLiked ? "error" : "inherit"} size="large">{likeCount}</Button>
           </Box>
+          
           <Paper sx={{ p: 2, mb: 3, backgroundColor: '#f9f9f9', borderRadius: 2 }} variant="outlined">
             <Grid container spacing={2}>
               <Grid item xs={4}><Typography variant="caption" sx={{ color: '#666' }}>カテゴリ</Typography></Grid>
@@ -192,6 +197,7 @@ const ItemDetailPage = () => {
               <Grid item xs={8}><Typography variant="body2">{item.shipping_days || '1-2日'}</Typography></Grid>
             </Grid>
           </Paper>
+
           {isSold ? (
             <Button fullWidth disabled variant="contained" size="large" sx={{ mb: 2, py: 1.5, bgcolor: '#ccc' }}>売り切れました</Button>
           ) : isMyItem ? (
@@ -199,6 +205,7 @@ const ItemDetailPage = () => {
           ) : (
             <Button fullWidth variant="contained" color="primary" startIcon={<ShoppingCartIcon />} onClick={handleBuy} disabled={buying} sx={{ mb: 2, py: 1.5, fontWeight: 'bold', fontSize: '1.1rem' }}>{buying ? '処理中...' : '購入手続きへ'}</Button>
           )}
+
           <Box sx={{ mb: 3 }}>
             <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 1 }}>商品説明</Typography>
             <Paper variant="outlined" sx={{ p: 2, minHeight: '100px', bgcolor: '#fff' }}>
@@ -207,24 +214,24 @@ const ItemDetailPage = () => {
           </Box>
         </Grid>
 
-        {/* ★コメントセクション修正ポイント
-          1. height: '500px' (例) で高さを固定。
-          2. flex-column にして、中身（リスト）を flexGrow: 1 で伸ばす。
-          3. これにより、コメントが0件でも満杯でも、箱の大きさは常に500pxになる。
+        {/* ★コメントセクション完全版
+          xs={12} : これが「横幅12/12 = 100%」を意味します。
+          これにより、必ず上の要素の「下の行」に全幅で配置されます。
         */}
         <Grid item xs={12}>
           <Paper sx={{ 
             p: 3, 
             width: '100%', 
-            height: '500px', // ★ここが高さを固定する鍵です！好きな高さに変更可
+            height: '400px', // 高さを400pxに固定
             display: 'flex',
-            flexDirection: 'column' 
+            flexDirection: 'column',
+            boxSizing: 'border-box'
           }}>
             <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
               コメント ({item.comment_count || 0})
             </Typography>
 
-            {/* コメントリストエリア (ここが伸び縮みする) */}
+            {/* リスト部分（伸縮エリア） */}
             <Box sx={{ 
               flexGrow: 1, 
               overflowY: 'auto', 
@@ -234,28 +241,30 @@ const ItemDetailPage = () => {
               p: 1
             }}>
               {(!item.comments || item.comments.length === 0) ? (
-                // コメント0件のときは中央にメッセージを表示
                 <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#999' }}>
                    <Typography variant="body1" fontWeight="bold">コメントはまだありません</Typography>
                    <Typography variant="caption">最初のコメントを投稿してみましょう！</Typography>
                 </Box>
               ) : (
-                <List>
+                <List sx={{ width: '100%' }}>
                   {item.comments.map((comment, idx) => (
                     <React.Fragment key={comment.comment_id || idx}>
-                      <ListItem alignItems="flex-start" sx={{ px: 1 }}>
+                      <ListItem alignItems="flex-start" sx={{ px: 1, width: '100%' }}>
                         <ListItemAvatar>
                           <Avatar alt={comment.user?.username} src={comment.user?.avatar_url} />
                         </ListItemAvatar>
                         <ListItemText
                           primary={
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap' }}>
                               <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>{comment.user?.username || 'ユーザー'}</Typography>
                               <Typography variant="caption" sx={{ color: '#999' }}>{comment.created_at ? new Date(comment.created_at).toLocaleDateString() : ''}</Typography>
                             </Box>
                           }
                           secondary={
-                            <Typography variant="body2" sx={{ mt: 0.5, color: '#333', whiteSpace: 'pre-wrap' }}>{comment.content}</Typography>
+                            // wordBreak: 'break-word' でURLなどの長い文字列も枠内に収めます
+                            <Typography variant="body2" sx={{ mt: 0.5, color: '#333', whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                              {comment.content}
+                            </Typography>
                           }
                         />
                       </ListItem>
@@ -266,7 +275,7 @@ const ItemDetailPage = () => {
               )}
             </Box>
 
-            {/* コメント投稿フォーム (常に一番下に固定) */}
+            {/* 投稿フォーム（固定エリア） */}
             <Box component="form" onSubmit={handleCommentSubmit} sx={{ display: 'flex', gap: 1, alignItems: 'center', pt: 1, borderTop: '1px solid #eee' }}>
               <TextField
                 fullWidth
@@ -283,7 +292,7 @@ const ItemDetailPage = () => {
                 type="submit" 
                 disabled={!commentText.trim()} 
                 color="primary"
-                sx={{ bgcolor: commentText.trim() ? 'primary.main' : '#eee', color: commentText.trim() ? '#fff' : '#aaa', '&:hover': { bgcolor: 'primary.dark' } }}
+                sx={{ bgcolor: commentText.trim() ? 'primary.main' : '#eee', color: commentText.trim() ? '#fff' : '#aaa', '&:hover': { bgcolor: 'primary.dark' }, flexShrink: 0 }}
               >
                 <SendIcon />
               </IconButton>
@@ -291,7 +300,7 @@ const ItemDetailPage = () => {
           </Paper>
         </Grid>
 
-        {/* おすすめ商品 */}
+        {/* おすすめ商品エリア */}
         {recommendations.length > 0 && (
           <Grid item xs={12}>
             <Box sx={{ mt: 4, mb: 2 }}>
@@ -314,7 +323,7 @@ const ItemDetailPage = () => {
         )}
       </Grid>
 
-      {/* ダイアログ */}
+      {/* 購入確認ダイアログ */}
       <Dialog open={buyConfirmOpen} onClose={() => setBuyConfirmOpen(false)}>
         <DialogTitle sx={{ fontWeight: 'bold' }}>購入確認</DialogTitle>
         <DialogContent>
