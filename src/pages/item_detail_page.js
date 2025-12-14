@@ -113,32 +113,13 @@ const ItemDetailPage = () => {
       navigate('/login');
       return;
     }
-    setBuyConfirmOpen(true);
+    // 購入ページへ遷移
+    navigate(`/buy/${itemId}`);
   };
 
-  const confirmBuy = async () => {
-    setBuyConfirmOpen(false);
-    try {
-      setBuying(true);
-      const response = await fetch(`${API_URL}/api/v1/items/${itemId}/buy`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Firebase-Uid': currentUser.uid,
-        },
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || '購入に失敗しました');
-      }
-      // 購入完了後は到着待ちページへ遷移
-      navigate('/deliveries');
-    } catch (err) {
-      alert(err.message);
-    } finally {
-      setBuying(false);
-    }
+  // 旧ダイアログ用confirmBuyは購入ページ遷移に置き換え
+  const confirmBuy = () => {
+    navigate(`/buy/${itemId}`);
   };
 
   if (loading) return <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}><CircularProgress /></Box>;
