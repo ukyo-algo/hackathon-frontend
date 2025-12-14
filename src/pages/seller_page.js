@@ -8,6 +8,7 @@ import ProgressSteps from '../components/ProgressSteps';
 const SellerPage = () => {
   const { currentUser } = useAuth();
   const [list, setList] = useState([]);
+  const [unsoldItems, setUnsoldItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState(null);
 
@@ -19,9 +20,11 @@ const SellerPage = () => {
         setLoading(true);
         const headers = { 'X-Firebase-Uid': currentUser.uid };
         // pending_shipment と in_transit の両方を取得
-        const [resPending, resTransit] = await Promise.all([
+        const [resPending, resTransit, resMyItems] = await Promise.all([
           fetch(`${API_BASE_URL}/api/v1/transactions?role=seller&status=pending_shipment&limit=50`, { headers }),
           fetch(`${API_BASE_URL}/api/v1/transactions?role=seller&status=in_transit&limit=50`, { headers })
+          ,
+          fetch(`${API_BASE_URL}/api/v1/users/me/items`, { headers })
         ]);
 
         if (!ignore) {
@@ -30,6 +33,10 @@ const SellerPage = () => {
           if (resTransit.ok) combined = [...combined, ...(await resTransit.json())];
           
           setList(combined);
+          if (resMyItems.ok) {
+            const items = await resMyItems.json();
+            setUnsoldItems(items || []);
+          }
           setLastUpdated(new Date());
         }
       } finally {
@@ -65,7 +72,7 @@ const SellerPage = () => {
                   <span style={{ color: '#e91e63', fontWeight: 'bold' }}>¥{(t.item?.price || 0).toLocaleString()}</span>
                 </div>
                 <div style={{ flex: 1, marginLeft: 20, marginRight: 20 }}>
-                  <ProgressSteps status={t.status} compact={true} />
+                  <ProgressSteps status={t.status} />
                 </div>
                 {/* アクションボタン: 出品者は発送待ちなら発送実行 */}
                 {t.status === 'pending_shipment' && (
@@ -103,6 +110,27 @@ const SellerPage = () => {
           </div>
         )
       )}
+
+      {/* 未売品の一覧（参考表示） */}
+      <div style={{ marginTop: 24 }}>
+        <h3>未売品</h3>
+        {unsoldItems.length === 0 ? (
+          <p>現在、未売品はありません。</p>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {unsoldItems.map(item => (
+              <div key={item.item_id || item.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', border: '1px solid #ddd', borderRadius: 8, padding: 12 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <img src={item.image_url || 'https://via.placeholder.com/64'} alt={item.name || 'item'} style={{ width: 64, height: 64, objectFit: 'cover', borderRadius: 4 }} />
+                  <Link to={`/items/${item.item_id || item.id || ''}`} style={{ textDecoration: 'none', color: '#333', fontWeight: 'bold' }}>{item.name || '商品'}</Link>
+                  <span style={{ color: '#e91e63', fontWeight: 'bold' }}>¥{(item.price || 0).toLocaleString()}</span>
+                </div>
+                <div style={{ color: '#999', fontSize: 12 }}>ステータス: 未売</div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 };
