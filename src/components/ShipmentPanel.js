@@ -34,7 +34,7 @@ const ShipmentPanel = ({ currentUser }) => {
       }
     };
     fetchLists();
-  }, [currentUser, API_URL]);
+  }, [currentUser]);
 
   const handleShip = async (transactionId) => {
     if (!currentUser) return;
