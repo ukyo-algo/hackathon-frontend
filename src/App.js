@@ -16,9 +16,9 @@ import MyPage from './pages/my_page';
 import PersonaSelectionPage from './pages/persona_selection_page';
 import GachaPage from './pages/gacha_page';
 import SearchResults from './pages/SearchResults';
-import ShipmentsPage from './pages/shipments_page';
-import DeliveriesPage from './pages/deliveries_page';
-import RecentShipmentsPage from './pages/recent_shipments_page';
+import ShipmentsPage from './pages/seller_page';
+import DeliveriesPage from './pages/buyer_page';
+// import RecentShipmentsPage from './pages/recent_shipments_page';
 import BuyPage from './pages/buy_page';
 // Components
 import AIChatWidgetSlide from './components/AIChatWidgetSlide';
@@ -47,9 +47,9 @@ function App() {
                                     <Route path="/persona-selection" element={<PersonaSelectionPage />} />
                                     <Route path="/gacha" element={<GachaPage />} />
                                     <Route path="/search" element={<SearchResults />} />
-                                    <Route path="/shipments" element={<ShipmentsPage />} />
-                                    <Route path="/deliveries" element={<DeliveriesPage />} />
-                                    <Route path="/recent-shipments" element={<RecentShipmentsPage />} />
+                                    <Route path="/seller" element={<ShipmentsPage />} />
+                                    <Route path="/buyer" element={<DeliveriesPage />} />
+                                    {/* <Route path="/recent-shipments" element={<RecentShipmentsPage />} /> */}
                                     <Route path="/buy/:itemId" element={<BuyPage />} />
                                 </Routes>
                             </Container>

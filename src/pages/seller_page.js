@@ -5,7 +5,7 @@ import { API_BASE_URL } from '../config';
 import { Link } from 'react-router-dom';
 import ProgressSteps from '../components/ProgressSteps';
 
-const ShipmentsPage = () => {
+const SellerPage = () => {
   const { currentUser } = useAuth();
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -18,14 +18,18 @@ const ShipmentsPage = () => {
       try {
         setLoading(true);
         const headers = { 'X-Firebase-Uid': currentUser.uid };
-        const res = await fetch(`${API_BASE_URL}/api/v1/transactions?role=seller&status=pending_shipment&limit=50`, { headers });
+        // pending_shipment と in_transit の両方を取得
+        const [resPending, resTransit] = await Promise.all([
+          fetch(`${API_BASE_URL}/api/v1/transactions?role=seller&status=pending_shipment&limit=50`, { headers }),
+          fetch(`${API_BASE_URL}/api/v1/transactions?role=seller&status=in_transit&limit=50`, { headers })
+        ]);
+
         if (!ignore) {
-          if (res.ok) {
-            const data = await res.json();
-            setList(data);
-          } else {
-            setList([]);
-          }
+          let combined = [];
+          if (resPending.ok) combined = [...combined, ...(await resPending.json())];
+          if (resTransit.ok) combined = [...combined, ...(await resTransit.json())];
+          
+          setList(combined);
           setLastUpdated(new Date());
         }
       } finally {
@@ -72,4 +76,4 @@ const ShipmentsPage = () => {
   );
 };
 
-export default ShipmentsPage;
+export default SellerPage;

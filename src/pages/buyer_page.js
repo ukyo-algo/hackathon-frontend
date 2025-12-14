@@ -5,42 +5,33 @@ import { API_BASE_URL } from '../config';
 import { Link } from 'react-router-dom';
 import ProgressSteps from '../components/ProgressSteps';
 
-const DeliveriesPage = () => {
+const BuyerPage = () => {
   const { currentUser } = useAuth();
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState(null);
 
   useEffect(() => {
-    if (!currentUser) {
-      console.log('DeliveriesPage: no currentUser');
-      return;
-    }
+    if (!currentUser) return;
     let ignore = false;
     const fetchList = async () => {
-      console.log('DeliveriesPage: fetchList called', new Date());
       try {
         setLoading(true);
         const headers = { 'X-Firebase-Uid': currentUser.uid };
-        const url = `${API_BASE_URL}/api/v1/transactions?role=buyer&status=in_transit&limit=50`;
-        console.log('DeliveriesPage: fetching', url);
-        
-        const res = await fetch(url, { headers });
-        console.log('DeliveriesPage: API result status', res.status);
+        // pending_shipment と in_transit の両方を取得
+        const [resPending, resTransit] = await Promise.all([
+          fetch(`${API_BASE_URL}/api/v1/transactions?role=buyer&status=pending_shipment&limit=50`, { headers }),
+          fetch(`${API_BASE_URL}/api/v1/transactions?role=buyer&status=in_transit&limit=50`, { headers })
+        ]);
 
         if (!ignore) {
-          if (res.ok) {
-            const data = await res.json();
-            console.log('DeliveriesPage: data received', data);
-            setList(data);
-          } else {
-            console.log('DeliveriesPage: API not ok');
-            setList([]);
-          }
+          let combined = [];
+          if (resPending.ok) combined = [...combined, ...(await resPending.json())];
+          if (resTransit.ok) combined = [...combined, ...(await resTransit.json())];
+          
+          setList(combined);
           setLastUpdated(new Date());
         }
-      } catch (error) {
-        console.error('DeliveriesPage: fetch error', error);
       } finally {
         if (!ignore) setLoading(false);
       }
@@ -86,4 +77,4 @@ const DeliveriesPage = () => {
   );
 };
 
-export default DeliveriesPage;
+export default BuyerPage;
