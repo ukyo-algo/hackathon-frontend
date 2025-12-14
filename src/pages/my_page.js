@@ -69,20 +69,6 @@ const MyPage = () => {
             <p style={{ margin: 0, color: '#666' }}>{currentUser.email}</p>
           </div>
         </div>
-        <div style={{ display: 'flex', gap: '10px' }}>
-          <Link to="/gacha" style={{ textDecoration: 'none' }}>
-            <button style={{
-              padding: '8px 16px',
-              backgroundColor: COLORS.PRIMARY,
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              fontWeight: 'bold'
-            }}>
-              ガチャを引く
-            </button>
-          </Link>
           <Link to="/persona-selection" style={{ textDecoration: 'none' }}>
             <button style={{
               padding: '8px 16px',
@@ -96,48 +82,6 @@ const MyPage = () => {
               キャラ変更
             </button>
           </Link>
-          {/* 取引状況ページへの遷移ボタン */}
-          <Link to="/shipments" style={{ textDecoration: 'none' }}>
-            <button style={{
-              padding: '8px 16px',
-              backgroundColor: COLORS.SUCCESS,
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              fontWeight: 'bold'
-            }}>
-              発送待ち
-            </button>
-          </Link>
-          <Link to="/deliveries" style={{ textDecoration: 'none' }}>
-            <button style={{
-              padding: '8px 16px',
-              backgroundColor: COLORS.WARNING,
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              fontWeight: 'bold'
-            }}>
-              到着待ち
-            </button>
-          </Link>
-          {/* 最近の配送状況ページへの遷移ボタン */}
-          <Link to="/recent-shipments" style={{ textDecoration: 'none' }}>
-            <button style={{
-              padding: '8px 16px',
-              backgroundColor: COLORS.TEXT_TERTIARY,
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              fontWeight: 'bold'
-            }}>
-              最近の配送状況
-            </button>
-          </Link>
-        </div>
       </div>
 
       {/* タブ切り替えボタン */}
