@@ -143,7 +143,7 @@ export const CARD = {
 export const PROGRESS_STEPS = {
   LABELS: ['注文済み', '発送済み', '配達中', '配達済み'],
   STATUS_INDEX: {
-    pending_shipment: 1,
+    pending_shipment: 0,
     in_transit: 2,
     completed: 3,
   },

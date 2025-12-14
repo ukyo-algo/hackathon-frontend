@@ -55,7 +55,7 @@ const SellerPage = () => {
         </div>
       )}
       {loading ? <p>読み込み中...</p> : (
-        list.length === 0 ? <p>現在、発送待ちはありません。</p> : (
+        list.length === 0 ? <p>現在，取引中の売品はありません。</p> : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {list.map(t => (
               <div key={t.transaction_id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', border: '1px solid #ddd', borderRadius: 8, padding: 12 }}>

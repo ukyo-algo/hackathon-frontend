@@ -27,7 +27,25 @@ const ProgressSteps = ({ status, compact = false }) => {
             )}
           </div>
           {idx < PROGRESS_STEPS.LABELS.length - 1 && (
-            <div style={{ flex: 1, height: 2, background: idx < currentIndex ? activeColor : PROGRESS_STEPS.BAR_INACTIVE }} />
+            <div style={{ 
+              flex: 1, 
+              height: 2, 
+              background: idx < currentIndex ? activeColor : PROGRESS_STEPS.BAR_INACTIVE,
+              position: 'relative'
+            }}>
+              {idx === currentIndex && (
+                <div style={{
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  width: dotSize,
+                  height: dotSize,
+                  borderRadius: '50%',
+                  background: '#d32f2f'
+                }} />
+              )}
+            </div>
           )}
         </React.Fragment>
       ))}
