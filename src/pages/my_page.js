@@ -1,6 +1,7 @@
 // src/pages/my_page.js
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import ShipmentPanel from '../components/ShipmentPanel';
 import { useAuth } from '../contexts/auth_context';
 
 const MyPage = () => {
@@ -94,8 +95,53 @@ const MyPage = () => {
               キャラ変更
             </button>
           </Link>
+          {/* 取引状況ページへの遷移ボタン */}
+          <Link to="/shipments" style={{ textDecoration: 'none' }}>
+            <button style={{
+              padding: '8px 16px',
+              backgroundColor: '#2e7d32',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontWeight: 'bold'
+            }}>
+              発送待ち
+            </button>
+          </Link>
+          <Link to="/deliveries" style={{ textDecoration: 'none' }}>
+            <button style={{
+              padding: '8px 16px',
+              backgroundColor: '#ff9800',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontWeight: 'bold'
+            }}>
+              到着待ち
+            </button>
+          </Link>
+          {/* 最近の配送状況ページへの遷移ボタン */}
+          <Link to="/recent-shipments" style={{ textDecoration: 'none' }}>
+            <button style={{
+              padding: '8px 16px',
+              backgroundColor: '#455a64',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontWeight: 'bold'
+            }}>
+              最近の配送状況
+            </button>
+          </Link>
         </div>
       </div>
+
+      {/* タブ切り替えボタン */}
+      {/* 配送状況パネル（ヘッダー直下） */}
+      <ShipmentPanel currentUser={currentUser} API_URL={API_URL} />
 
       {/* タブ切り替えボタン */}
       <div style={{ display: 'flex', borderBottom: '1px solid #ddd', marginBottom: '20px', overflowX: 'auto' }}>
