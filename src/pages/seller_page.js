@@ -67,6 +67,37 @@ const SellerPage = () => {
                 <div style={{ flex: 1, marginLeft: 20, marginRight: 20 }}>
                   <ProgressSteps status={t.status} compact={true} />
                 </div>
+                {/* アクションボタン: 出品者は発送待ちなら発送実行 */}
+                {t.status === 'pending_shipment' && (
+                  <button
+                    onClick={async () => {
+                      try {
+                        const res = await fetch(`${API_BASE_URL}/api/v1/transactions/${t.transaction_id}/ship`, {
+                          method: 'POST',
+                          headers: { 'X-Firebase-Uid': currentUser.uid }
+                        });
+                        if (res.ok) {
+                          // 成功時は軽く再取得
+                          const headers = { 'X-Firebase-Uid': currentUser.uid };
+                          const [resPending, resTransit] = await Promise.all([
+                            fetch(`${API_BASE_URL}/api/v1/transactions?role=seller&status=pending_shipment&limit=50`, { headers }),
+                            fetch(`${API_BASE_URL}/api/v1/transactions?role=seller&status=in_transit&limit=50`, { headers })
+                          ]);
+                          let combined = [];
+                          if (resPending.ok) combined = [...combined, ...(await resPending.json())];
+                          if (resTransit.ok) combined = [...combined, ...(await resTransit.json())];
+                          setList(combined);
+                          setLastUpdated(new Date());
+                        }
+                      } catch (e) {
+                        console.error('Ship action error:', e);
+                      }
+                    }}
+                    style={{ padding: '8px 12px', border: 'none', borderRadius: 6, backgroundColor: '#1976d2', color: '#fff', fontWeight: 'bold', cursor: 'pointer' }}
+                  >
+                    発送しました
+                  </button>
+                )}
               </div>
             ))}
           </div>
