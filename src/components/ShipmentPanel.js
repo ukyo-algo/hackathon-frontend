@@ -40,6 +40,7 @@ const ShipmentPanel = ({ currentUser }) => {
   // 購入完了イベント（Routerのstate）でも再取得
   useEffect(() => {
     const state = location?.state;
+    console.log('Location state changed:', state);
     if (state?.event === 'PURCHASE_COMPLETED') {
       refreshLists();
     }
