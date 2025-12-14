@@ -21,6 +21,9 @@ import MyPage from './pages/my_page';
 import PersonaSelectionPage from './pages/persona_selection_page';
 import GachaPage from './pages/gacha_page';
 import SearchResults from './pages/SearchResults';
+import ShipmentsPage from './pages/shipments_page';
+import DeliveriesPage from './pages/deliveries_page';
+import RecentShipmentsPage from './pages/recent_shipments_page';
 
 // Components
 import AIChatWidgetSlide from './components/AIChatWidgetSlide';
@@ -96,14 +99,21 @@ const NavBar = () => {
                     <Link to="/items/create" style={{ textDecoration: 'none' }}>
                         <Box component="button" sx={{ backgroundColor: COLORS.PRIMARY, color: 'white', border: 'none', px: 2, py: 1, borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer', '&:hover': { backgroundColor: COLORS.PRIMARY_DARK } }}>出品</Box>
                     </Link>
-                    <Link to="/mypage" style={{ textDecoration: 'none' }}>
-                        <Box component="button" sx={{ backgroundColor: 'white', color: COLORS.PRIMARY, border: `1px solid ${COLORS.PRIMARY}`, px: 2, py: 1, borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer', '&:hover': { backgroundColor: COLORS.BACKGROUND } }}>マイページへ行く</Box>
-                    </Link>
                     <Link to="/persona-selection" style={{ textDecoration: 'none' }}>
                         <Box component="button" sx={{ backgroundColor: 'white', color: COLORS.SECONDARY, border: `1px solid ${COLORS.SECONDARY}`, px: 2, py: 1, borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer', '&:hover': { backgroundColor: COLORS.BACKGROUND } }}>キャラを変更する</Box>
                     </Link>
                     <Link to="/gacha" style={{ textDecoration: 'none' }}>
                         <Box component="button" sx={{ backgroundColor: 'white', color: COLORS.SUCCESS, border: `1px solid ${COLORS.SUCCESS}`, px: 2, py: 1, borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer', '&:hover': { backgroundColor: COLORS.BACKGROUND } }}>ガチャを引く</Box>
+                    </Link>
+                    {/* 取引関連のショートカット */}
+                    <Link to="/shipments" style={{ textDecoration: 'none' }}>
+                        <Box component="button" sx={{ backgroundColor: 'white', color: COLORS.SUCCESS, border: `1px solid ${COLORS.SUCCESS}`, px: 2, py: 1, borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer', '&:hover': { backgroundColor: COLORS.BACKGROUND } }}>発送待ち</Box>
+                    </Link>
+                    <Link to="/deliveries" style={{ textDecoration: 'none' }}>
+                        <Box component="button" sx={{ backgroundColor: 'white', color: COLORS.WARNING, border: `1px solid ${COLORS.WARNING}`, px: 2, py: 1, borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer', '&:hover': { backgroundColor: COLORS.BACKGROUND } }}>到着待ち</Box>
+                    </Link>
+                    <Link to="/recent-shipments" style={{ textDecoration: 'none' }}>
+                        <Box component="button" sx={{ backgroundColor: 'white', color: COLORS.TEXT_TERTIARY, border: `1px solid ${COLORS.BORDER}`, px: 2, py: 1, borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer', '&:hover': { backgroundColor: COLORS.BACKGROUND } }}>最近の配達状況</Box>
                     </Link>
                     <Box component="button" onClick={logout} sx={{ backgroundColor: 'white', color: COLORS.TEXT_SECONDARY, border: `1px solid ${COLORS.BORDER}`, px: 2, py: 1, borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer', '&:hover': { backgroundColor: COLORS.BACKGROUND } }}>ログアウト</Box>
                 </Box>
@@ -146,6 +156,9 @@ function App() {
                                     <Route path="/persona-selection" element={<PersonaSelectionPage />} />
                                     <Route path="/gacha" element={<GachaPage />} />
                                     <Route path="/search" element={<SearchResults />} />
+                                    <Route path="/shipments" element={<ShipmentsPage />} />
+                                    <Route path="/deliveries" element={<DeliveriesPage />} />
+                                    <Route path="/recent-shipments" element={<RecentShipmentsPage />} />
                                 </Routes>
                             </Container>
                         </Box>

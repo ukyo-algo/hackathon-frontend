@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import ShipmentPanel from '../components/ShipmentPanel';
+import { COLORS, PLACEHOLDER_IMAGE, CARD } from '../config';
 import { useAuth } from '../contexts/auth_context';
 
 const MyPage = () => {
@@ -72,7 +73,7 @@ const MyPage = () => {
           <Link to="/gacha" style={{ textDecoration: 'none' }}>
             <button style={{
               padding: '8px 16px',
-              backgroundColor: '#e91e63',
+              backgroundColor: COLORS.PRIMARY,
               color: 'white',
               border: 'none',
               borderRadius: '4px',
@@ -99,7 +100,7 @@ const MyPage = () => {
           <Link to="/shipments" style={{ textDecoration: 'none' }}>
             <button style={{
               padding: '8px 16px',
-              backgroundColor: '#2e7d32',
+              backgroundColor: COLORS.SUCCESS,
               color: 'white',
               border: 'none',
               borderRadius: '4px',
@@ -112,7 +113,7 @@ const MyPage = () => {
           <Link to="/deliveries" style={{ textDecoration: 'none' }}>
             <button style={{
               padding: '8px 16px',
-              backgroundColor: '#ff9800',
+              backgroundColor: COLORS.WARNING,
               color: 'white',
               border: 'none',
               borderRadius: '4px',
@@ -126,7 +127,7 @@ const MyPage = () => {
           <Link to="/recent-shipments" style={{ textDecoration: 'none' }}>
             <button style={{
               padding: '8px 16px',
-              backgroundColor: '#455a64',
+              backgroundColor: COLORS.TEXT_TERTIARY,
               color: 'white',
               border: 'none',
               borderRadius: '4px',
@@ -141,7 +142,7 @@ const MyPage = () => {
 
       {/* タブ切り替えボタン */}
       {/* 配送状況パネル（ヘッダー直下） */}
-      <ShipmentPanel currentUser={currentUser} API_URL={API_URL} />
+      <ShipmentPanel currentUser={currentUser} />
 
       {/* タブ切り替えボタン */}
       <div style={{ display: 'flex', borderBottom: '1px solid #ddd', marginBottom: '20px', overflowX: 'auto' }}>
@@ -205,20 +206,20 @@ const TabButton = ({ label, isActive, onClick }) => (
 const ItemCard = ({ item, isSold }) => {
   if (!item) return null; // データ欠損対策
   return (
-    <div style={{ border: '1px solid #ccc', padding: '10px', width: '200px', borderRadius: '8px' }}>
+    <div style={{ border: `1px solid ${CARD.BORDER}`, padding: '10px', width: `${CARD.WIDTH}px`, borderRadius: `${CARD.RADIUS}px` }}>
       <Link to={`/items/${item.item_id}`} style={{ textDecoration: 'none', color: 'black' }}>
         <div style={{ position: 'relative' }}>
           <img 
-            src={item.image_url || "https://via.placeholder.com/150"} 
+            src={item.image_url || PLACEHOLDER_IMAGE} 
             alt={item.name} 
-            style={{ width: '100%', height: '150px', objectFit: 'cover', borderRadius: '4px' }} 
+            style={{ width: '100%', height: `${CARD.IMAGE_HEIGHT}px`, objectFit: 'cover', borderRadius: '4px' }} 
           />
           {(isSold || item.status === 'sold') && (
-             <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.5)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>SOLD</div>
+             <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: CARD.OVERLAY_BG, color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>SOLD</div>
           )}
         </div>
         <h3 style={{ fontSize: '16px', margin: '10px 0 5px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.name}</h3>
-        <p style={{ margin: 0, color: '#e91e63', fontWeight: 'bold' }}>¥{item.price.toLocaleString()}</p>
+        <p style={{ margin: 0, color: COLORS.PRIMARY, fontWeight: 'bold' }}>¥{item.price.toLocaleString()}</p>
       </Link>
     </div>
   );

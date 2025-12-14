@@ -117,3 +117,41 @@ export const DEFAULT_AVATAR_IMAGE = '/default-avatar.png';
 
 // Debugモードフラグ（開発時に便利）
 export const DEBUG = process.env.NODE_ENV === 'development';
+
+// ========== 配送パネル設定 ==========
+export const SHIPMENT_PANEL = {
+  // 取得件数（各枠の最大表示数）
+  LIMIT_SELLER_PENDING: 5,
+  LIMIT_BUYER_TRANSIT: 5,
+  LIMIT_RECENT_SHIPPED: 5,
+  LIMIT_RECENT_COMPLETED: 5,
+  // レイアウト設定
+  GRID_COLUMNS: 2,
+  GRID_GAP: 16,
+};
+
+// ========== カードUI設定 ==========
+export const CARD = {
+  WIDTH: 200,
+  IMAGE_HEIGHT: 150,
+  RADIUS: 8,
+  BORDER: '#ccc',
+  OVERLAY_BG: 'rgba(0,0,0,0.5)',
+};
+
+// ========== 進捗ステップ設定 ==========
+export const PROGRESS_STEPS = {
+  LABELS: ['注文済み', '発送済み', '配達中', '配達済み'],
+  STATUS_INDEX: {
+    pending_shipment: 1,
+    in_transit: 2,
+    completed: 3,
+  },
+  ACTIVE_COLOR: '#1976d2',
+  INACTIVE_COLOR: '#ccc',
+  TEXT_ACTIVE: '#1976d2',
+  TEXT_INACTIVE: '#999',
+  DOT_SIZE: 12,
+  DOT_SIZE_COMPACT: 10,
+  BAR_INACTIVE: '#ddd',
+};

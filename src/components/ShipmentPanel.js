@@ -1,8 +1,9 @@
 // src/components/ShipmentPanel.js
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { SHIPMENT_PANEL, API_BASE_URL } from '../config';
 
-const ShipmentPanel = ({ currentUser, API_URL }) => {
+const ShipmentPanel = ({ currentUser }) => {
   const [sellerPending, setSellerPending] = useState([]); // 自分が出品者: 発送待ち
   const [buyerTransit, setBuyerTransit] = useState([]);   // 自分が購入者: 到着待ち(配送中)
   const [recentShipped, setRecentShipped] = useState([]); // 最近発送された(自分関連)
@@ -10,17 +11,17 @@ const ShipmentPanel = ({ currentUser, API_URL }) => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (!currentUser || !API_URL) return;
+    if (!currentUser) return;
     const headers = { 'X-Firebase-Uid': currentUser.uid };
     const fetchLists = async () => {
       try {
         setLoading(true);
         // 役割・ステータスで4種類取得
         const [sp, bt, rs, rc] = await Promise.all([
-          fetch(`${API_URL}/api/v1/transactions?role=seller&status=pending_shipment&limit=5`, { headers }),
-          fetch(`${API_URL}/api/v1/transactions?role=buyer&status=in_transit&limit=5`, { headers }),
-          fetch(`${API_URL}/api/v1/transactions?role=seller&status=in_transit&limit=5`, { headers }),
-          fetch(`${API_URL}/api/v1/transactions?role=buyer&status=completed&limit=5`, { headers })
+          fetch(`${API_BASE_URL}/api/v1/transactions?role=seller&status=pending_shipment&limit=${SHIPMENT_PANEL.LIMIT_SELLER_PENDING}`, { headers }),
+          fetch(`${API_BASE_URL}/api/v1/transactions?role=buyer&status=in_transit&limit=${SHIPMENT_PANEL.LIMIT_BUYER_TRANSIT}`, { headers }),
+          fetch(`${API_BASE_URL}/api/v1/transactions?role=seller&status=in_transit&limit=${SHIPMENT_PANEL.LIMIT_RECENT_SHIPPED}`, { headers }),
+          fetch(`${API_BASE_URL}/api/v1/transactions?role=buyer&status=completed&limit=${SHIPMENT_PANEL.LIMIT_RECENT_COMPLETED}`, { headers })
         ]);
         if (sp.ok) setSellerPending(await sp.json());
         if (bt.ok) setBuyerTransit(await bt.json());
@@ -36,17 +37,17 @@ const ShipmentPanel = ({ currentUser, API_URL }) => {
   }, [currentUser, API_URL]);
 
   const handleShip = async (transactionId) => {
-    if (!currentUser || !API_URL) return;
+    if (!currentUser) return;
     try {
-      const res = await fetch(`${API_URL}/api/v1/transactions/${transactionId}/ship`, {
+      const res = await fetch(`${API_BASE_URL}/api/v1/transactions/${transactionId}/ship`, {
         method: 'POST',
         headers: { 'X-Firebase-Uid': currentUser.uid }
       });
       if (res.ok) {
         // 反映のため再取得
         const headers = { 'X-Firebase-Uid': currentUser.uid };
-        const sp = await fetch(`${API_URL}/api/v1/transactions?role=seller&status=pending_shipment&limit=5`, { headers });
-        const rs = await fetch(`${API_URL}/api/v1/transactions?role=seller&status=in_transit&limit=5`, { headers });
+        const sp = await fetch(`${API_BASE_URL}/api/v1/transactions?role=seller&status=pending_shipment&limit=${SHIPMENT_PANEL.LIMIT_SELLER_PENDING}`, { headers });
+        const rs = await fetch(`${API_BASE_URL}/api/v1/transactions?role=seller&status=in_transit&limit=${SHIPMENT_PANEL.LIMIT_RECENT_SHIPPED}`, { headers });
         if (sp.ok) setSellerPending(await sp.json());
         if (rs.ok) setRecentShipped(await rs.json());
       }
@@ -56,17 +57,17 @@ const ShipmentPanel = ({ currentUser, API_URL }) => {
   };
 
   const handleComplete = async (transactionId) => {
-    if (!currentUser || !API_URL) return;
+    if (!currentUser) return;
     try {
-      const res = await fetch(`${API_URL}/api/v1/transactions/${transactionId}/complete`, {
+      const res = await fetch(`${API_BASE_URL}/api/v1/transactions/${transactionId}/complete`, {
         method: 'POST',
         headers: { 'X-Firebase-Uid': currentUser.uid }
       });
       if (res.ok) {
         // 反映のため再取得
         const headers = { 'X-Firebase-Uid': currentUser.uid };
-        const bt = await fetch(`${API_URL}/api/v1/transactions?role=buyer&status=in_transit&limit=5`, { headers });
-        const rc = await fetch(`${API_URL}/api/v1/transactions?role=buyer&status=completed&limit=5`, { headers });
+        const bt = await fetch(`${API_BASE_URL}/api/v1/transactions?role=buyer&status=in_transit&limit=${SHIPMENT_PANEL.LIMIT_BUYER_TRANSIT}`, { headers });
+        const rc = await fetch(`${API_BASE_URL}/api/v1/transactions?role=buyer&status=completed&limit=${SHIPMENT_PANEL.LIMIT_RECENT_COMPLETED}`, { headers });
         if (bt.ok) setBuyerTransit(await bt.json());
         if (rc.ok) setRecentCompleted(await rc.json());
       }
@@ -93,7 +94,7 @@ const ShipmentPanel = ({ currentUser, API_URL }) => {
   );
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginTop: '8px' }}>
+    <div style={{ display: 'grid', gridTemplateColumns: `repeat(${SHIPMENT_PANEL.GRID_COLUMNS}, 1fr)`, gap: `${SHIPMENT_PANEL.GRID_GAP}px`, marginTop: '8px' }}>
       {/* 左列 */}
       <div style={{ border: '1px solid #ddd', borderRadius: 8, padding: 12 }}>
         <h3 style={{ marginTop: 0 }}>発送待ち</h3>
