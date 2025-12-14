@@ -12,22 +12,35 @@ const DeliveriesPage = () => {
   const [lastUpdated, setLastUpdated] = useState(null);
 
   useEffect(() => {
-    if (!currentUser) return;
+    if (!currentUser) {
+      console.log('DeliveriesPage: no currentUser');
+      return;
+    }
     let ignore = false;
     const fetchList = async () => {
+      console.log('DeliveriesPage: fetchList called', new Date());
       try {
         setLoading(true);
         const headers = { 'X-Firebase-Uid': currentUser.uid };
-        const res = await fetch(`${API_BASE_URL}/api/v1/transactions?role=buyer&status=in_transit&limit=50`, { headers });
+        const url = `${API_BASE_URL}/api/v1/transactions?role=buyer&status=in_transit&limit=50`;
+        console.log('DeliveriesPage: fetching', url);
+        
+        const res = await fetch(url, { headers });
+        console.log('DeliveriesPage: API result status', res.status);
+
         if (!ignore) {
           if (res.ok) {
             const data = await res.json();
+            console.log('DeliveriesPage: data received', data);
             setList(data);
           } else {
+            console.log('DeliveriesPage: API not ok');
             setList([]);
           }
           setLastUpdated(new Date());
         }
+      } catch (error) {
+        console.error('DeliveriesPage: fetch error', error);
       } finally {
         if (!ignore) setLoading(false);
       }
