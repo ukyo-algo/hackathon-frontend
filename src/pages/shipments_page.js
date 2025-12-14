@@ -12,21 +12,32 @@ const ShipmentsPage = () => {
   const [lastUpdated, setLastUpdated] = useState(null);
 
   useEffect(() => {
-    const run = async () => {
-      if (!currentUser) return;
+    if (!currentUser) return;
+    let ignore = false;
+    const fetchList = async () => {
       try {
         setLoading(true);
         const headers = { 'X-Firebase-Uid': currentUser.uid };
         const res = await fetch(`${API_BASE_URL}/api/v1/transactions?role=seller&status=pending_shipment&limit=50`, { headers });
-        if (res.ok) setList(await res.json());
-        setLastUpdated(new Date());
+        if (!ignore) {
+          if (res.ok) {
+            const data = await res.json();
+            setList(data);
+          } else {
+            setList([]);
+          }
+          setLastUpdated(new Date());
+        }
       } finally {
-        setLoading(false);
+        if (!ignore) setLoading(false);
       }
     };
-    run();
-    const id = setInterval(run, 60_000);
-    return () => clearInterval(id);
+    fetchList();
+    const timer = setInterval(fetchList, 60000);
+    return () => {
+      ignore = true;
+      clearInterval(timer);
+    };
   }, [currentUser]);
 
   if (!currentUser) return <div style={{padding: 20}}>ログインしてください</div>;
