@@ -9,6 +9,7 @@ const DeliveriesPage = () => {
   const { currentUser } = useAuth();
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [lastUpdated, setLastUpdated] = useState(null);
 
   useEffect(() => {
     const run = async () => {
@@ -18,11 +19,14 @@ const DeliveriesPage = () => {
         const headers = { 'X-Firebase-Uid': currentUser.uid };
         const res = await fetch(`${API_BASE_URL}/api/v1/transactions?role=buyer&status=in_transit&limit=50`, { headers });
         if (res.ok) setList(await res.json());
+        setLastUpdated(new Date());
       } finally {
         setLoading(false);
       }
     };
     run();
+    const id = setInterval(run, 60_000);
+    return () => clearInterval(id);
   }, [currentUser]);
 
   if (!currentUser) return <div style={{padding: 20}}>ログインしてください</div>;
@@ -30,6 +34,11 @@ const DeliveriesPage = () => {
   return (
     <div style={{ padding: 20 }}>
       <h2>到着待ち</h2>
+      {lastUpdated && (
+        <div style={{ fontSize: 12, color: '#666', marginBottom: 8, textAlign: 'right' }}>
+          最終更新: {lastUpdated.toLocaleString()}
+        </div>
+      )}
       {loading ? <p>読み込み中...</p> : (
         list.length === 0 ? <p>現在、到着待ちはありません。</p> : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>

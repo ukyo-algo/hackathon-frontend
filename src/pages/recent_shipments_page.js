@@ -10,6 +10,7 @@ const RecentShipmentsPage = () => {
   const [shipped, setShipped] = useState([]); // 自分が出品者で配送中
   const [completed, setCompleted] = useState([]); // 自分が購入者で完了
   const [loading, setLoading] = useState(true);
+  const [lastUpdated, setLastUpdated] = useState(null);
 
   useEffect(() => {
     const run = async () => {
@@ -21,11 +22,14 @@ const RecentShipmentsPage = () => {
         const rc = await fetch(`${API_BASE_URL}/api/v1/transactions?role=buyer&status=completed&limit=20`, { headers });
         if (rs.ok) setShipped(await rs.json());
         if (rc.ok) setCompleted(await rc.json());
+        setLastUpdated(new Date());
       } finally {
         setLoading(false);
       }
     };
     run();
+    const id = setInterval(run, 60_000);
+    return () => clearInterval(id);
   }, [currentUser]);
 
   if (!currentUser) return <div style={{padding: 20}}>ログインしてください</div>;
@@ -46,6 +50,11 @@ const RecentShipmentsPage = () => {
   return (
     <div style={{ padding: 20 }}>
       <h2>最近の配達状況</h2>
+      {lastUpdated && (
+        <div style={{ fontSize: 12, color: '#666', marginBottom: 8, textAlign: 'right' }}>
+          最終更新: {lastUpdated.toLocaleString()}
+        </div>
+      )}
       {loading ? <p>読み込み中...</p> : (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
           <div>
