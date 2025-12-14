@@ -1,6 +1,6 @@
 // src/components/ShipmentPanel.js
 import React, { useEffect, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { SHIPMENT_PANEL, API_BASE_URL } from '../config';
 
 const ShipmentPanel = ({ currentUser }) => {
@@ -10,7 +10,7 @@ const ShipmentPanel = ({ currentUser }) => {
   const [buyerTransit, setBuyerTransit] = useState([]);   // 購入者視点: 発送済み(配送中)
   const [recentCompleted, setRecentCompleted] = useState([]); // 到着済み(購入者視点の完了)
   const [loading, setLoading] = useState(false);
-  const location = useLocation();
+  const [lastUpdated, setLastUpdated] = useState(null);
 
   const refreshLists = async () => {
     if (!currentUser) return;
@@ -36,15 +36,23 @@ const ShipmentPanel = ({ currentUser }) => {
     }
   };
 
-  useEffect(() => { refreshLists(); }, [currentUser]);
-  // 購入完了イベント（Routerのstate）でも再取得
+  // 初回マウント時＆ユーザー変更時に取得
   useEffect(() => {
-    const state = location?.state;
-    console.log('Location state changed:', state);
-    if (state?.event === 'PURCHASE_COMPLETED') {
-      refreshLists();
-    }
-  }, [location]);
+    const run = async () => {
+      await refreshLists();
+      setLastUpdated(new Date());
+    };
+    run();
+  }, [currentUser]);
+
+  // 1分ごとの自動更新ポーリング
+  useEffect(() => {
+    const timer = setInterval(async () => {
+      await refreshLists();
+      setLastUpdated(new Date());
+    }, 60000);
+    return () => clearInterval(timer);
+  }, []);
 
   const handleShip = async (transactionId) => {
     if (!currentUser) return;
@@ -99,7 +107,11 @@ const ShipmentPanel = ({ currentUser }) => {
   const shippedCombined = [...sellerTransit, ...buyerTransit];
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: `repeat(${SHIPMENT_PANEL.GRID_COLUMNS}, 1fr)`, gap: `${SHIPMENT_PANEL.GRID_GAP}px`, marginTop: '8px' }}>
+    <div style={{ position: 'relative', display: 'grid', gridTemplateColumns: `repeat(${SHIPMENT_PANEL.GRID_COLUMNS}, 1fr)`, gap: `${SHIPMENT_PANEL.GRID_GAP}px`, marginTop: '8px' }}>
+      {/* 最終更新 */}
+      <div style={{ position: 'absolute', top: -4, right: 0, fontSize: 12, color: '#888' }}>
+        最終更新: {lastUpdated ? lastUpdated.toLocaleTimeString() : '---'}
+      </div>
       {/* 発送待ち */}
       <div style={{ border: '1px solid #ddd', borderRadius: 8, padding: 12 }}>
         <h3 style={{ marginTop: 0 }}>発送待ち</h3>
