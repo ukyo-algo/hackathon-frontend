@@ -109,6 +109,8 @@ const BuyPage = () => {
         const err = await res.json().catch(() => ({}));
         throw new Error(err.detail || '購入に失敗しました');
       }
+      console.log('Purchase successful');
+      console.log('購入商品情報:', item);
       navigate('/', { state: { purchaseMessage: '購入完了したよ！', event: 'PURCHASE_COMPLETED' } });
     } catch (e) {
       setError(e.message);
