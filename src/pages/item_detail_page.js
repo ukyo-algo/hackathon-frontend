@@ -132,8 +132,8 @@ const ItemDetailPage = () => {
         const errorData = await response.json();
         throw new Error(errorData.detail || '購入に失敗しました');
       }
-      alert("購入が完了しました！🎉");
-      window.location.reload();
+      // 購入完了後は到着待ちページへ遷移
+      navigate('/deliveries');
     } catch (err) {
       alert(err.message);
     } finally {
