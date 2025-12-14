@@ -52,8 +52,6 @@ const Homepage = () => {
           throw new Error('Network response was not ok');
         }
         const data = await response.json();
-        console.log('Items loaded:', data.length, 'items');
-        console.log('First item:', data[0]);
         setItems(data);
       
       } catch (err) {
