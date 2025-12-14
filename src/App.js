@@ -6,6 +6,21 @@ import { DEBUG } from './config';
 
 // NavBarはコンポーネントへ分離しました
 import NavBar from './components/NavBar';
+// Pages
+import Homepage from './pages/homepage'; 
+import RegisterPage from './pages/register_page';
+import LoginPage from './pages/login_page';
+import ItemCreatePage from './pages/item_create_page';
+import ItemDetailPage from './pages/item_detail_page';
+import MyPage from './pages/my_page';
+import PersonaSelectionPage from './pages/persona_selection_page';
+import GachaPage from './pages/gacha_page';
+import SearchResults from './pages/SearchResults';
+import ShipmentsPage from './pages/shipments_page';
+import DeliveriesPage from './pages/deliveries_page';
+import RecentShipmentsPage from './pages/recent_shipments_page';
+// Components
+import AIChatWidgetSlide from './components/AIChatWidgetSlide';
 
 
 function App() {
