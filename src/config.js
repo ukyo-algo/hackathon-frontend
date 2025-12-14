@@ -118,18 +118,6 @@ export const DEFAULT_AVATAR_IMAGE = '/default-avatar.png';
 // Debugモードフラグ（開発時に便利）
 export const DEBUG = process.env.NODE_ENV === 'development';
 
-// ========== 配送パネル設定 ==========
-export const SHIPMENT_PANEL = {
-  // 取得件数（各枠の最大表示数）
-  LIMIT_SELLER_PENDING: 5,
-  LIMIT_BUYER_TRANSIT: 5,
-  LIMIT_RECENT_SHIPPED: 5,
-  LIMIT_RECENT_COMPLETED: 5,
-  // レイアウト設定
-  GRID_COLUMNS: 2,
-  GRID_GAP: 16,
-};
-
 // ========== カードUI設定 ==========
 export const CARD = {
   WIDTH: 200,

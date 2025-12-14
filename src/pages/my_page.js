@@ -1,7 +1,6 @@
 // src/pages/my_page.js
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import ShipmentPanel from '../components/ShipmentPanel';
 import { COLORS, PLACEHOLDER_IMAGE, CARD } from '../config';
 import { useAuth } from '../contexts/auth_context';
 
@@ -85,8 +84,7 @@ const MyPage = () => {
       </div>
 
       {/* タブ切り替えボタン */}
-      {/* 配送状況パネル（ヘッダー直下） */}
-      <ShipmentPanel currentUser={currentUser} />
+      {/* 配送状況パネル（ヘッダー直下）は削除されました */}
 
       {/* タブ切り替えボタン */}
       <div style={{ display: 'flex', borderBottom: '1px solid #ddd', marginBottom: '20px', overflowX: 'auto' }}>
