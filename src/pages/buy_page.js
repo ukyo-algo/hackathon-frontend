@@ -43,22 +43,6 @@ const BuyPage = () => {
         if (!itemRes.ok) throw new Error('商品情報の取得に失敗しました');
         const itemData = await itemRes.json();
         setItem(itemData);
-        // プロフィール住所取得（存在すれば初期化）
-        const profileRes = await fetch(`${API_BASE_URL}/api/v1/users/me/profile`, {
-          headers: { 'X-Firebase-Uid': currentUser.uid }
-        });
-        if (profileRes.ok) {
-          const p = await profileRes.json();
-          setAddress(prev => ({
-            ...prev,
-            name: p.name || prev.name,
-            postalCode: p.postal_code || prev.postalCode,
-            prefecture: p.prefecture || prev.prefecture,
-            city: p.city || prev.city,
-            addressLine: p.address_line || prev.addressLine,
-            phone: p.phone || prev.phone
-          }));
-        }
       } catch (e) {
         setError(e.message);
       } finally {
