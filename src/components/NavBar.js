@@ -78,10 +78,10 @@ const NavBar = () => {
           </Link>
           {/* 取引関連ショートカット */}
           <Link to="/shipments" style={{ textDecoration: 'none' }}>
-            <Box component="button" sx={{ backgroundColor: 'white', color: COLORS.SUCCESS, border: `1px solid ${COLORS.SUCCESS}`, px: 2, py: 1, borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer', '&:hover': { backgroundColor: COLORS.BACKGROUND } }}>発送待ち</Box>
+            <Box component="button" sx={{ backgroundColor: 'white', color: COLORS.SUCCESS, border: `1px solid ${COLORS.SUCCESS}`, px: 2, py: 1, borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer', '&:hover': { backgroundColor: COLORS.BACKGROUND } }}>売品の状況</Box>
           </Link>
           <Link to="/deliveries" style={{ textDecoration: 'none' }}>
-            <Box component="button" sx={{ backgroundColor: 'white', color: COLORS.WARNING, border: `1px solid ${COLORS.WARNING}`, px: 2, py: 1, borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer', '&:hover': { backgroundColor: COLORS.BACKGROUND } }}>到着待ち</Box>
+            <Box component="button" sx={{ backgroundColor: 'white', color: COLORS.WARNING, border: `1px solid ${COLORS.WARNING}`, px: 2, py: 1, borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer', '&:hover': { backgroundColor: COLORS.BACKGROUND } }}>購入物の状況</Box>
           </Link>
           <Link to="/recent-shipments" style={{ textDecoration: 'none' }}>
             <Box component="button" sx={{ backgroundColor: 'white', color: COLORS.TEXT_TERTIARY, border: `1px solid ${COLORS.BORDER}`, px: 2, py: 1, borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer', '&:hover': { backgroundColor: COLORS.BACKGROUND } }}>最近の配達状況</Box>
