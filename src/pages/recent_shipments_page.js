@@ -51,18 +51,18 @@ const RecentShipmentsPage = () => {
     <div style={{ padding: 20 }}>
       <h2>最近の配達状況</h2>
       {lastUpdated && (
-        <div style={{ fontSize: 12, color: '#666', marginBottom: 8, textAlign: 'right' }}>
+        <div style={{ fontSize: 12, color: '#666', marginBottom: 8 }}>
           最終更新: {lastUpdated.toLocaleString()}
         </div>
       )}
       {loading ? <p>読み込み中...</p> : (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
           <div>
-            <h3>発送済み（配送中）</h3>
+            <h3>売品の状況</h3>
             {shipped.length === 0 ? <p>該当なし</p> : shipped.map(renderRow)}
           </div>
           <div>
-            <h3>取引完了</h3>
+            <h3>購入物の状況</h3>
             {completed.length === 0 ? <p>該当なし</p> : completed.map(renderRow)}
           </div>
         </div>

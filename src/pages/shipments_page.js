@@ -33,9 +33,9 @@ const ShipmentsPage = () => {
 
   return (
     <div style={{ padding: 20 }}>
-      <h2>発送待ち</h2>
+      <h2>売品の状況</h2>
       {lastUpdated && (
-        <div style={{ fontSize: 12, color: '#666', marginBottom: 8, textAlign: 'right' }}>
+        <div style={{ fontSize: 12, color: '#666', marginBottom: 8 }}>
           最終更新: {lastUpdated.toLocaleString()}
         </div>
       )}

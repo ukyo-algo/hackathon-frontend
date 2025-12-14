@@ -107,9 +107,9 @@ const ShipmentPanel = ({ currentUser }) => {
   const shippedCombined = [...sellerTransit, ...buyerTransit];
 
   return (
-    <div style={{ position: 'relative', display: 'grid', gridTemplateColumns: `repeat(${SHIPMENT_PANEL.GRID_COLUMNS}, 1fr)`, gap: `${SHIPMENT_PANEL.GRID_GAP}px`, marginTop: '8px' }}>
+    <div style={{ display: 'grid', gridTemplateColumns: `repeat(${SHIPMENT_PANEL.GRID_COLUMNS}, 1fr)`, gap: `${SHIPMENT_PANEL.GRID_GAP}px`, marginTop: '8px' }}>
       {/* 最終更新 */}
-      <div style={{ position: 'absolute', top: -4, right: 0, fontSize: 12, color: '#888' }}>
+      <div style={{ fontSize: 12, color: '#888', marginBottom: 8 }}>
         最終更新: {lastUpdated ? lastUpdated.toLocaleTimeString() : '---'}
       </div>
       {/* 発送待ち */}
