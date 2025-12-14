@@ -1,27 +1,11 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Link, useNavigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Box, Container } from '@mui/material';
 import { AuthProvider } from './contexts/auth_context';
 import { DEBUG } from './config';
 
 // NavBarはコンポーネントへ分離しました
 import NavBar from './components/NavBar';
-                    <Box component="button" onClick={logout} sx={{ backgroundColor: 'white', color: COLORS.TEXT_SECONDARY, border: `1px solid ${COLORS.BORDER}`, px: 2, py: 1, borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer', '&:hover': { backgroundColor: COLORS.BACKGROUND } }}>ログアウト</Box>
-                </Box>
-            ) : (
-                <Box sx={{ display: 'flex', gap: 2, px: 2, py: 1, borderTop: `1px solid ${COLORS.BORDER}`, justifyContent: 'flex-start' }}>
-                    <Link to="/login" style={{ textDecoration: 'none' }}>
-                        <Box component="button" sx={{ backgroundColor: COLORS.PRIMARY, color: 'white', border: 'none', px: 2, py: 1, borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer', '&:hover': { backgroundColor: COLORS.PRIMARY_DARK } }}>ログイン</Box>
-                    </Link>
-                    <Link to="/register" style={{ textDecoration: 'none' }}>
-                        <Box component="button" sx={{ backgroundColor: 'white', color: COLORS.PRIMARY, border: `1px solid ${COLORS.PRIMARY}`, px: 2, py: 1, borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer', '&:hover': { backgroundColor: COLORS.BACKGROUND } }}>会員登録</Box>
-                    </Link>
-                </Box>
-            )}
-        </Box>
-    );
-};
-// ========== NavBar コンポーネント終わり ==========
 
 
 function App() {
