@@ -29,6 +29,10 @@ export const API_ENDPOINTS = {
   
   // コメント関連
   COMMENTS: (itemId) => `/api/v1/items/${itemId}/comments`,
+
+  // レコメンド/報酬
+  RECOMMEND: '/api/v1/recommend',
+  REWARD_SEEING_RECOMMEND: '/api/v1/rewards/claim/seeing_recommend',
 };
 
 // ========== UI設定 ==========
@@ -117,6 +121,9 @@ export const DEFAULT_AVATAR_IMAGE = '/default-avatar.png';
 
 // Debugモードフラグ（開発時に便利）
 export const DEBUG = process.env.NODE_ENV === 'development';
+
+// レコメンドのフロント側クールダウン（分）
+export const RECOMMEND_COOLDOWN_MINUTES = Number(process.env.REACT_APP_RECOMMEND_COOLDOWN_MINUTES || 60);
 
 // ========== カードUI設定 ==========
 export const CARD = {

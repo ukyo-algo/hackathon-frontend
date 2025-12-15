@@ -1,6 +1,6 @@
 // src/pages/homepage.js
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
   Box, Alert, Select, MenuItem, FormControl, Tabs, Tab
@@ -29,8 +29,11 @@ import {
   SectionHeader,
   HeroBanner
 } from '../components/HomepageComponents';
+import RecommendPage from '../components/recommend_page';
+import { useAuth } from '../contexts/auth_context';
 
 const Homepage = () => {
+  const { currentUser } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const categoryParam = searchParams.get('category');
   
@@ -39,6 +42,7 @@ const Homepage = () => {
   const [error, setError] = useState(null);
   const [sortBy, setSortBy] = useState('newest');
   const [selectedCategory, setSelectedCategory] = useState(categoryParam || 'recommended');
+  const [recommendOpen, setRecommendOpen] = useState(false);
 
   useEffect(() => {
     const loadItems = async () => {
@@ -63,6 +67,19 @@ const Homepage = () => {
     };
 
     loadItems();
+  }, []);
+
+  // ホームページ表示時に、ログイン完了 or 1時間経過ならレコメンドをポップアップ
+  useEffect(() => {
+    // ここでは表示制御のみ。RecommendPage内で最終表示時刻や報酬処理を行う
+    if (!currentUser) return;
+    setRecommendOpen(true);
+  }, [currentUser]);
+
+  const handleCloseRecommend = useCallback(() => setRecommendOpen(false), []);
+  const handleNavigateItem = useCallback((item) => {
+    // ここで商品詳細へ遷移などを実装（既存のルーターに合わせてください）
+    window.location.href = `/items/${item.id}`;
   }, []);
 
   // URLパラメータが変更されたらカテゴリを更新
@@ -117,6 +134,9 @@ const Homepage = () => {
 
   return (
     <Box>
+      {recommendOpen && (
+        <RecommendPage onClose={handleCloseRecommend} onNavigateItem={handleNavigateItem} />
+      )}
       {/* ヒーローバナー */}
       {sections.find(s => s.type === 'hero') && (
         <HeroBanner
