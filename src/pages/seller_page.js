@@ -37,7 +37,11 @@ const SellerPage = () => {
           setList(combined);
           if (resMyItems.ok) {
             const items = await resMyItems.json();
-            setUnsoldItems(items || []);
+            // 取引中リストのitem_idを抽出
+            const tradingItemIds = new Set(combined.map(t => t.item?.item_id || t.item_id || t.id));
+            // 未売品: 取引中に含まれていないものだけ
+            const unsold = (items || []).filter(item => !tradingItemIds.has(item.item_id || item.id));
+            setUnsoldItems(unsold);
           }
           setLastUpdated(new Date());
         }
@@ -78,36 +82,60 @@ const SellerPage = () => {
                   <ProgressSteps status={t.status} />
                 </div>
                 {/* アクションボタン: 出品者は発送待ちなら発送実行 */}
-                {t.status === 'pending_shipment' && (
-                  <button
-                    onClick={async () => {
-                      try {
-                        const res = await fetch(`${API_BASE_URL}/api/v1/transactions/${t.transaction_id}/ship`, {
-                          method: 'POST',
-                          headers: { 'X-Firebase-Uid': currentUser.uid }
-                        });
-                        if (res.ok) {
-                          // 成功時は軽く再取得
-                          const headers = { 'X-Firebase-Uid': currentUser.uid };
-                          const [resPending, resTransit] = await Promise.all([
-                            fetch(`${API_BASE_URL}/api/v1/transactions?role=seller&status=pending_shipment&limit=50`, { headers }),
-                            fetch(`${API_BASE_URL}/api/v1/transactions?role=seller&status=in_transit&limit=50`, { headers })
-                          ]);
-                          let combined = [];
-                          if (resPending.ok) combined = [...combined, ...(await resPending.json())];
-                          if (resTransit.ok) combined = [...combined, ...(await resTransit.json())];
-                          setList(combined);
-                          setLastUpdated(new Date());
-                        }
-                      } catch (e) {
-                        console.error('Ship action error:', e);
-                      }
-                    }}
-                    style={{ padding: '8px 12px', border: 'none', borderRadius: 6, backgroundColor: '#1976d2', color: '#fff', fontWeight: 'bold', cursor: 'pointer' }}
-                  >
-                    発送しました
-                  </button>
-                )}
+                {/* 発送アクションボタンUI改善 */}
+                {(() => {
+                  if (t.status === 'pending_shipment') {
+                    return (
+                      <button
+                        onClick={async () => {
+                          try {
+                            const res = await fetch(`${API_BASE_URL}/api/v1/transactions/${t.transaction_id}/ship`, {
+                              method: 'POST',
+                              headers: { 'X-Firebase-Uid': currentUser.uid }
+                            });
+                            if (res.ok) {
+                              // 成功時は軽く再取得
+                              const headers = { 'X-Firebase-Uid': currentUser.uid };
+                              const [resPending, resTransit] = await Promise.all([
+                                fetch(`${API_BASE_URL}/api/v1/transactions?role=seller&status=pending_shipment&limit=50`, { headers }),
+                                fetch(`${API_BASE_URL}/api/v1/transactions?role=seller&status=in_transit&limit=50`, { headers })
+                              ]);
+                              let combined = [];
+                              if (resPending.ok) combined = [...combined, ...(await resPending.json())];
+                              if (resTransit.ok) combined = [...combined, ...(await resTransit.json())];
+                              setList(combined);
+                              setLastUpdated(new Date());
+                            }
+                          } catch (e) {
+                            console.error('Ship action error:', e);
+                          }
+                        }}
+                        style={{ padding: '8px 12px', border: 'none', borderRadius: 6, backgroundColor: '#1976d2', color: '#fff', fontWeight: 'bold', cursor: 'pointer' }}
+                      >
+                        発送しました
+                      </button>
+                    );
+                  } else if (t.status === 'in_transit' || t.status === 'completed') {
+                    return (
+                      <button
+                        disabled
+                        style={{ padding: '8px 12px', border: 'none', borderRadius: 6, backgroundColor: '#bbb', color: '#fff', fontWeight: 'bold', cursor: 'not-allowed' }}
+                      >
+                        発送済み
+                      </button>
+                    );
+                  } else {
+                    // それ以外（押せないグレーアウト）
+                    return (
+                      <button
+                        disabled
+                        style={{ padding: '8px 12px', border: 'none', borderRadius: 6, backgroundColor: '#eee', color: '#aaa', fontWeight: 'bold', cursor: 'not-allowed' }}
+                      >
+                        発送しました
+                      </button>
+                    );
+                  }
+                })()}
               </div>
             ))}
           </div>

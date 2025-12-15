@@ -72,36 +72,63 @@ const BuyerPage = () => {
                   <ProgressSteps status={t.status} />
                 </div>
                 {/* アクションボタン: 購入者は配達中なら受け取り実行 */}
-                {t.status === 'in_transit' && (
-                  <button
-                    onClick={async () => {
-                      try {
-                        const res = await fetch(`${API_BASE_URL}/api/v1/transactions/${t.transaction_id}/complete`, {
-                          method: 'POST',
-                          headers: { 'X-Firebase-Uid': currentUser.uid }
-                        });
-                        if (res.ok) {
-                          // 成功時は軽く再取得
-                          const headers = { 'X-Firebase-Uid': currentUser.uid };
-                          const [resPending, resTransit] = await Promise.all([
-                            fetch(`${API_BASE_URL}/api/v1/transactions?role=buyer&status=pending_shipment&limit=50`, { headers }),
-                            fetch(`${API_BASE_URL}/api/v1/transactions?role=buyer&status=in_transit&limit=50`, { headers })
-                          ]);
-                          let combined = [];
-                          if (resPending.ok) combined = [...combined, ...(await resPending.json())];
-                          if (resTransit.ok) combined = [...combined, ...(await resTransit.json())];
-                          setList(combined);
-                          setLastUpdated(new Date());
-                        }
-                      } catch (e) {
-                        console.error('Complete action error:', e);
-                      }
-                    }}
-                    style={{ padding: '8px 12px', border: '1px solid #1976d2', borderRadius: 6, backgroundColor: '#fff', color: '#1976d2', fontWeight: 'bold', cursor: 'pointer' }}
-                  >
-                    受け取りました
-                  </button>
-                )}
+                {/* 受け取りアクションボタンUI改善 */}
+                {(() => {
+                  if (t.status === 'in_transit') {
+                    return (
+                      <button
+                        onClick={async () => {
+                          try {
+                            const res = await fetch(`${API_BASE_URL}/api/v1/transactions/${t.transaction_id}/complete`, {
+                              method: 'POST',
+                              headers: { 'X-Firebase-Uid': currentUser.uid }
+                            });
+                            if (res.ok) {
+                              // 成功時は軽く再取得
+                              const headers = { 'X-Firebase-Uid': currentUser.uid };
+                              const [resPending, resTransit] = await Promise.all([
+                                fetch(`${API_BASE_URL}/api/v1/transactions?role=buyer&status=pending_shipment&limit=50`, { headers }),
+                                fetch(`${API_BASE_URL}/api/v1/transactions?role=buyer&status=in_transit&limit=50`, { headers })
+                              ]);
+                              let combined = [];
+                              if (resPending.ok) combined = [...combined, ...(await resPending.json())];
+                              if (resTransit.ok) combined = [...combined, ...(await resTransit.json())];
+                              setList(combined);
+                              setLastUpdated(new Date());
+                            }
+                          } catch (e) {
+                            console.error('Complete action error:', e);
+                          }
+                        }}
+                        style={{ padding: '8px 12px', border: '1px solid #1976d2', borderRadius: 6, backgroundColor: '#fff', color: '#1976d2', fontWeight: 'bold', cursor: 'pointer' }}
+                      >
+                        受け取りました
+                      </button>
+                    );
+                  } else if (t.status === 'completed') {
+                    return (
+                      <button
+                        disabled
+                        style={{ padding: '8px 12px', border: '1px solid #bbb', borderRadius: 6, backgroundColor: '#eee', color: '#aaa', fontWeight: 'bold', cursor: 'not-allowed' }}
+                      >
+                        受取済み
+                      </button>
+                    );
+                  } else if (t.status === 'pending_shipment') {
+                    // 発送前はグレーアウト
+                    return (
+                      <button
+                        disabled
+                        style={{ padding: '8px 12px', border: '1px solid #ccc', borderRadius: 6, backgroundColor: '#f5f5f5', color: '#bbb', fontWeight: 'bold', cursor: 'not-allowed' }}
+                      >
+                        受け取りました
+                      </button>
+                    );
+                  } else {
+                    // その他（念のため）
+                    return null;
+                  }
+                })()}
               </div>
             ))}
           </div>
