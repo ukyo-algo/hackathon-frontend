@@ -16,6 +16,7 @@ function minutesSince(iso) {
   return (now - past) / 1000 / 60;
 }
 
+
 export default function RecommendPage({ onClose, onNavigateItem }) {
   const { currentUser } = useAuth();
   const [loading, setLoading] = useState(false);
@@ -24,8 +25,10 @@ export default function RecommendPage({ onClose, onNavigateItem }) {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
+  // ログインしていない場合は絶対に表示しない
+  if (!currentUser) return null;
+
   const canShow = useMemo(() => {
-    if (!currentUser) return false;
     // 条件: (直近レコメンドから1時間経過) or (ログインが新規)
     const lastAt = localStorage.getItem(STORAGE_KEYS.LAST_RECOMMEND_AT);
     const lastUid = localStorage.getItem(STORAGE_KEYS.LAST_LOGIN_UID);
