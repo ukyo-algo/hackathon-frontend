@@ -25,10 +25,10 @@ export default function RecommendPage({ onClose, onNavigateItem }) {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
-  // ログインしていない場合は絶対に表示しない
-  if (!currentUser) return null;
 
+  // Hooksは必ずトップレベルで呼ぶ
   const canShow = useMemo(() => {
+    if (!currentUser) return false;
     // 条件: (直近レコメンドから1時間経過) or (ログインが新規)
     const lastAt = localStorage.getItem(STORAGE_KEYS.LAST_RECOMMEND_AT);
     const lastUid = localStorage.getItem(STORAGE_KEYS.LAST_LOGIN_UID);
@@ -38,9 +38,10 @@ export default function RecommendPage({ onClose, onNavigateItem }) {
   }, [currentUser]);
 
   useEffect(() => {
+    // currentUserがいない場合は何もしない
+    if (!currentUser) return;
+    if (!canShow) return;
     const fetchRecommend = async () => {
-      if (!canShow) return;
-      if (!currentUser?.uid) return;
       try {
         setLoading(true);
         setError('');
@@ -88,9 +89,9 @@ export default function RecommendPage({ onClose, onNavigateItem }) {
 
     fetchRecommend();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [canShow, currentUser?.uid]);
+  }, [canShow, currentUser]);
 
-  if (!canShow) return null;
+  if (!currentUser || !canShow) return null;
 
   const handleClose = () => {
     if (onClose) onClose();
