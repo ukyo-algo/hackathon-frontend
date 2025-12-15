@@ -1,6 +1,7 @@
 // LLMチャットをする部分
 
 import React, { useState, useEffect, useRef } from 'react';
+import { useLLMAgent } from '../hooks/useLLMAgent';
 import { 
   Box, Paper, TextField, IconButton, Typography, 
   Avatar
@@ -12,6 +13,8 @@ import apiClient from '../api/axios';
 import { COLORS } from '../config';
 
 const AIChatWidget = () => {
+  // ページ遷移検知のためのLLMフック（console.log用、返り値は使わない）
+  useLLMAgent();
   const { currentUser } = useAuth();
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
