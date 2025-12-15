@@ -60,16 +60,11 @@ const AIChatWidget = () => {
     } else {
       setIsGuidanceLoading(false);
       if (llmAgent.message) {
-        // guidanceをsystem roleとしても履歴に追加
+        // UIにはaiロールのみ追加
         setMessages(prev => [
           ...prev,
           {
             role: 'ai',
-            content: llmAgent.message,
-            type: 'guidance'
-          },
-          {
-            role: 'system',
             content: llmAgent.message,
             type: 'guidance'
           }
@@ -92,11 +87,20 @@ const AIChatWidget = () => {
 
     try {
       // チャット履歴をリクエストに含める（ユーザーメッセージ以外）
-      const history = messages.map(msg => ({
-        role: msg.role,
-        content: msg.content,
-        type: msg.type || null
-      }));
+      // チャット履歴にはsystemロールのguidanceも含める
+      const history = [
+        ...messages.map(msg => ({
+          role: msg.role,
+          content: msg.content,
+          type: msg.type || null
+        })),
+        // 直近のガイダンスがあればsystemロールで履歴に追加
+        (llmAgent.message ? {
+          role: 'system',
+          content: llmAgent.message,
+          type: 'guidance'
+        } : null)
+      ].filter(Boolean);
       console.log('[AIChatWidget] 送信history:', history);
 
       const res = await apiClient.post('/chat', { 
