@@ -4,9 +4,11 @@ import { useAuth } from '../contexts/auth_context';
 import { API_BASE_URL } from '../config';
 import { Link } from 'react-router-dom';
 import ProgressSteps from '../components/ProgressSteps';
+// import { useLLMAgent } from '../hooks/useLLMAgent';
 
 const BuyerPage = () => {
   const { currentUser } = useAuth();
+  // const { message, recommendations } = useLLMAgent();
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState(null);
@@ -49,6 +51,7 @@ const BuyerPage = () => {
   return (
     <div style={{ padding: 20 }}>
       <h2>購入物の状況</h2>
+
       {lastUpdated && (
         <div style={{ fontSize: 12, color: '#666', marginBottom: 8 }}>
           最終更新: {lastUpdated.toLocaleString()}
@@ -104,6 +107,8 @@ const BuyerPage = () => {
           </div>
         )
       )}
+
+
     </div>
   );
 };
