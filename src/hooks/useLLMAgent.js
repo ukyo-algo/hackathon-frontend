@@ -13,7 +13,15 @@ export function useLLMAgent(extraContext = {}) {
   const [recommendations, setRecommendations] = useState([]);
 
   useEffect(() => {
-    let ignore = false
+    let ignore = false;
+    console.log('[useLLMAgent] ページ遷移検知:', {
+      uid: currentUser?.uid,
+      path: location.pathname,
+      query: location.search,
+      ...extraContext,
+    });
+    // guidance生成開始時にnullをセット
+    setMessage(null);
     const run = async () => {
       try {
         const uid = currentUser?.uid;

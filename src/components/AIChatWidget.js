@@ -19,6 +19,8 @@ const AIChatWidget = () => {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  // guidance生成中インジケータ
+  const [isGuidanceLoading, setIsGuidanceLoading] = useState(false);
   const messagesEndRef = useRef(null);
 
   const defaultPersona = {
@@ -50,14 +52,29 @@ const AIChatWidget = () => {
   }, [currentUser?.current_persona?.id]);
 
   // ページ遷移時にLLMからのガイダンスメッセージを自動追加
+  // guidance生成中インジケータ制御
   useEffect(() => {
-    console.log("AIChatWidget: llmAgent message", llmAgent.message);
-    if (llmAgent.message) {
-      setMessages(prev => [...prev, { 
-        role: 'ai', 
-        content: llmAgent.message,
-        type: 'guidance'
-      }]);
+    // llmAgent.messageがnull→非nullになる間は生成中
+    if (llmAgent.message === null) {
+      setIsGuidanceLoading(true);
+    } else {
+      setIsGuidanceLoading(false);
+      if (llmAgent.message) {
+        // guidanceをsystem roleとしても履歴に追加
+        setMessages(prev => [
+          ...prev,
+          {
+            role: 'ai',
+            content: llmAgent.message,
+            type: 'guidance'
+          },
+          {
+            role: 'system',
+            content: llmAgent.message,
+            type: 'guidance'
+          }
+        ]);
+      }
     }
   }, [llmAgent.message]);
 
@@ -161,9 +178,9 @@ const AIChatWidget = () => {
         backgroundColor: '#1a1a1a'
       }}>
         {messages.map((msg, index) => (
-          <Box 
-            key={index} 
-            sx={{ 
+          <Box
+            key={index}
+            sx={{
               display: 'flex',
               justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start'
             }}
@@ -172,7 +189,7 @@ const AIChatWidget = () => {
               sx={{
                 maxWidth: '85%',
                 p: 1.5,
-                backgroundColor: msg.type === 'guidance' 
+                backgroundColor: msg.type === 'guidance'
                   ? '#1a3a1a'  // ガイダンス: 緑系
                   : (msg.role === 'user' ? '#00ff00' : '#333'),
                 color: msg.type === 'guidance'
@@ -195,11 +212,29 @@ const AIChatWidget = () => {
             </Paper>
           </Box>
         ))}
+        {/* guidance生成中インジケータ */}
+        {isGuidanceLoading && (
+          <Box sx={{ display: 'flex', justifyContent: 'flex-start' }}>
+            <Paper sx={{
+              p: 1.5,
+              backgroundColor: '#1a3a1a',
+              border: '1px solid #00ff88',
+              borderRadius: 1,
+              fontFamily: '"Courier New", monospace',
+              color: '#00ff88'
+            }}>
+              <Typography variant="body2" sx={{ color: 'inherit', fontFamily: 'inherit' }}>
+                💡 ガイダンス生成中...
+              </Typography>
+            </Paper>
+          </Box>
+        )}
+        {/* 通常チャット送信中インジケータ */}
         {isLoading && (
           <Box sx={{ display: 'flex', justifyContent: 'flex-start' }}>
-            <Paper sx={{ 
-              p: 1.5, 
-              backgroundColor: '#333', 
+            <Paper sx={{
+              p: 1.5,
+              backgroundColor: '#333',
               border: '1px solid #444',
               borderRadius: 1,
               fontFamily: '"Courier New", monospace',

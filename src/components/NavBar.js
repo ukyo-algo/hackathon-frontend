@@ -42,7 +42,15 @@ const NavBar = () => {
             InputProps={{
               endAdornment: (
                 <InputAdornment position="end">
-                  <SearchIcon sx={{ cursor: 'pointer', color: COLORS.TEXT_TERTIARY }} />
+                  <SearchIcon
+                    sx={{ cursor: 'pointer', color: COLORS.TEXT_TERTIARY }}
+                    onClick={() => {
+                      if (searchQuery.trim()) {
+                        navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
+                        setSearchQuery('');
+                      }
+                    }}
+                  />
                 </InputAdornment>
               )
             }}
