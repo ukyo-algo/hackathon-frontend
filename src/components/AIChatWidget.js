@@ -35,6 +35,7 @@ const AIChatWidget = () => {
 
   // ペルソナが変更されたらUIを即反映し、チャット履歴もリセット
   useEffect(() => {
+    console.log("AIChatWidget: persona changed", currentUser?.current_persona);
     if (currentUser?.current_persona) {
       setPersona(currentUser.current_persona);
     } else {
@@ -50,6 +51,7 @@ const AIChatWidget = () => {
 
   // ページ遷移時にLLMからのガイダンスメッセージを自動追加
   useEffect(() => {
+    console.log("AIChatWidget: llmAgent message", llmAgent.message);
     if (llmAgent.message) {
       setMessages(prev => [...prev, { 
         role: 'ai', 
@@ -78,6 +80,7 @@ const AIChatWidget = () => {
         content: msg.content,
         type: msg.type || null
       }));
+      console.log('[AIChatWidget] 送信history:', history);
 
       const res = await apiClient.post('/chat', { 
         message: userMessage.content,
