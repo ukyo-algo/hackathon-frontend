@@ -13,8 +13,8 @@ import apiClient from '../api/axios';
 import { COLORS } from '../config';
 
 const AIChatWidget = () => {
-  // ページ遷移検知のためのLLMフック（console.log用、返り値は使わない）
-  useLLMAgent();
+  // ページ遷移検知のためのLLMフック＆ガイダンスメッセージ取得
+  const llmAgent = useLLMAgent();
   const { currentUser } = useAuth();
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
@@ -48,6 +48,17 @@ const AIChatWidget = () => {
     ]);
   }, [currentUser?.current_persona?.id]);
 
+  // ページ遷移時にLLMからのガイダンスメッセージを自動追加
+  useEffect(() => {
+    if (llmAgent.message) {
+      setMessages(prev => [...prev, { 
+        role: 'ai', 
+        content: llmAgent.message,
+        type: 'guidance'
+      }]);
+    }
+  }, [llmAgent.message]);
+
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
@@ -61,7 +72,17 @@ const AIChatWidget = () => {
     setIsLoading(true);
 
     try {
-      const res = await apiClient.post('/chat', { message: userMessage.content });
+      // チャット履歴をリクエストに含める（ユーザーメッセージ以外）
+      const history = messages.map(msg => ({
+        role: msg.role,
+        content: msg.content,
+        type: msg.type || null
+      }));
+
+      const res = await apiClient.post('/chat', { 
+        message: userMessage.content,
+        history: history
+      });
       const aiMessage = { 
         role: 'ai', 
         content: res.data.reply,
@@ -148,17 +169,24 @@ const AIChatWidget = () => {
               sx={{
                 maxWidth: '85%',
                 p: 1.5,
-                backgroundColor: msg.role === 'user' ? '#00ff00' : '#333',
-                color: msg.role === 'user' ? '#000' : '#00ff00',
+                backgroundColor: msg.type === 'guidance' 
+                  ? '#1a3a1a'  // ガイダンス: 緑系
+                  : (msg.role === 'user' ? '#00ff00' : '#333'),
+                color: msg.type === 'guidance'
+                  ? '#00ff88'
+                  : (msg.role === 'user' ? '#000' : '#00ff00'),
                 borderRadius: 1,
                 wordBreak: 'break-word',
                 boxShadow: 'none',
-                border: '1px solid ' + (msg.role === 'user' ? '#00ff00' : '#444'),
+                border: msg.type === 'guidance'
+                  ? '1px solid #00ff88'
+                  : ('1px solid ' + (msg.role === 'user' ? '#00ff00' : '#444')),
                 fontFamily: '"Courier New", monospace',
                 fontSize: '0.9rem'
               }}
             >
               <Typography variant="body2" sx={{ lineHeight: 1.6, color: 'inherit', fontFamily: 'inherit' }}>
+                {msg.type === 'guidance' && '💡 '}
                 {msg.role === 'user' ? `> ${msg.content}` : `* ${msg.content}`}
               </Typography>
             </Paper>
