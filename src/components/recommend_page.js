@@ -127,53 +127,34 @@ export default function RecommendPage({ onClose, onNavigateItem }) {
           ) : (
             <>
               <Typography sx={styles.message}>{message}</Typography>
-              <Box sx={styles.items2row}>
-                <Box sx={styles.row}>
-                  {items.slice(0, 3).map((it) => (
-                    <Box
-                      key={it.id}
-                      sx={styles.item2row}
-                      onClick={() => handleClickItem(it)}
-                      onMouseEnter={e => {
-                        setHoveredId(it.id);
-                        const rect = e.currentTarget.getBoundingClientRect();
-                        setPreviewPos({ x: rect.right + 8, y: rect.top });
-                      }}
-                      onMouseLeave={() => setHoveredId(null)}
-                    >
-                      <Box sx={styles.thumbWrapper2row}>
-                        <img src={it.image_url || '/placeholder.png'} alt={it.title || it.name} style={styles.thumb2row} />
-                      </Box>
-                      <Typography sx={styles.itemTitle}>{it.title || it.name}</Typography>
-                      {typeof it.price !== 'undefined' && (
-                        <Typography sx={styles.itemPrice}>¥{it.price}</Typography>
-                      )}
+              <Box sx={styles.grid2x2}>
+                {items.slice(0, 4).map((it, idx) => (
+                  <Box
+                    key={it.id}
+                    sx={styles.item2x2}
+                    onClick={() => {
+                      if (it.id) {
+                        if (onNavigateItem) onNavigateItem(it);
+                        else window.location.href = `/items/${it.id}`;
+                        if (onClose) onClose();
+                      }
+                    }}
+                    onMouseEnter={e => {
+                      setHoveredId(it.id);
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      setPreviewPos({ x: rect.right + 8, y: rect.top });
+                    }}
+                    onMouseLeave={() => setHoveredId(null)}
+                  >
+                    <Box sx={styles.thumbWrapper2x2}>
+                      <img src={it.image_url || '/placeholder.png'} alt={it.title || it.name} style={styles.thumb2x2} />
                     </Box>
-                  ))}
-                </Box>
-                <Box sx={styles.row}>
-                  {items.slice(3, 5).map((it) => (
-                    <Box
-                      key={it.id}
-                      sx={styles.item2row}
-                      onClick={() => handleClickItem(it)}
-                      onMouseEnter={e => {
-                        setHoveredId(it.id);
-                        const rect = e.currentTarget.getBoundingClientRect();
-                        setPreviewPos({ x: rect.right + 8, y: rect.top });
-                      }}
-                      onMouseLeave={() => setHoveredId(null)}
-                    >
-                      <Box sx={styles.thumbWrapper2row}>
-                        <img src={it.image_url || '/placeholder.png'} alt={it.title || it.name} style={styles.thumb2row} />
-                      </Box>
-                      <Typography sx={styles.itemTitle}>{it.title || it.name}</Typography>
-                      {typeof it.price !== 'undefined' && (
-                        <Typography sx={styles.itemPrice}>¥{it.price}</Typography>
-                      )}
-                    </Box>
-                  ))}
-                </Box>
+                    <Typography sx={styles.itemTitle}>{it.title || it.name}</Typography>
+                    {typeof it.price !== 'undefined' && (
+                      <Typography sx={styles.itemPrice}>¥{it.price}</Typography>
+                    )}
+                  </Box>
+                ))}
                 {/* ミニプレビュー */}
                 {hoveredId && (
                   <Box
@@ -192,7 +173,7 @@ export default function RecommendPage({ onClose, onNavigateItem }) {
                     }}
                   >
                     <iframe
-                      src={`/items/${hoveredId}`}
+                      src={hoveredId ? `/items/${hoveredId}` : undefined}
                       title="item-preview"
                       width="100%"
                       height="100%"
@@ -241,43 +222,39 @@ const styles = {
   body: { borderTop: '1px solid #333', pt: 2 },
   center: { display: 'flex', flexDirection: 'column', alignItems: 'center' },
   message: { color: '#ff0', mb: 2 },
-  items2row: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    gap: 24,
-    padding: 10,
+  grid2x2: {
+    display: 'grid',
+    gridTemplateColumns: '1fr 1fr',
+    gridTemplateRows: '1fr 1fr',
+    gap: 32,
+    padding: 24,
     maxWidth: 700,
     margin: '0 auto',
     boxSizing: 'border-box',
+    justifyItems: 'center',
+    alignItems: 'center',
   },
-  row: {
-    display: 'flex',
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 32,
-    width: '100%',
-  },
-  item2row: {
+  item2x2: {
     border: '1px solid #888',
-    padding: 8,
+    padding: 12,
     cursor: 'pointer',
     transition: 'all .15s',
     background: '#111',
     boxSizing: 'border-box',
-    width: 180,
-    height: 220,
+    width: 220,
+    height: 260,
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
+    justifyContent: 'flex-start',
     '&:hover': {
       borderColor: '#ff0',
       boxShadow: '0 0 0 2px #ff0',
     },
   },
-  thumbWrapper2row: {
-    width: 160,
-    height: 160,
+  thumbWrapper2x2: {
+    width: 180,
+    height: 180,
     aspectRatio: '1 / 1',
     overflow: 'hidden',
     mb: 1,
@@ -287,7 +264,7 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'center',
   },
-  thumb2row: {
+  thumb2x2: {
     width: '100%',
     height: '100%',
     objectFit: 'cover',
