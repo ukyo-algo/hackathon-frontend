@@ -25,6 +25,7 @@ export default function RecommendPage({ onClose, onNavigateItem }) {
   const [persona, setPersona] = useState(null);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [reasons, setReasons] = useState({});
 
 
 
@@ -61,7 +62,8 @@ export default function RecommendPage({ onClose, onNavigateItem }) {
         const data = await res.json();
         setItems(data.items || []);
         setPersona(data.persona || null);
-        setMessage(data.persona_question || '気に入ったものがあれば教えてください！');
+        setReasons(data.reasons || {});
+        setMessage('おすすめ商品をご紹介します！');
 
         // 2) 見た報酬（seeing_recommend）を申請
         try {
@@ -166,7 +168,10 @@ export default function RecommendPage({ onClose, onNavigateItem }) {
                       </Box>
                       <Typography sx={{ ...styles.itemTitle, pointerEvents: 'none' }}>{it.title || it.name}</Typography>
                       {typeof it.price !== 'undefined' && (
-                        <Typography sx={{ ...styles.itemPrice, pointerEvents: 'none' }}>¥{it.price}</Typography>
+                        <Typography sx={{ ...styles.itemPrice, pointerEvents: 'none' }}>¥{it.price?.toLocaleString()}</Typography>
+                      )}
+                      {reasons[itemId] && (
+                        <Typography sx={styles.itemReason}>{reasons[itemId]}</Typography>
                       )}
                     </Box>
                   );
@@ -258,5 +263,16 @@ const styles = {
   },
   itemTitle: { color: '#fff', fontSize: '13px', lineHeight: 1.3, textAlign: 'center', marginTop: '4px' },
   itemPrice: { color: '#0f0', fontSize: '14px', fontWeight: 'bold' },
+  itemReason: {
+    color: '#ff0',
+    fontSize: '11px',
+    lineHeight: 1.3,
+    textAlign: 'center',
+    marginTop: '4px',
+    fontStyle: 'italic',
+    padding: '4px',
+    background: 'rgba(255,255,0,0.1)',
+    borderRadius: '4px',
+  },
   itemDesc: { color: '#ccc', fontSize: 11 },
 };
