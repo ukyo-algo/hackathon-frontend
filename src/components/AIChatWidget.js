@@ -10,6 +10,7 @@ import SendIcon from '@mui/icons-material/Send';
 import { useAuth } from '../contexts/auth_context';
 import apiClient from '../api/axios';
 import { COLORS } from '../config';
+import CharacterDetailModal from './CharacterDetailModal';
 
 // ページコンテキストを共有するためのContext
 export const PageContextContext = createContext(null);
@@ -55,6 +56,23 @@ const AIChatWidget = () => {
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  // キャラクター詳細モーダルの状態
+  const [detailOpen, setDetailOpen] = useState(false);
+
+  const handleOpenDetail = () => {
+    setDetailOpen(true);
+  };
+
+  const handleCloseDetail = () => {
+    setDetailOpen(false);
+  };
+
+  const handleSetPartner = (char) => {
+    console.log("Set partner:", char);
+    // TODO: パートナー変更APIを実装してここから呼ぶ
+    handleCloseDetail();
   };
 
   // ペルソナが変更されたらUIを即反映し、チャット履歴もリセット
@@ -152,7 +170,7 @@ const AIChatWidget = () => {
         </Typography>
       </Box>
 
-      {/* キャラクター画像 */}
+      {/* キャラクター画像（クリックで詳細表示） */}
       <Box sx={{
         display: 'flex',
         alignItems: 'center',
@@ -160,18 +178,32 @@ const AIChatWidget = () => {
         p: 2,
         backgroundColor: '#0d0d0d',
         borderBottom: '2px solid #333',
-        minHeight: '150px'
-      }}>
+        minHeight: '150px',
+        cursor: 'pointer',
+        transition: 'background 0.2s',
+        '&:hover': { backgroundColor: '#1a1a1a' }
+      }}
+        onClick={handleOpenDetail}
+      >
         <img
           src={persona.avatar_url}
           alt={persona.name}
           style={{
             maxWidth: '120px',
             maxHeight: '150px',
-            imageRendering: 'auto'
+            imageRendering: 'auto',
+            filter: 'drop-shadow(0 0 8px rgba(255,255,255,0.1))'
           }}
         />
       </Box>
+
+      {/* 詳細モーダル */}
+      <CharacterDetailModal
+        open={detailOpen}
+        onClose={handleCloseDetail}
+        character={persona}
+        onSetPartner={handleSetPartner}
+      />
 
       {/* メッセージエリア */}
       <Box sx={{

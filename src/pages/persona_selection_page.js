@@ -16,6 +16,7 @@ import {
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import LockIcon from '@mui/icons-material/Lock';
 import { useAuth } from '../contexts/auth_context';
+import CharacterDetailModal from '../components/CharacterDetailModal';
 
 const RARITIES_BASE = [
   { key: 'ノーマル', label: 'ノーマル', color: '#888888', order: 1 },
@@ -35,6 +36,10 @@ const PersonaSelectionPage = () => {
   const [error, setError] = useState(null);
   const [updating, setUpdating] = useState(false);
   const { refreshUser } = useAuth();
+
+  // 詳細モーダルの状態
+  const [detailOpen, setDetailOpen] = useState(false);
+  const [selectedDetailPersona, setSelectedDetailPersona] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -59,14 +64,29 @@ const PersonaSelectionPage = () => {
     fetchData();
   }, []);
 
-  const handlePersonaSelect = async (personaId) => {
-    if (personaId === currentPersonaId) return;
+  const handlePersonaClick = (persona) => {
+    setSelectedDetailPersona(persona);
+    setDetailOpen(true);
+  };
+
+  const handleCloseDetail = () => {
+    setDetailOpen(false);
+    setSelectedDetailPersona(null);
+  };
+
+  const handleSetPartner = async (persona) => {
+    // 既に選択中の場合は閉じるだけ
+    if (persona.id === currentPersonaId) {
+      handleCloseDetail();
+      return;
+    }
 
     try {
       setUpdating(true);
-      await api.put(`/users/me/persona?persona_id=${personaId}`);
+      await api.put(`/users/me/persona?persona_id=${persona.id}`);
       await refreshUser();
-      setCurrentPersonaId(personaId);
+      setCurrentPersonaId(persona.id);
+      handleCloseDetail();
     } catch (err) {
       console.error('Error updating persona:', err);
       setError('ペルソナの変更に失敗しました。');
@@ -170,7 +190,7 @@ const PersonaSelectionPage = () => {
                       },
                       p: 1,
                     }}
-                    onClick={() => isOwned && handlePersonaSelect(persona.id)}
+                    onClick={() => isOwned && handlePersonaClick(persona)}
                   >
                     {isSelected && (
                       <Chip
@@ -251,17 +271,25 @@ const PersonaSelectionPage = () => {
           </Box>
         );
       })}
-      
+
       {updating && (
-         <Box sx={{ 
-           position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, 
-           bgcolor: 'rgba(255,255,255,0.7)', 
-           zIndex: 9999,
-           display: 'flex', justifyContent: 'center', alignItems: 'center' 
-         }}>
-            <CircularProgress />
-         </Box>
+        <Box sx={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          bgcolor: 'rgba(255,255,255,0.7)',
+          zIndex: 9999,
+          display: 'flex', justifyContent: 'center', alignItems: 'center'
+        }}>
+          <CircularProgress />
+        </Box>
       )}
+
+      {/* 詳細モーダル */}
+      <CharacterDetailModal
+        open={detailOpen}
+        onClose={handleCloseDetail}
+        character={selectedDetailPersona}
+        onSetPartner={handleSetPartner}
+      />
     </Container>
   );
 };
