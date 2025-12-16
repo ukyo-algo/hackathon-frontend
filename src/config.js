@@ -10,23 +10,23 @@ export const API_ENDPOINTS = {
   ITEMS: '/api/v1/items',
   ITEM_DETAIL: (itemId) => `/api/v1/items/${itemId}`,
   ITEMS_CREATE: '/api/v1/items',
-  
+
   // 検索関連
   SEARCH: '/api/v1/search/items',
-  
+
   // ユーザー関連
   AUTH_REGISTER: '/api/v1/auth/register',
   AUTH_LOGIN: '/api/v1/auth/login',
   AUTH_LOGOUT: '/api/v1/auth/logout',
   AUTH_REFRESH: '/api/v1/auth/refresh',
-  
+
   // ペルソナ関連
   PERSONAS: '/api/v1/personas',
   PERSONA_SWITCH: '/api/v1/personas/switch',
-  
+
   // ガチャ関連
   GACHA_DRAW: '/api/v1/gacha/draw',
-  
+
   // コメント関連
   COMMENTS: (itemId) => `/api/v1/items/${itemId}/comments`,
 
@@ -124,6 +124,31 @@ export const DEBUG = process.env.NODE_ENV === 'development';
 
 // レコメンドのフロント側クールダウン（分）
 export const RECOMMEND_COOLDOWN_MINUTES = Number(process.env.REACT_APP_RECOMMEND_COOLDOWN_MINUTES || 60);
+
+// ========== テーマ設定 ==========
+export const THEME_CONFIG = {
+  SPACING: {
+    XS: 4,
+    SM: 8,
+    MD: 16,
+    LG: 24,
+    XL: 32,
+  },
+  FONT_SIZE: {
+    XS: '0.75rem',
+    SM: '0.875rem',
+    MD: '1rem',
+    LG: '1.25rem',
+    XL: '1.5rem',
+    XXL: '2rem',
+  },
+  BORDER_RADIUS: {
+    SM: 4,
+    MD: 8,
+    LG: 16,
+  },
+};
+
 
 // ========== カードUI設定 ==========
 export const CARD = {

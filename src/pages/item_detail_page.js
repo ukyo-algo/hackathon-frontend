@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/auth_context';
+import { API_BASE_URL } from '../config';
+import { commentStyles } from '../styles/commonStyles';
 import {
   Box, Container, Grid, Card, CardContent, CardMedia, Button, Typography,
   TextField, IconButton, Paper, Avatar, Rating,
@@ -27,14 +29,12 @@ const ItemDetailPage = () => {
 
   const { currentUser } = useAuth();
   const navigate = useNavigate();
-  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
 
-  // --- データ取得ロジック ---
   useEffect(() => {
     const fetchItem = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`${API_URL}/api/v1/items/${itemId}`);
+        const response = await fetch(`${API_BASE_URL}/api/v1/items/${itemId}`);
         if (!response.ok) throw new Error('商品の取得に失敗しました');
         const data = await response.json();
         setItem(data);
@@ -47,16 +47,15 @@ const ItemDetailPage = () => {
       }
     };
     fetchItem();
-  }, [itemId, API_URL]);
+  }, [itemId]);
 
 
-  // --- イベントハンドラ ---
   const handleLike = async () => {
     if (!currentUser) return navigate('/login');
     setIsLiked(!isLiked);
     setLikeCount(prev => isLiked ? prev - 1 : prev + 1);
     try {
-      await fetch(`${API_URL}/api/v1/items/${itemId}/like`, {
+      await fetch(`${API_BASE_URL}/api/v1/items/${itemId}/like`, {
         method: 'POST',
         headers: { 'X-Firebase-Uid': currentUser.uid },
       });
@@ -72,7 +71,7 @@ const ItemDetailPage = () => {
     if (!commentText.trim()) return;
 
     try {
-      const response = await fetch(`${API_URL}/api/v1/items/${itemId}/comments`, {
+      const response = await fetch(`${API_BASE_URL}/api/v1/items/${itemId}/comments`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -119,7 +118,7 @@ const ItemDetailPage = () => {
 
   return (
     <Container maxWidth="lg" sx={{ py: 3 }}>
-      
+
       {/* ★エリア1: 商品情報（Gridシステム）
         ここは「左に画像、右に文字」という配置にするためにGridを使います。
       */}
@@ -146,7 +145,7 @@ const ItemDetailPage = () => {
           {/* minWidth: 0 で文字のはみ出し防止 */}
           <Box sx={{ minWidth: 0 }}>
             <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 2, overflowWrap: 'anywhere' }}>{item.name}</Typography>
-            
+
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
               <Avatar alt={item.seller?.username} sx={{ width: 40, height: 40 }} />
               <Box>
@@ -154,14 +153,14 @@ const ItemDetailPage = () => {
                 <Rating value={item.seller?.rating || 0} readOnly size="small" />
               </Box>
             </Box>
-            
+
             <Divider sx={{ my: 2 }} />
-            
+
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
               <Typography variant="h4" sx={{ fontWeight: 'bold', color: '#d32f2f' }}>¥{item.price?.toLocaleString() || '0'}</Typography>
               <Button startIcon={isLiked ? <FavoriteIcon /> : <FavoriteBorderIcon />} onClick={handleLike} color={isLiked ? "error" : "inherit"} size="large">{likeCount}</Button>
             </Box>
-            
+
             <Paper sx={{ p: 2, mb: 3, backgroundColor: '#f9f9f9', borderRadius: 2 }} variant="outlined">
               <Grid container spacing={2}>
                 <Grid item xs={4}><Typography variant="caption" sx={{ color: '#666' }}>カテゴリ</Typography></Grid>
@@ -184,12 +183,12 @@ const ItemDetailPage = () => {
             <Box sx={{ mb: 3 }}>
               <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 1 }}>商品説明</Typography>
               <Paper variant="outlined" sx={{ p: 2, minHeight: '100px', bgcolor: '#fff' }}>
-                  <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', color: '#333', lineHeight: 1.6, overflowWrap: 'anywhere' }}>{item.description}</Typography>
+                <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', color: '#333', lineHeight: 1.6, overflowWrap: 'anywhere' }}>{item.description}</Typography>
               </Paper>
             </Box>
           </Box>
         </Grid>
-      </Grid> 
+      </Grid>
       {/* ★ここでGrid終了！ここからはGridの影響を受けません */}
 
 
@@ -197,38 +196,20 @@ const ItemDetailPage = () => {
         Gridの外に出したので、親のContainerの幅（最大幅）いっぱいに固定されます。
         これで文字数によるレイアウト崩れは100%起きません。
       */}
-      <Paper 
+      <Paper
         elevation={3}
-        sx={{ 
-          width: '100%',        // 横幅いっぱい（固定）
-          height: '500px',      // 高さ500px（固定）
-          p: 3, 
-          mb: 6,
-          display: 'flex',
-          flexDirection: 'column',
-          boxSizing: 'border-box',
-          bgcolor: '#fff',
-          border: '1px solid #e0e0e0'
-        }}
+        sx={commentStyles.container}
       >
         <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
           コメント ({item.comment_count || 0})
         </Typography>
 
         {/* コメントリスト（スクロールエリア） */}
-        <Box sx={{ 
-          flexGrow: 1, 
-          overflowY: 'auto', 
-          mb: 2,
-          border: '1px solid #eee',
-          borderRadius: 1,
-          p: 2,
-          width: '100%' 
-        }}>
+        <Box sx={commentStyles.scrollArea}>
           {(!item.comments || item.comments.length === 0) ? (
-            <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#999' }}>
-               <Typography variant="body1" fontWeight="bold">コメントはまだありません</Typography>
-               <Typography variant="caption">最初のコメントを投稿してみましょう！</Typography>
+            <Box sx={commentStyles.emptyState}>
+              <Typography variant="body1" fontWeight="bold">コメントはまだありません</Typography>
+              <Typography variant="caption">最初のコメントを投稿してみましょう！</Typography>
             </Box>
           ) : (
             <List sx={{ width: '100%', p: 0 }}>
@@ -238,7 +219,7 @@ const ItemDetailPage = () => {
                     <ListItemAvatar>
                       <Avatar alt={comment.user?.username} src={comment.user?.avatar_url} />
                     </ListItemAvatar>
-                    
+
                     <ListItemText
                       primary={
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
@@ -251,14 +232,14 @@ const ItemDetailPage = () => {
                         </Box>
                       }
                       secondary={
-                        <Typography 
-                          component="div" 
-                          variant="body2" 
-                          sx={{ 
-                            color: '#333', 
-                            whiteSpace: 'pre-wrap', 
+                        <Typography
+                          component="div"
+                          variant="body2"
+                          sx={{
+                            color: '#333',
+                            whiteSpace: 'pre-wrap',
                             // ★黒板からはみ出さないための鉄壁設定
-                            overflowWrap: 'anywhere', 
+                            overflowWrap: 'anywhere',
                             wordBreak: 'break-all',
                             width: '100%'
                           }}
@@ -276,8 +257,7 @@ const ItemDetailPage = () => {
           )}
         </Box>
 
-        {/* 投稿フォーム */}
-        <Box component="form" onSubmit={handleCommentSubmit} sx={{ display: 'flex', gap: 1, alignItems: 'center', pt: 2, borderTop: '1px solid #eee', width: '100%' }}>
+        <Box component="form" onSubmit={handleCommentSubmit} sx={commentStyles.inputForm}>
           <TextField
             fullWidth
             multiline
@@ -289,9 +269,9 @@ const ItemDetailPage = () => {
             size="small"
             sx={{ bgcolor: '#fff' }}
           />
-          <IconButton 
-            type="submit" 
-            disabled={!commentText.trim()} 
+          <IconButton
+            type="submit"
+            disabled={!commentText.trim()}
             color="primary"
             sx={{ bgcolor: commentText.trim() ? 'primary.main' : '#eee', color: commentText.trim() ? '#fff' : '#aaa', '&:hover': { bgcolor: 'primary.dark' }, flexShrink: 0 }}
           >

@@ -101,7 +101,7 @@ export default function RecommendPage({ onClose, onNavigateItem }) {
   };
 
   const handleClickItem = (item) => {
-    const itemId = item?.id || item?.item_id || item?._id || item?.itemId;
+    const itemId = item?.item_id;
     if (itemId) {
       navigate(`/items/${itemId}`);
       onClose && onClose();
@@ -134,8 +134,7 @@ export default function RecommendPage({ onClose, onNavigateItem }) {
               <Typography sx={styles.message}>{message}</Typography>
               <Box sx={styles.grid2x2}>
                 {items.slice(0, 4).map((it, idx) => {
-                  const itemId = it.id || it.item_id || it._id || it.itemId;
-                  const normalized = { ...it, id: itemId };
+                  const itemId = it.item_id;
                   return (
                   <Box
                     key={itemId || idx}
@@ -162,7 +161,7 @@ export default function RecommendPage({ onClose, onNavigateItem }) {
                       }
                     }}
                     onMouseEnter={e => {
-                      setHoveredId(it.id);
+                      setHoveredId(itemId);
                       const rect = e.currentTarget.getBoundingClientRect();
                       setPreviewPos({ x: rect.right + 8, y: rect.top });
                     }}
