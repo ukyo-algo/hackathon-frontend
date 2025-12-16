@@ -18,11 +18,11 @@ import LockIcon from '@mui/icons-material/Lock';
 import { useAuth } from '../contexts/auth_context';
 
 const RARITIES = [
-  { key: 'UR', label: 'UR', color: '#ffd700' },
-  { key: 'SSR', label: 'SSR', color: '#ff00ff' },
-  { key: 'SR', label: 'SR', color: '#00ffff' },
-  { key: 'R', label: 'R', color: '#00ff00' },
-  { key: 'N', label: 'N', color: '#888888' },
+  { key: 'チャンピョン', label: 'チャンピョン', color: '#ffd700' },
+  { key: 'ウルトラレア', label: 'ウルトラレア', color: '#ff00ff' },
+  { key: 'スーパーレア', label: 'スーパーレア', color: '#00ffff' },
+  { key: 'レア', label: 'レア', color: '#00ff00' },
+  { key: 'ノーマル', label: 'ノーマル', color: '#888888' },
 ];
 
 const PersonaSelectionPage = () => {
@@ -105,7 +105,7 @@ const PersonaSelectionPage = () => {
       </Box>
 
       {RARITIES.map((rarity) => {
-        const filtered = allPersonas.filter(p => p.rarity === rarity.key);
+        const filtered = allPersonas.filter(p => p.rarity_name === rarity.key);
         if (filtered.length === 0) return null;
         return (
           <Box key={rarity.key} sx={{ mb: 4 }}>
