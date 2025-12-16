@@ -96,119 +96,120 @@ const PersonaSelectionPage = () => {
         </Button>
       </Box>
 
-      <Grid container spacing={3}>
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(5, 1fr)',
+          gap: '16px',
+          width: '100%',
+          justifyItems: 'center',
+          alignItems: 'center',
+        }}
+      >
         {allPersonas.map((persona) => {
           const isOwned = ownedPersonas.some(p => p.id === persona.id);
           const isSelected = persona.id === currentPersonaId;
-          
           return (
-            // スマホ2列 / タブレット3列 / PC4列
-            <Grid item xs={6} sm={4} md={3} key={persona.id}>
-              <Card
-                sx={{
-                  height: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  cursor: isOwned ? 'pointer' : 'not-allowed',
-                  border: isSelected ? '3px solid #4caf50' : '1px solid #e0e0e0',
-                  position: 'relative',
-                  transition: 'transform 0.2s, box-shadow 0.2s',
-                  opacity: isOwned ? 1 : 0.6,
-                  filter: isOwned ? 'none' : 'grayscale(100%)',
-                  '&:hover': {
-                    transform: isOwned ? 'scale(1.02)' : 'none',
-                    boxShadow: isOwned ? 6 : 1,
-                  },
-                }}
-                onClick={() => isOwned && handlePersonaSelect(persona.id)}
-              >
-                {isSelected && (
-                  <Chip
-                    icon={<CheckCircleIcon />}
-                    label="選択中"
-                    color="success"
-                    sx={{
-                      position: 'absolute',
-                      top: 10,
-                      right: 10,
-                      zIndex: 1,
-                      fontWeight: 'bold',
-                    }}
-                  />
-                )}
-                {!isOwned && (
-                  <Box
-                    sx={{
-                      position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-                      display: 'flex', justifyContent: 'center', alignItems: 'center',
-                      bgcolor: 'rgba(0,0,0,0.1)',
-                      zIndex: 2,
-                    }}
-                  >
-                    <LockIcon sx={{ fontSize: 60, color: '#757575' }} />
-                  </Box>
-                )}
-
-                {/* ★画像エリアの修正ポイント
-                    height: 220px を削除し、aspectRatio: '1/1' に変更。
-                    これにより、カードの幅に応じて常に正方形が維持されます。
-                */}
+            <Box
+              key={persona.id}
+              sx={{
+                width: '100%',
+                maxWidth: 120,
+                background: '#111',
+                border: isSelected ? '3px solid #4caf50' : '1px solid #e0e0e0',
+                borderRadius: 2,
+                boxSizing: 'border-box',
+                cursor: isOwned ? 'pointer' : 'not-allowed',
+                opacity: isOwned ? 1 : 0.6,
+                filter: isOwned ? 'none' : 'grayscale(100%)',
+                position: 'relative',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                transition: 'transform 0.2s, box-shadow 0.2s',
+                '&:hover': {
+                  transform: isOwned ? 'scale(1.03)' : 'none',
+                  boxShadow: isOwned ? 6 : 1,
+                },
+                p: 1,
+              }}
+              onClick={() => isOwned && handlePersonaSelect(persona.id)}
+            >
+              {isSelected && (
+                <Chip
+                  icon={<CheckCircleIcon />}
+                  label="選択中"
+                  color="success"
+                  sx={{
+                    position: 'absolute',
+                    top: 6,
+                    right: 6,
+                    zIndex: 1,
+                    fontWeight: 'bold',
+                  }}
+                />
+              )}
+              {!isOwned && (
                 <Box
                   sx={{
-                    width: '100%',
-                    aspectRatio: '1 / 1', // ★ここを変更！常に正方形にする
-                    position: 'relative',
-                    bgcolor: '#f5f5f5',
-                    overflow: 'hidden'
+                    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+                    display: 'flex', justifyContent: 'center', alignItems: 'center',
+                    bgcolor: 'rgba(0,0,0,0.1)',
+                    zIndex: 2,
                   }}
                 >
-                  <Box
-                    component="img"
-                    src={persona.avatar_url || '/avatars/default.png'}
-                    alt={persona.name}
-                    sx={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'contain', // ドット絵全体を収める（切れないようにする）
-                      imageRendering: 'pixelated', // ドット絵をくっきり表示
-                      p: 2, // 余白（枠いっぱいになりすぎないように）
-                      boxSizing: 'border-box'
-                    }}
-                  />
+                  <LockIcon sx={{ fontSize: 40, color: '#757575' }} />
                 </Box>
-
-                <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                  <Typography 
-                    gutterBottom 
-                    variant="h6" 
-                    component="div" 
-                    align="center" 
-                    fontWeight="bold"
-                    sx={{
-                      minHeight: '2em', // 名前が長くてもカードの高さがズレないように
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      lineHeight: 1.2,
-                      fontSize: '1rem'
-                    }}
-                  >
-                    {persona.name}
-                  </Typography>
-                  {!isOwned && (
-                    <Typography variant="body2" color="text.secondary" align="center">
-                      未所持
-                    </Typography>
-                  )}
-                </CardContent>
-              </Card>
-            </Grid>
+              )}
+              <Box
+                sx={{
+                  width: '100%',
+                  aspectRatio: '1 / 1',
+                  position: 'relative',
+                  bgcolor: '#222',
+                  overflow: 'hidden',
+                  mb: 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Box
+                  component="img"
+                  src={persona.avatar_url || '/avatars/default.png'}
+                  alt={persona.name}
+                  sx={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'contain',
+                    imageRendering: 'pixelated',
+                    background: '#eee',
+                  }}
+                />
+              </Box>
+              <Typography
+                align="center"
+                fontWeight="bold"
+                sx={{
+                  fontSize: '13px',
+                  lineHeight: 1.2,
+                  minHeight: '2em',
+                  width: '100%',
+                  textAlign: 'center',
+                  mb: 0.5,
+                }}
+              >
+                {persona.name}
+              </Typography>
+              {!isOwned && (
+                <Typography variant="body2" color="text.secondary" align="center" sx={{ fontSize: '12px' }}>
+                  未所持
+                </Typography>
+              )}
+            </Box>
           );
         })}
-      </Grid>
+      </Box>
       
       {updating && (
          <Box sx={{ 
