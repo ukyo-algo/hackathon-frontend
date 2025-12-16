@@ -102,6 +102,10 @@ export default function RecommendPage({ onClose, onNavigateItem }) {
     onClose && onClose();
   };
 
+  // ホバー中のアイテムIDを管理
+  const [hoveredId, setHoveredId] = useState(null);
+  const [previewPos, setPreviewPos] = useState({ x: 0, y: 0 });
+
   return (
     <Box sx={styles.overlay}>
       <Box sx={styles.container}>
@@ -127,9 +131,18 @@ export default function RecommendPage({ onClose, onNavigateItem }) {
               <Typography sx={styles.message}>{message}</Typography>
               <Box sx={styles.items}>
                 {items.map((it) => (
-                  <Box key={it.id}
-                       sx={styles.item}
-                       onClick={() => handleClickItem(it)}>
+                  <Box
+                    key={it.id}
+                    sx={styles.item}
+                    onClick={() => handleClickItem(it)}
+                    onMouseEnter={e => {
+                      setHoveredId(it.id);
+                      // プレビュー位置をマウス座標基準で調整
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      setPreviewPos({ x: rect.right + 8, y: rect.top });
+                    }}
+                    onMouseLeave={() => setHoveredId(null)}
+                  >
                     <Box sx={styles.thumbWrapper}>
                       <img src={it.image_url || '/placeholder.png'} alt={it.title || it.name} style={styles.thumb} />
                     </Box>
@@ -137,11 +150,34 @@ export default function RecommendPage({ onClose, onNavigateItem }) {
                     {typeof it.price !== 'undefined' && (
                       <Typography sx={styles.itemPrice}>¥{it.price}</Typography>
                     )}
-                    {it.description && (
-                      <Typography sx={styles.itemDesc}>{it.description}</Typography>
-                    )}
                   </Box>
                 ))}
+                {/* ミニプレビュー */}
+                {hoveredId && (
+                  <Box
+                    sx={{
+                      position: 'fixed',
+                      top: previewPos.y,
+                      left: previewPos.x,
+                      width: 340,
+                      height: 480,
+                      zIndex: 2000,
+                      boxShadow: 6,
+                      border: '2px solid #fff',
+                      background: '#fff',
+                      borderRadius: 2,
+                      overflow: 'hidden',
+                    }}
+                  >
+                    <iframe
+                      src={`/items/${hoveredId}`}
+                      title="item-preview"
+                      width="100%"
+                      height="100%"
+                      style={{ border: 'none' }}
+                    />
+                  </Box>
+                )}
               </Box>
             </>
           )}
@@ -183,19 +219,45 @@ const styles = {
   body: { borderTop: '1px solid #333', pt: 2 },
   center: { display: 'flex', flexDirection: 'column', alignItems: 'center' },
   message: { color: '#ff0', mb: 2 },
-  items: { display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 12 },
+  items: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(5, 1fr)',
+    gap: 10,
+    padding: 10,
+    maxWidth: 700,
+    margin: '0 auto',
+    boxSizing: 'border-box',
+  },
   item: {
     border: '1px solid #888',
     padding: 8,
     cursor: 'pointer',
     transition: 'all .15s',
+    width: '100%',
+    background: '#111',
+    boxSizing: 'border-box',
     '&:hover': {
       borderColor: '#ff0',
       boxShadow: '0 0 0 2px #ff0',
     },
   },
-  thumbWrapper: { width: '100%', aspectRatio: '1 / 1', overflow: 'hidden', mb: 1, background: '#111' },
-  thumb: { width: '100%', height: '100%', objectFit: 'cover' },
+  thumbWrapper: {
+    width: '100%',
+    aspectRatio: '1 / 1', // 正方形
+    overflow: 'hidden',
+    mb: 1,
+    background: '#111',
+    position: 'relative',
+  },
+  thumb: {
+    width: '100%',
+    height: '100%',
+    objectFit: 'cover',
+    display: 'block',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+  },
   itemTitle: { color: '#fff', fontSize: 12, lineHeight: 1.3 },
   itemPrice: { color: '#6f6', fontSize: 12 },
   itemDesc: { color: '#ccc', fontSize: 11 },
