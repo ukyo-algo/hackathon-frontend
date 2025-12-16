@@ -136,8 +136,13 @@ export default function RecommendPage({ onClose, onNavigateItem }) {
                     sx={styles.item2x2}
                     onClick={() => {
                       if (it.id) {
-                        if (onNavigateItem) onNavigateItem(it);
-                        else navigate(`/items/${it.id}`);
+                        if (onNavigateItem) {
+                          console.log(`ボタンを押すと、urlに遷移します！: /items/${it.id}`);
+                          onNavigateItem(it);
+                        } else {
+                          console.log(`ボタンを押すと、urlに遷移します！: /items/${it.id}`);
+                          window.location.assign(`/items/${it.id}`);
+                        }
                         if (onClose) onClose();
                       }
                     }}
