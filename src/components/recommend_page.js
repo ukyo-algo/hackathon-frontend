@@ -127,29 +127,53 @@ export default function RecommendPage({ onClose, onNavigateItem }) {
           ) : (
             <>
               <Typography sx={styles.message}>{message}</Typography>
-              <Box sx={styles.items}>
-                {items.map((it) => (
-                  <Box
-                    key={it.id}
-                    sx={styles.item}
-                    onClick={() => handleClickItem(it)}
-                    onMouseEnter={e => {
-                      setHoveredId(it.id);
-                      // プレビュー位置をマウス座標基準で調整
-                      const rect = e.currentTarget.getBoundingClientRect();
-                      setPreviewPos({ x: rect.right + 8, y: rect.top });
-                    }}
-                    onMouseLeave={() => setHoveredId(null)}
-                  >
-                    <Box sx={styles.thumbWrapper}>
-                      <img src={it.image_url || '/placeholder.png'} alt={it.title || it.name} style={styles.thumb} />
+              <Box sx={styles.items2row}>
+                <Box sx={styles.row}>
+                  {items.slice(0, 3).map((it) => (
+                    <Box
+                      key={it.id}
+                      sx={styles.item2row}
+                      onClick={() => handleClickItem(it)}
+                      onMouseEnter={e => {
+                        setHoveredId(it.id);
+                        const rect = e.currentTarget.getBoundingClientRect();
+                        setPreviewPos({ x: rect.right + 8, y: rect.top });
+                      }}
+                      onMouseLeave={() => setHoveredId(null)}
+                    >
+                      <Box sx={styles.thumbWrapper2row}>
+                        <img src={it.image_url || '/placeholder.png'} alt={it.title || it.name} style={styles.thumb2row} />
+                      </Box>
+                      <Typography sx={styles.itemTitle}>{it.title || it.name}</Typography>
+                      {typeof it.price !== 'undefined' && (
+                        <Typography sx={styles.itemPrice}>¥{it.price}</Typography>
+                      )}
                     </Box>
-                    <Typography sx={styles.itemTitle}>{it.title || it.name}</Typography>
-                    {typeof it.price !== 'undefined' && (
-                      <Typography sx={styles.itemPrice}>¥{it.price}</Typography>
-                    )}
-                  </Box>
-                ))}
+                  ))}
+                </Box>
+                <Box sx={styles.row}>
+                  {items.slice(3, 5).map((it) => (
+                    <Box
+                      key={it.id}
+                      sx={styles.item2row}
+                      onClick={() => handleClickItem(it)}
+                      onMouseEnter={e => {
+                        setHoveredId(it.id);
+                        const rect = e.currentTarget.getBoundingClientRect();
+                        setPreviewPos({ x: rect.right + 8, y: rect.top });
+                      }}
+                      onMouseLeave={() => setHoveredId(null)}
+                    >
+                      <Box sx={styles.thumbWrapper2row}>
+                        <img src={it.image_url || '/placeholder.png'} alt={it.title || it.name} style={styles.thumb2row} />
+                      </Box>
+                      <Typography sx={styles.itemTitle}>{it.title || it.name}</Typography>
+                      {typeof it.price !== 'undefined' && (
+                        <Typography sx={styles.itemPrice}>¥{it.price}</Typography>
+                      )}
+                    </Box>
+                  ))}
+                </Box>
                 {/* ミニプレビュー */}
                 {hoveredId && (
                   <Box
@@ -217,37 +241,53 @@ const styles = {
   body: { borderTop: '1px solid #333', pt: 2 },
   center: { display: 'flex', flexDirection: 'column', alignItems: 'center' },
   message: { color: '#ff0', mb: 2 },
-  items: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(5, 1fr)',
-    gap: 10,
+  items2row: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: 24,
     padding: 10,
     maxWidth: 700,
     margin: '0 auto',
     boxSizing: 'border-box',
   },
-  item: {
+  row: {
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 32,
+    width: '100%',
+  },
+  item2row: {
     border: '1px solid #888',
     padding: 8,
     cursor: 'pointer',
     transition: 'all .15s',
-    width: '100%',
     background: '#111',
     boxSizing: 'border-box',
+    width: 180,
+    height: 220,
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
     '&:hover': {
       borderColor: '#ff0',
       boxShadow: '0 0 0 2px #ff0',
     },
   },
-  thumbWrapper: {
-    width: '100%',
-    aspectRatio: '1 / 1', // 正方形
+  thumbWrapper2row: {
+    width: 160,
+    height: 160,
+    aspectRatio: '1 / 1',
     overflow: 'hidden',
     mb: 1,
     background: '#111',
     position: 'relative',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  thumb: {
+  thumb2row: {
     width: '100%',
     height: '100%',
     objectFit: 'cover',
