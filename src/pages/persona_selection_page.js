@@ -17,15 +17,16 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import LockIcon from '@mui/icons-material/Lock';
 import { useAuth } from '../contexts/auth_context';
 
-const RARITIES = [
-  { key: 'チャンピョン', label: 'チャンピョン', color: '#ffd700' },
-  { key: 'ウルトラレア', label: 'ウルトラレア', color: '#ff00ff' },
-  { key: 'スーパーレア', label: 'スーパーレア', color: '#00ffff' },
-  { key: 'レア', label: 'レア', color: '#00ff00' },
-  { key: 'ノーマル', label: 'ノーマル', color: '#888888' },
+const RARITIES_BASE = [
+  { key: 'ノーマル', label: 'ノーマル', color: '#888888', order: 1 },
+  { key: 'レア', label: 'レア', color: '#00ff00', order: 2 },
+  { key: 'スーパーレア', label: 'スーパーレア', color: '#00ffff', order: 3 },
+  { key: 'ウルトラレア', label: 'ウルトラレア', color: '#ff00ff', order: 4 },
+  { key: 'チャンピョン', label: 'チャンピョン', color: '#ffd700', order: 5 },
 ];
 
 const PersonaSelectionPage = () => {
+  const [sortAsc, setSortAsc] = useState(true);
   const navigate = useNavigate();
   const [allPersonas, setAllPersonas] = useState([]);
   const [ownedPersonas, setOwnedPersonas] = useState([]);
@@ -99,12 +100,32 @@ const PersonaSelectionPage = () => {
         <Typography variant="h4" component="h1" fontWeight="bold">
           ペルソナ選択
         </Typography>
-        <Button variant="outlined" onClick={() => navigate('/mypage')}>
-          マイページに戻る
-        </Button>
+        <Box>
+          <Button
+            variant={sortAsc ? 'contained' : 'outlined'}
+            size="small"
+            sx={{ mr: 1 }}
+            onClick={() => setSortAsc(true)}
+          >
+            レアリティ昇順
+          </Button>
+          <Button
+            variant={!sortAsc ? 'contained' : 'outlined'}
+            size="small"
+            onClick={() => setSortAsc(false)}
+          >
+            レアリティ降順
+          </Button>
+          <Button variant="outlined" onClick={() => navigate('/mypage')} sx={{ ml: 2 }}>
+            マイページに戻る
+          </Button>
+        </Box>
       </Box>
 
-      {RARITIES.map((rarity) => {
+      {(sortAsc
+        ? [...RARITIES_BASE].sort((a, b) => a.order - b.order)
+        : [...RARITIES_BASE].sort((a, b) => b.order - a.order)
+      ).map((rarity) => {
         const filtered = allPersonas.filter(p => p.rarity_name === rarity.key);
         if (filtered.length === 0) return null;
         return (
