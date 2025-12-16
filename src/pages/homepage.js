@@ -46,6 +46,11 @@ const Homepage = () => {
   const [selectedCategory, setSelectedCategory] = useState(categoryParam || 'recommended');
   const [recommendOpen, setRecommendOpen] = useState(false);
 
+  // おすすめタブ用
+  const [recommendedItems, setRecommendedItems] = useState([]);
+  const [recommendReasons, setRecommendReasons] = useState({});
+  const [recommendLoading, setRecommendLoading] = useState(false);
+
   const { setPageContext } = usePageContext();
 
   useEffect(() => {
@@ -95,6 +100,35 @@ const Homepage = () => {
     if (!currentUser) return;
     setRecommendOpen(true);
   }, [currentUser]);
+
+  // おすすめタブ選択時にLLMレコメンドを取得
+  useEffect(() => {
+    if (selectedCategory !== 'recommended' || !currentUser) return;
+
+    const fetchRecommend = async () => {
+      setRecommendLoading(true);
+      try {
+        const res = await fetch(`${API_BASE_URL}${API_ENDPOINTS.RECOMMEND}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Firebase-Uid': currentUser.uid,
+          },
+          body: JSON.stringify({ user_id: currentUser.uid, mode: 'history', keyword: null }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setRecommendedItems(data.items || []);
+          setRecommendReasons(data.reasons || {});
+        }
+      } catch (e) {
+        console.error('recommend fetch failed:', e);
+      } finally {
+        setRecommendLoading(false);
+      }
+    };
+    fetchRecommend();
+  }, [selectedCategory, currentUser]);
 
   const handleCloseRecommend = useCallback(() => setRecommendOpen(false), []);
   const handleNavigateItem = useCallback((item) => {
@@ -223,14 +257,90 @@ const Homepage = () => {
           )}
         </Box>
       ) : selectedCategory === 'recommended' ? (
-        // おすすめタブ（ソート適用）
+        // おすすめタブ（LLMレコメンド + 吹き出し理由）
         <Box>
           <SectionHeader title="✨ おすすめ" showSeeAll={false} />
-          <ProductGrid
-            items={sortItems(items, sortBy).slice(0, PAGINATION.ITEMS_PER_ROW)}
-            loading={loading}
-            skeletonCount={PAGINATION.ITEMS_PER_ROW}
-          />
+          {recommendLoading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+              <Alert severity="info">AIがおすすめを考えています...</Alert>
+            </Box>
+          ) : recommendedItems.length > 0 ? (
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+              {recommendedItems.map((item) => (
+                <Box
+                  key={item.item_id}
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'row',
+                    gap: 2,
+                    alignItems: 'flex-start',
+                    cursor: 'pointer',
+                    '&:hover': { transform: 'translateX(4px)', transition: 'transform 0.2s' }
+                  }}
+                  onClick={() => window.location.href = `/items/${item.item_id}`}
+                >
+                  {/* 商品カード（左側） */}
+                  <Box sx={{
+                    width: '180px',
+                    minWidth: '180px',
+                    border: '1px solid #ddd',
+                    borderRadius: 2,
+                    overflow: 'hidden',
+                    background: '#fff',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                  }}>
+                    <Box sx={{ width: '180px', height: '180px', overflow: 'hidden' }}>
+                      <img
+                        src={item.image_url || '/placeholder.png'}
+                        alt={item.name}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      />
+                    </Box>
+                    <Box sx={{ p: 1 }}>
+                      <Box sx={{ fontSize: '13px', fontWeight: 'bold', mb: 0.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name}</Box>
+                      <Box sx={{ fontSize: '14px', color: COLORS.PRIMARY, fontWeight: 'bold' }}>¥{item.price?.toLocaleString()}</Box>
+                    </Box>
+                  </Box>
+                  {/* 吹き出し（右側・横向き） */}
+                  {recommendReasons[item.item_id] && (
+                    <Box sx={{
+                      position: 'relative',
+                      flex: 1,
+                      maxWidth: '400px',
+                      p: 2,
+                      background: '#fff8e1',
+                      borderRadius: 2,
+                      fontSize: '13px',
+                      color: '#333',
+                      boxShadow: '0 1px 4px rgba(0,0,0,0.1)',
+                      alignSelf: 'center',
+                      // 左向きの三角形
+                      '&::before': {
+                        content: '""',
+                        position: 'absolute',
+                        left: '-8px',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        width: 0,
+                        height: 0,
+                        borderTop: '8px solid transparent',
+                        borderBottom: '8px solid transparent',
+                        borderRight: '8px solid #fff8e1',
+                      }
+                    }}>
+                      💬 {recommendReasons[item.item_id]}
+                    </Box>
+                  )}
+                </Box>
+              ))}
+            </Box>
+          ) : (
+            <ProductGrid
+              items={sortItems(items, sortBy).slice(0, PAGINATION.ITEMS_PER_ROW)}
+              loading={loading}
+              skeletonCount={PAGINATION.ITEMS_PER_ROW}
+            />
+          )}
         </Box>
       ) : (
         // 全表示モード：セクションベース
