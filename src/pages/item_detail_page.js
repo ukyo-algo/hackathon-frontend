@@ -20,7 +20,6 @@ const ItemDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [buying, setBuying] = useState(false);
-  const [recommendations, setRecommendations] = useState([]);
   const [commentText, setCommentText] = useState("");
   const [likeCount, setLikeCount] = useState(0);
   const [isLiked, setIsLiked] = useState(false);
@@ -50,17 +49,6 @@ const ItemDetailPage = () => {
     fetchItem();
   }, [itemId, API_URL]);
 
-  useEffect(() => {
-    const fetchRecommendations = async () => {
-      try {
-        const response = await fetch(`${API_URL}/api/v1/items/${itemId}/recommend`);
-        if (response.ok) setRecommendations(await response.json());
-      } catch (err) {
-        console.error("Failed to fetch recommendations:", err);
-      }
-    };
-    if (itemId) fetchRecommendations();
-  }, [itemId, API_URL]);
 
   // --- イベントハンドラ ---
   const handleLike = async () => {
@@ -312,29 +300,7 @@ const ItemDetailPage = () => {
         </Box>
       </Paper>
 
-      {/* ★エリア3: おすすめ商品
-        ここからまたGridシステムを使います。
-      */}
-      {recommendations.length > 0 && (
-        <>
-          <Box sx={{ mb: 2 }}>
-              <Typography variant="h6" sx={{ fontWeight: 'bold' }}>こちらもおすすめ</Typography>
-          </Box>
-          <Grid container spacing={2}>
-            {recommendations.map(rec => (
-              <Grid item xs={6} sm={4} md={3} key={rec.item_id}>
-                <Card component={Link} to={`/items/${rec.item_id}`} sx={{ textDecoration: 'none', color: 'inherit', height: '100%', display: 'flex', flexDirection: 'column', transition: 'all 0.2s', '&:hover': { transform: 'translateY(-4px)', boxShadow: 4 } }}>
-                  <CardMedia component="img" height="150" image={rec.image_url} alt={rec.name} sx={{ objectFit: 'cover' }} />
-                  <CardContent sx={{ flexGrow: 1, minWidth: 0 }}>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 'bold', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', lineHeight: 1.4, mb: 1 }}>{rec.name}</Typography>
-                    <Typography variant="body2" sx={{ color: '#d32f2f', fontWeight: 'bold' }}>¥{rec.price?.toLocaleString() || '0'}</Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
-            ))}
-          </Grid>
-        </>
-      )}
+
 
       {/* ダイアログ */}
       <Dialog open={buyConfirmOpen} onClose={() => setBuyConfirmOpen(false)}>
