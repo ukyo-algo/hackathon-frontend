@@ -44,6 +44,7 @@ const AIChatWidget = () => {
   const [isGuidanceLoading, setIsGuidanceLoading] = useState(false);
   const messagesEndRef = useRef(null);
 
+
   const defaultPersona = {
     name: "キャラクター",
     avatar_url: "/avatars/model1.png",

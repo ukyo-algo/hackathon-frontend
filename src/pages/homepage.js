@@ -31,12 +31,14 @@ import {
 } from '../components/HomepageComponents';
 import RecommendPage from '../components/recommend_page';
 import { useAuth } from '../contexts/auth_context';
+import { usePageContext } from '../components/AIChatWidget';
+import { buildItemContext } from '../hooks/useLLMAgent';
 
 const Homepage = () => {
   const { currentUser } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const categoryParam = searchParams.get('category');
-  
+
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -44,20 +46,34 @@ const Homepage = () => {
   const [selectedCategory, setSelectedCategory] = useState(categoryParam || 'recommended');
   const [recommendOpen, setRecommendOpen] = useState(false);
 
+  const { setPageContext } = usePageContext();
+
   useEffect(() => {
     const loadItems = async () => {
       try {
         setLoading(true);
         setError(null);
-        
+
         const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.ITEMS}`);
-        
+
         if (!response.ok) {
           throw new Error('Network response was not ok');
         }
         const data = await response.json();
         setItems(data);
-      
+
+        // ★ ページコンテキストを設定（LLMに表示中の商品情報を伝える）
+        setPageContext({
+          page_type: 'homepage',
+          visible_items: data.slice(0, 10).map(item => ({
+            item_id: item.item_id,
+            name: item.name,
+            price: item.price,
+            category: item.category,
+            like_count: item.like_count || 0
+          }))
+        });
+
       } catch (err) {
         setError(MESSAGES.ERROR.ITEMS_LOAD_FAILED);
         console.error('Error fetching items:', err);
@@ -67,7 +83,11 @@ const Homepage = () => {
     };
 
     loadItems();
-  }, []);
+
+    // クリーンアップ時にコンテキストをクリア
+    return () => setPageContext(null);
+  }, [setPageContext]);
+
 
   // ホームページ表示時に、ログイン完了 or 1時間経過ならレコメンドをポップアップ
   useEffect(() => {
@@ -119,14 +139,14 @@ const Homepage = () => {
     switch (section.type) {
       case SECTION_TYPES.NEWEST:
         return getNewestItems(items, section.config.count);
-      
+
       case SECTION_TYPES.CATEGORY:
         return null; // カテゴリセクションは特別処理
-      
+
       case SECTION_TYPES.RECOMMENDED:
         // 今後LLM APIと連携
         return [];
-      
+
       default:
         return [];
     }
