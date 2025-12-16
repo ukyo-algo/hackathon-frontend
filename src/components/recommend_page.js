@@ -16,7 +16,6 @@ function minutesSince(iso) {
   return (now - past) / 1000 / 60;
 }
 
-
 export default function RecommendPage({ onClose, onNavigateItem }) {
   const { currentUser } = useAuth();
   const [loading, setLoading] = useState(false);
@@ -24,6 +23,8 @@ export default function RecommendPage({ onClose, onNavigateItem }) {
   const [persona, setPersona] = useState(null);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
+  const [hoveredId, setHoveredId] = useState(null);
+  const [previewPos, setPreviewPos] = useState({ x: 0, y: 0 });
 
 
   // Hooksは必ずトップレベルで呼ぶ
@@ -102,9 +103,6 @@ export default function RecommendPage({ onClose, onNavigateItem }) {
     onClose && onClose();
   };
 
-  // ホバー中のアイテムIDを管理
-  const [hoveredId, setHoveredId] = useState(null);
-  const [previewPos, setPreviewPos] = useState({ x: 0, y: 0 });
 
   return (
     <Box sx={styles.overlay}>
