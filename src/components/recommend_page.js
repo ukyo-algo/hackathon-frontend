@@ -133,17 +133,31 @@ export default function RecommendPage({ onClose, onNavigateItem }) {
                 {items.slice(0, 4).map((it, idx) => (
                   <Box
                     key={it.id}
-                    sx={styles.item2x2}
-                    onClick={() => {
-                      if (it.id) {
+                    sx={{ ...styles.item2x2, pointerEvents: 'auto' }}
+                    role="button"
+                    tabIndex={0}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      console.log('recommend-item-clicked', it?.id, it);
+                      if (it && it.id) {
                         if (onNavigateItem) {
-                          console.log(`ボタンを押すと、urlに遷移します！: /items/${it.id}`);
                           onNavigateItem(it);
                         } else {
-                          console.log(`ボタンを押すと、urlに遷移します！: /items/${it.id}`);
                           window.location.assign(`/items/${it.id}`);
                         }
                         if (onClose) onClose();
+                      }
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log('recommend-item-keypress', it?.id);
+                        if (it && it.id) {
+                          if (onNavigateItem) onNavigateItem(it);
+                          else window.location.assign(`/items/${it.id}`);
+                          if (onClose) onClose();
+                        }
                       }
                     }}
                     onMouseEnter={e => {
@@ -156,9 +170,9 @@ export default function RecommendPage({ onClose, onNavigateItem }) {
                     <Box sx={styles.thumbWrapper2x2}>
                       <img src={it.image_url || '/placeholder.png'} alt={it.title || it.name} style={styles.thumb2x2} />
                     </Box>
-                    <Typography sx={styles.itemTitle}>{it.title || it.name}</Typography>
+                    <Typography sx={{ ...styles.itemTitle, pointerEvents: 'none' }}>{it.title || it.name}</Typography>
                     {typeof it.price !== 'undefined' && (
-                      <Typography sx={styles.itemPrice}>¥{it.price}</Typography>
+                      <Typography sx={{ ...styles.itemPrice, pointerEvents: 'none' }}>¥{it.price}</Typography>
                     )}
                   </Box>
                 ))}
@@ -271,6 +285,7 @@ const styles = {
     height: '100%',
     objectFit: 'cover',
     display: 'block',
+    pointerEvents: 'none',
   },
   itemTitle: { color: '#fff', fontSize: '13px', lineHeight: 1.3, textAlign: 'center', marginTop: '4px' },
   itemPrice: { color: '#0f0', fontSize: '14px', fontWeight: 'bold' },
