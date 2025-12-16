@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Box, Typography, IconButton, CircularProgress } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { useAuth } from '../contexts/auth_context';
@@ -17,6 +18,7 @@ function minutesSince(iso) {
 }
 
 export default function RecommendPage({ onClose, onNavigateItem }) {
+  const navigate = useNavigate();
   const { currentUser } = useAuth();
   const [loading, setLoading] = useState(false);
   const [items, setItems] = useState([]);
@@ -135,7 +137,7 @@ export default function RecommendPage({ onClose, onNavigateItem }) {
                     onClick={() => {
                       if (it.id) {
                         if (onNavigateItem) onNavigateItem(it);
-                        else window.location.href = `/items/${it.id}`;
+                        else navigate(`/items/${it.id}`);
                         if (onClose) onClose();
                       }
                     }}

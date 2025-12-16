@@ -1,7 +1,3 @@
-/**
- * Homepage用コンポーネント
- * 商品表示の再利用可能なコンポーネント群
- */
 
 import React from 'react';
 import { Link } from 'react-router-dom';
