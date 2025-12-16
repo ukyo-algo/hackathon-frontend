@@ -101,8 +101,11 @@ export default function RecommendPage({ onClose, onNavigateItem }) {
   };
 
   const handleClickItem = (item) => {
-    if (onNavigateItem) onNavigateItem(item);
-    onClose && onClose();
+    const itemId = item?.id || item?.item_id || item?._id || item?.itemId;
+    if (itemId) {
+      navigate(`/items/${itemId}`);
+      onClose && onClose();
+    }
   };
 
 
@@ -130,21 +133,20 @@ export default function RecommendPage({ onClose, onNavigateItem }) {
             <>
               <Typography sx={styles.message}>{message}</Typography>
               <Box sx={styles.grid2x2}>
-                {items.slice(0, 4).map((it, idx) => (
+                {items.slice(0, 4).map((it, idx) => {
+                  const itemId = it.id || it.item_id || it._id || it.itemId;
+                  const normalized = { ...it, id: itemId };
+                  return (
                   <Box
-                    key={it.id}
+                    key={itemId || idx}
                     sx={{ ...styles.item2x2, pointerEvents: 'auto' }}
                     role="button"
                     tabIndex={0}
                     onClick={(e) => {
                       e.stopPropagation();
-                      console.log('recommend-item-clicked', it?.id, it);
-                      if (it && it.id) {
-                        if (onNavigateItem) {
-                          onNavigateItem(it);
-                        } else {
-                          window.location.assign(`/items/${it.id}`);
-                        }
+                      console.log('recommend-item-clicked', itemId, it);
+                      if (itemId) {
+                        navigate(`/items/${itemId}`);
                         if (onClose) onClose();
                       }
                     }}
@@ -152,10 +154,9 @@ export default function RecommendPage({ onClose, onNavigateItem }) {
                       if (e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault();
                         e.stopPropagation();
-                        console.log('recommend-item-keypress', it?.id);
-                        if (it && it.id) {
-                          if (onNavigateItem) onNavigateItem(it);
-                          else window.location.assign(`/items/${it.id}`);
+                        console.log('recommend-item-keypress', itemId);
+                        if (itemId) {
+                          navigate(`/items/${itemId}`);
                           if (onClose) onClose();
                         }
                       }
@@ -175,7 +176,8 @@ export default function RecommendPage({ onClose, onNavigateItem }) {
                       <Typography sx={{ ...styles.itemPrice, pointerEvents: 'none' }}>¥{it.price}</Typography>
                     )}
                   </Box>
-                ))}
+                );
+              })}
                 {/* ミニプレビュー */}
                 {hoveredId && (
                   <Box
