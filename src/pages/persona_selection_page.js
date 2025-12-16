@@ -197,6 +197,7 @@ const PersonaSelectionPage = () => {
                   width: '100%',
                   textAlign: 'center',
                   mb: 0.5,
+                  color: '#fff',
                 }}
               >
                 {persona.name}
