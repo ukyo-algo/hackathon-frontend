@@ -4,6 +4,7 @@ import { Box, Container } from '@mui/material';
 import { ThemeProvider } from '@mui/material/styles';
 import { AuthProvider } from './contexts/auth_context';
 import theme from './styles/theme';
+import { PageContextProvider } from './components/AIChatWidget';
 
 // NavBarはコンポーネントへ分離しました
 import NavBar from './components/NavBar';
@@ -30,37 +31,38 @@ function App() {
         <ThemeProvider theme={theme}>
             <BrowserRouter>
                 <AuthProvider>
-                    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-                        {/* ナビゲーションバー */}
-                        <NavBar />
+                    <PageContextProvider>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+                            {/* ナビゲーションバー */}
+                            <NavBar />
 
-                        {/* メインコンテンツとサイドバー */}
-                        <Box sx={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-                            {/* メインコンテンツ領域 */}
-                            <Box sx={{ flex: 1, overflowY: 'auto', padding: '20px' }}>
-                                <Container maxWidth="lg">
-                                    <Routes>
-                                        <Route path="/" element={<Homepage />} />
-                                        <Route path="/register" element={<RegisterPage />} />
-                                        <Route path="/login" element={<LoginPage />} />
-                                        <Route path="/items/create" element={<ItemCreatePage />} />
-                                        <Route path="/items/:itemId" element={<ItemDetailPage />} />
-                                        <Route path="/mypage" element={<MyPage />} />
-                                        <Route path="/persona-selection" element={<PersonaSelectionPage />} />
-                                        <Route path="/gacha" element={<GachaPage />} />
-                                        <Route path="/search" element={<SearchResults />} />
-                                        <Route path="/seller" element={<ShipmentsPage />} />
-                                        <Route path="/buyer" element={<DeliveriesPage />} />
-                                        {/* <Route path="/recent-shipments" element={<RecentShipmentsPage />} /> */}
-                                        <Route path="/buy/:itemId" element={<BuyPage />} />
-                                    </Routes>
-                                </Container>
+                            {/* メインコンテンツとサイドバー */}
+                            <Box sx={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+                                {/* メインコンテンツ領域 */}
+                                <Box sx={{ flex: 1, overflowY: 'auto', padding: '20px' }}>
+                                    <Container maxWidth="lg">
+                                        <Routes>
+                                            <Route path="/" element={<Homepage />} />
+                                            <Route path="/register" element={<RegisterPage />} />
+                                            <Route path="/login" element={<LoginPage />} />
+                                            <Route path="/items/create" element={<ItemCreatePage />} />
+                                            <Route path="/items/:itemId" element={<ItemDetailPage />} />
+                                            <Route path="/mypage" element={<MyPage />} />
+                                            <Route path="/persona-selection" element={<PersonaSelectionPage />} />
+                                            <Route path="/gacha" element={<GachaPage />} />
+                                            <Route path="/search" element={<SearchResults />} />
+                                            <Route path="/seller" element={<ShipmentsPage />} />
+                                            <Route path="/buyer" element={<DeliveriesPage />} />
+                                            <Route path="/buy/:itemId" element={<BuyPage />} />
+                                        </Routes>
+                                    </Container>
+                                </Box>
+
+                                {/* 右端に重ねて表示するAIチャットウィジェット */}
+                                <AIChatWidgetSlide />
                             </Box>
-
-                            {/* 右端に重ねて表示するAIチャットウィジェット */}
-                            <AIChatWidgetSlide />
                         </Box>
-                    </Box>
+                    </PageContextProvider>
                 </AuthProvider>
             </BrowserRouter>
         </ThemeProvider>

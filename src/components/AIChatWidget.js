@@ -1,25 +1,46 @@
-// LLMチャットをする部分
+// src/components/AIChatWidget.js
+// LLMチャットをする部分（ページコンテキスト対応版）
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext, createContext } from 'react';
 import { useLLMAgent } from '../hooks/useLLMAgent';
-import { 
-  Box, Paper, TextField, IconButton, Typography, 
-  Avatar
+import {
+  Box, Paper, TextField, IconButton, Typography
 } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
-import SmartToyIcon from '@mui/icons-material/SmartToy';
 import { useAuth } from '../contexts/auth_context';
 import apiClient from '../api/axios';
 import { COLORS } from '../config';
 
+// ページコンテキストを共有するためのContext
+export const PageContextContext = createContext(null);
+
+// ページコンテキストを設定するためのProvider
+export const PageContextProvider = ({ children }) => {
+  const [pageContext, setPageContext] = useState(null);
+  return (
+    <PageContextContext.Provider value={{ pageContext, setPageContext }}>
+      {children}
+    </PageContextContext.Provider>
+  );
+};
+
+// ページコンテキストを使用するためのhook
+export const usePageContext = () => {
+  const context = useContext(PageContextContext);
+  if (!context) {
+    return { pageContext: null, setPageContext: () => { } };
+  }
+  return context;
+};
+
 const AIChatWidget = () => {
   // ページ遷移検知のためのLLMフック＆ガイダンスメッセージ取得
-  const llmAgent = useLLMAgent();
+  const { pageContext } = usePageContext();
+  const llmAgent = useLLMAgent({ page_context: pageContext });
   const { currentUser } = useAuth();
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  // guidance生成中インジケータ
   const [isGuidanceLoading, setIsGuidanceLoading] = useState(false);
   const messagesEndRef = useRef(null);
 
@@ -37,30 +58,26 @@ const AIChatWidget = () => {
 
   // ペルソナが変更されたらUIを即反映し、チャット履歴もリセット
   useEffect(() => {
-    console.log("AIChatWidget: persona changed", currentUser?.current_persona);
     if (currentUser?.current_persona) {
       setPersona(currentUser.current_persona);
     } else {
       setPersona(defaultPersona);
     }
     setMessages([
-      { 
-        role: 'ai', 
-        content: `<${currentUser?.current_persona?.name || 'キャラクター'}がお買い物を手伝ってくれるようです>` 
+      {
+        role: 'ai',
+        content: `<${currentUser?.current_persona?.name || 'キャラクター'}がお買い物を手伝ってくれるようです>`
       }
     ]);
   }, [currentUser?.current_persona?.id]);
 
   // ページ遷移時にLLMからのガイダンスメッセージを自動追加
-  // guidance生成中インジケータ制御
   useEffect(() => {
-    // llmAgent.messageがnull→非nullになる間は生成中
-    if (llmAgent.message === null) {
+    if (llmAgent.isLoading) {
       setIsGuidanceLoading(true);
     } else {
       setIsGuidanceLoading(false);
       if (llmAgent.message) {
-        // UIにはaiロールのみ追加
         setMessages(prev => [
           ...prev,
           {
@@ -71,7 +88,7 @@ const AIChatWidget = () => {
         ]);
       }
     }
-  }, [llmAgent.message]);
+  }, [llmAgent.message, llmAgent.isLoading]);
 
   useEffect(() => {
     scrollToBottom();
@@ -86,31 +103,15 @@ const AIChatWidget = () => {
     setIsLoading(true);
 
     try {
-      // チャット履歴をリクエストに含める（ユーザーメッセージ以外）
-      // チャット履歴にはsystemロールのguidanceも含める
-      const history = [
-        ...messages.map(msg => ({
-          role: msg.role,
-          content: msg.content,
-          type: msg.type || null
-        })),
-        // 直近のガイダンスがあればsystemロールで履歴に追加
-        (llmAgent.message ? {
-          role: 'system',
-          content: llmAgent.message,
-          type: 'guidance'
-        } : null)
-      ].filter(Boolean);
-      console.log('[AIChatWidget] 送信history:', history);
-
-      const res = await apiClient.post('/chat', { 
+      // ページコンテキストも一緒に送信
+      const res = await apiClient.post('/chat', {
         message: userMessage.content,
-        history: history
+        page_context: pageContext || null
       });
-      const aiMessage = { 
-        role: 'ai', 
+      const aiMessage = {
+        role: 'ai',
         content: res.data.reply,
-        persona: res.data.persona 
+        persona: res.data.persona
       };
       setMessages(prev => [...prev, aiMessage]);
     } catch (error) {
@@ -129,7 +130,7 @@ const AIChatWidget = () => {
   };
 
   return (
-    <Box sx={{ 
+    <Box sx={{
       display: 'flex',
       flexDirection: 'column',
       height: '100%',
@@ -137,8 +138,8 @@ const AIChatWidget = () => {
       color: 'white'
     }}>
       {/* ヘッダー */}
-      <Box sx={{ 
-        p: 2, 
+      <Box sx={{
+        p: 2,
         borderBottom: '2px solid #333',
         backgroundColor: '#0d0d0d'
       }}>
@@ -151,7 +152,7 @@ const AIChatWidget = () => {
       </Box>
 
       {/* キャラクター画像 */}
-      <Box sx={{ 
+      <Box sx={{
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -160,19 +161,19 @@ const AIChatWidget = () => {
         borderBottom: '2px solid #333',
         minHeight: '150px'
       }}>
-        <img 
-          src={persona.avatar_url} 
-          alt={persona.name} 
-          style={{ 
+        <img
+          src={persona.avatar_url}
+          alt={persona.name}
+          style={{
             maxWidth: '120px',
             maxHeight: '150px',
             imageRendering: 'auto'
-          }} 
+          }}
         />
       </Box>
 
       {/* メッセージエリア */}
-      <Box sx={{ 
+      <Box sx={{
         flex: 1,
         overflowY: 'auto',
         p: 2,
@@ -194,7 +195,7 @@ const AIChatWidget = () => {
                 maxWidth: '85%',
                 p: 1.5,
                 backgroundColor: msg.type === 'guidance'
-                  ? '#1a3a1a'  // ガイダンス: 緑系
+                  ? '#1a3a1a'
                   : (msg.role === 'user' ? '#00ff00' : '#333'),
                 color: msg.type === 'guidance'
                   ? '#00ff88'
@@ -254,8 +255,8 @@ const AIChatWidget = () => {
       </Box>
 
       {/* 入力エリア */}
-      <Box sx={{ 
-        p: 1.5, 
+      <Box sx={{
+        p: 1.5,
         borderTop: '2px solid #333',
         backgroundColor: '#0d0d0d',
         display: 'flex',
@@ -265,19 +266,19 @@ const AIChatWidget = () => {
         <Typography sx={{ color: '#00ff00', fontFamily: '"Courier New", monospace' }}>
           {'>'}
         </Typography>
-        <TextField 
-          fullWidth 
+        <TextField
+          fullWidth
           multiline
           maxRows={2}
           minRows={1}
           placeholder="メッセージを入力..."
-          value={input} 
+          value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyPress={handleKeyPress}
           variant="standard"
           InputProps={{
             disableUnderline: true,
-            style: { 
+            style: {
               color: '#00ff00',
               fontFamily: '"Courier New", monospace',
               fontSize: '0.9rem'
@@ -295,9 +296,9 @@ const AIChatWidget = () => {
             }
           }}
         />
-        <IconButton 
-          color="primary" 
-          onClick={handleSend} 
+        <IconButton
+          color="primary"
+          onClick={handleSend}
           disabled={!input.trim() || isLoading}
           size="small"
           sx={{ color: isLoading || !input.trim() ? '#666' : '#00ff00' }}

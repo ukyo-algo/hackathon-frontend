@@ -1,12 +1,14 @@
 // src/pages/item_detail_page.js
 
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/auth_context';
 import { API_BASE_URL } from '../config';
 import { commentStyles } from '../styles/commonStyles';
+import { usePageContext } from '../components/AIChatWidget';
+import { buildItemContext } from '../hooks/useLLMAgent';
 import {
-  Box, Container, Grid, Card, CardContent, CardMedia, Button, Typography,
+  Box, Container, Grid, Card, CardMedia, Button, Typography,
   TextField, IconButton, Paper, Avatar, Rating,
   Alert, CircularProgress, Dialog, DialogTitle, DialogContent, DialogActions,
   List, ListItem, ListItemAvatar, ListItemText, Divider
@@ -27,8 +29,10 @@ const ItemDetailPage = () => {
   const [isLiked, setIsLiked] = useState(false);
   const [buyConfirmOpen, setBuyConfirmOpen] = useState(false);
 
+
   const { currentUser } = useAuth();
   const navigate = useNavigate();
+  const { setPageContext } = usePageContext();
 
   useEffect(() => {
     const fetchItem = async () => {
@@ -39,6 +43,12 @@ const ItemDetailPage = () => {
         const data = await response.json();
         setItem(data);
         setLikeCount(data.like_count || 0);
+
+        // ページコンテキストを設定（LLMに商品情報を伝える）
+        setPageContext({
+          page_type: 'item_detail',
+          current_item: buildItemContext(data, data.like_count || 0, data.comments || [])
+        });
       } catch (err) {
         console.error(err);
         setError(err.message);
@@ -47,7 +57,10 @@ const ItemDetailPage = () => {
       }
     };
     fetchItem();
-  }, [itemId]);
+
+    // クリーンアップ時にコンテキストをクリア
+    return () => setPageContext(null);
+  }, [itemId, setPageContext]);
 
 
   const handleLike = async () => {
