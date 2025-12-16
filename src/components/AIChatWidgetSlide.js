@@ -1,6 +1,7 @@
 // AIChatWidgetをスライドイン・アウトで表示するコンポーネント
 
 import React, { useState } from 'react';
+import { useAuth } from '../contexts/auth_context';
 import AIChatWidget from './AIChatWidget';
 import { IconButton, Box } from '@mui/material';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
@@ -9,7 +10,11 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 const CHAT_WIDTH = 360; // px
 
 const AIChatWidgetSlide = () => {
+  const { currentUser } = useAuth();
   const [open, setOpen] = useState(true);
+
+  // ログインしていない場合は何も表示しない
+  if (!currentUser) return null;
 
   return (
     <>
