@@ -219,7 +219,7 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    zIndex: 1500,
+    zIndex: 3000,
   },
   container: {
     width: '90vw',
