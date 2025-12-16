@@ -25,8 +25,7 @@ export default function RecommendPage({ onClose, onNavigateItem }) {
   const [persona, setPersona] = useState(null);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
-  const [hoveredId, setHoveredId] = useState(null);
-  const [previewPos, setPreviewPos] = useState({ x: 0, y: 0 });
+
 
 
   // Hooksは必ずトップレベルで呼ぶ
@@ -136,73 +135,42 @@ export default function RecommendPage({ onClose, onNavigateItem }) {
                 {items.slice(0, 4).map((it, idx) => {
                   const itemId = it.item_id;
                   return (
-                  <Box
-                    key={itemId || idx}
-                    sx={{ ...styles.item2x2, pointerEvents: 'auto' }}
-                    role="button"
-                    tabIndex={0}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      console.log('recommend-item-clicked', itemId, it);
-                      if (itemId) {
-                        navigate(`/items/${itemId}`);
-                        if (onClose) onClose();
-                      }
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
+                    <Box
+                      key={itemId || idx}
+                      sx={{ ...styles.item2x2, pointerEvents: 'auto' }}
+                      role="button"
+                      tabIndex={0}
+                      onClick={(e) => {
                         e.stopPropagation();
-                        console.log('recommend-item-keypress', itemId);
+                        console.log('recommend-item-clicked', itemId, it);
                         if (itemId) {
                           navigate(`/items/${itemId}`);
                           if (onClose) onClose();
                         }
-                      }
-                    }}
-                    onMouseEnter={e => {
-                      setHoveredId(itemId);
-                      const rect = e.currentTarget.getBoundingClientRect();
-                      setPreviewPos({ x: rect.right + 8, y: rect.top });
-                    }}
-                    onMouseLeave={() => setHoveredId(null)}
-                  >
-                    <Box sx={styles.thumbWrapper2x2}>
-                      <img src={it.image_url || '/placeholder.png'} alt={it.title || it.name} style={styles.thumb2x2} />
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          console.log('recommend-item-keypress', itemId);
+                          if (itemId) {
+                            navigate(`/items/${itemId}`);
+                            if (onClose) onClose();
+                          }
+                        }
+                      }}
+
+                    >
+                      <Box sx={styles.thumbWrapper2x2}>
+                        <img src={it.image_url || '/placeholder.png'} alt={it.title || it.name} style={styles.thumb2x2} />
+                      </Box>
+                      <Typography sx={{ ...styles.itemTitle, pointerEvents: 'none' }}>{it.title || it.name}</Typography>
+                      {typeof it.price !== 'undefined' && (
+                        <Typography sx={{ ...styles.itemPrice, pointerEvents: 'none' }}>¥{it.price}</Typography>
+                      )}
                     </Box>
-                    <Typography sx={{ ...styles.itemTitle, pointerEvents: 'none' }}>{it.title || it.name}</Typography>
-                    {typeof it.price !== 'undefined' && (
-                      <Typography sx={{ ...styles.itemPrice, pointerEvents: 'none' }}>¥{it.price}</Typography>
-                    )}
-                  </Box>
-                );
-              })}
-                {/* ミニプレビュー */}
-                {hoveredId && (
-                  <Box
-                    sx={{
-                      position: 'fixed',
-                      top: previewPos.y,
-                      left: previewPos.x,
-                      width: 340,
-                      height: 480,
-                      zIndex: 2000,
-                      boxShadow: 6,
-                      border: '2px solid #fff',
-                      background: '#fff',
-                      borderRadius: 2,
-                      overflow: 'hidden',
-                    }}
-                  >
-                    <iframe
-                      src={hoveredId ? `/items/${hoveredId}` : undefined}
-                      title="item-preview"
-                      width="100%"
-                      height="100%"
-                      style={{ border: 'none' }}
-                    />
-                  </Box>
-                )}
+                  );
+                })}
               </Box>
             </>
           )}

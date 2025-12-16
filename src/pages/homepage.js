@@ -223,12 +223,11 @@ const Homepage = () => {
           )}
         </Box>
       ) : selectedCategory === 'recommended' ? (
-        // おすすめタブ
+        // おすすめタブ（ソート適用）
         <Box>
           <SectionHeader title="✨ おすすめ" showSeeAll={false} />
-          {/* おすすめ商品リストをここに（現状は全商品を表示、将来LLM連携可） */}
           <ProductGrid
-            items={items.slice(0, PAGINATION.ITEMS_PER_ROW)}
+            items={sortItems(items, sortBy).slice(0, PAGINATION.ITEMS_PER_ROW)}
             loading={loading}
             skeletonCount={PAGINATION.ITEMS_PER_ROW}
           />
