@@ -25,12 +25,5 @@ export async function callLLMFunction(name, args, uid) {
   return res.json();
 }
 
-export async function getLLMRecommendations(uid) {
-  // レコメンド＆ゲーム内通貨報酬（バックエンド側で報酬付与）
-  const res = await fetch(`${API_URL}/api/v1/recommendations`, {
-    method: 'GET',
-    headers: { ...(uid ? { 'X-Firebase-Uid': uid } : {}) }
-  });
-  if (!res.ok) throw new Error('Failed to fetch recommendations');
-  return res.json();
-}
+
+// getLLMRecommendationsは廃止。レコメンドはrecommend_page.js等で/api/v1/recommend(POST)に統一。
