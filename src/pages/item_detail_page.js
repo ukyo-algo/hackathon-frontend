@@ -138,12 +138,12 @@ const ItemDetailPage = () => {
       <Grid container spacing={4} sx={{ mb: 6 }}>
         {/* 左側: 商品画像 (12分割中の6を使う = 半分) */}
         <Grid item xs={12} md={6}>
-          <Box sx={{ position: 'relative', width: '100%', aspectRatio: '1/1', bgcolor: '#f0f0f0', borderRadius: 2, overflow: 'hidden' }}>
+          <Box sx={{ position: 'relative', width: '100%', maxHeight: '400px', bgcolor: '#f0f0f0', borderRadius: 2, overflow: 'hidden' }}>
             <CardMedia
               component="img"
               image={item.image_url || "/placeholder.png"}
               alt={item.name}
-              sx={{ width: '100%', height: '100%', objectFit: 'cover', opacity: isSold ? 0.5 : 1 }}
+              sx={{ width: '100%', maxHeight: '400px', objectFit: 'contain', opacity: isSold ? 0.5 : 1 }}
             />
             {isSold && (
               <Box sx={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.3)' }}>
