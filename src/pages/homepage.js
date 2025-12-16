@@ -101,9 +101,23 @@ const Homepage = () => {
     setRecommendOpen(true);
   }, [currentUser]);
 
-  // おすすめタブ選択時にLLMレコメンドを取得
+  // おすすめタブ選択時にLLMレコメンドを取得（キャッシュあれば使用）
   useEffect(() => {
     if (selectedCategory !== 'recommended' || !currentUser) return;
+
+    // キャッシュがあればそれを使用
+    const cacheKey = `recommend_cache_${currentUser.uid}`;
+    const cached = localStorage.getItem(cacheKey);
+    if (cached) {
+      try {
+        const data = JSON.parse(cached);
+        setRecommendedItems(data.items || []);
+        setRecommendReasons(data.reasons || {});
+        return; // キャッシュがあれば再取得しない
+      } catch (e) {
+        console.error('cache parse failed:', e);
+      }
+    }
 
     const fetchRecommend = async () => {
       setRecommendLoading(true);
@@ -120,6 +134,8 @@ const Homepage = () => {
           const data = await res.json();
           setRecommendedItems(data.items || []);
           setRecommendReasons(data.reasons || {});
+          // キャッシュに保存
+          localStorage.setItem(cacheKey, JSON.stringify(data));
         }
       } catch (e) {
         console.error('recommend fetch failed:', e);
