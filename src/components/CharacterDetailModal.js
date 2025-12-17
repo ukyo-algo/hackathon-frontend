@@ -64,10 +64,11 @@ const CharacterDetailModal = ({ open, onClose, character, onSetPartner }) => {
             PaperProps={{
                 sx: {
                     borderRadius: 2,
-                    overflow: 'hidden',
                     backgroundColor: colors.paper,
                     border: `2px solid ${rarityColor}`,
-                    boxShadow: `0 0 30px ${rarityColor}40`
+                    boxShadow: `0 0 30px ${rarityColor}40`,
+                    maxHeight: '90vh',
+                    overflowY: 'auto',
                 }
             }}
         >
