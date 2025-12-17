@@ -162,16 +162,17 @@ const Homepage = () => {
         });
         if (res.ok) {
           const data = await res.json();
-          // 履歴を商品形式に変換
-          const items = data.map(rec => ({
+          // 履歴を商品形式に変換（直近4件のみ）
+          const items = data.slice(0, 4).map(rec => ({
             item_id: rec.item_id,
             name: rec.name,
             price: rec.price,
             image_url: rec.image_url,
+            status: rec.status || 'on_sale',
           }));
           // 理由マップを作成
           const reasons = {};
-          data.forEach(rec => {
+          data.slice(0, 4).forEach(rec => {
             if (rec.reason) {
               reasons[rec.item_id] = rec.reason;
             }
@@ -391,18 +392,45 @@ const Homepage = () => {
                     borderRadius: 2,
                     overflow: 'hidden',
                     background: '#fff',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                    position: 'relative',
+                    opacity: item.status === 'sold' ? 0.7 : 1,
                   }}>
+                    {/* SOLD バッジ */}
+                    {item.status === 'sold' && (
+                      <Box sx={{
+                        position: 'absolute',
+                        top: 8,
+                        right: 8,
+                        backgroundColor: '#e53e3e',
+                        color: '#fff',
+                        fontSize: '11px',
+                        fontWeight: 'bold',
+                        px: 1,
+                        py: 0.3,
+                        borderRadius: 1,
+                        zIndex: 10,
+                      }}>
+                        SOLD
+                      </Box>
+                    )}
                     <Box sx={{ width: '180px', height: '180px', overflow: 'hidden' }}>
                       <img
                         src={item.image_url || '/placeholder.png'}
                         alt={item.name}
-                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover',
+                          filter: item.status === 'sold' ? 'grayscale(50%)' : 'none',
+                        }}
                       />
                     </Box>
                     <Box sx={{ p: 1 }}>
                       <Box sx={{ fontSize: '13px', fontWeight: 'bold', mb: 0.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name}</Box>
-                      <Box sx={{ fontSize: '14px', color: COLORS.PRIMARY, fontWeight: 'bold' }}>¥{item.price?.toLocaleString()}</Box>
+                      <Box sx={{ fontSize: '14px', color: item.status === 'sold' ? '#999' : COLORS.PRIMARY, fontWeight: 'bold' }}>
+                        {item.status === 'sold' ? 'SOLD OUT' : `¥${item.price?.toLocaleString()}`}
+                      </Box>
                     </Box>
                   </Box>
                   {/* 吹き出し（右側・横向き） */}

@@ -7,6 +7,7 @@ import {
   Box, Paper, TextField, IconButton, Typography
 } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
+import ImageIcon from '@mui/icons-material/Image';
 import { useAuth } from '../contexts/auth_context';
 import apiClient from '../api/axios';
 import { COLORS } from '../config';
@@ -186,12 +187,186 @@ const AIChatWidget = () => {
 
       // AIメッセージをDBに保存
       saveMessageToAPI(aiMessage);
+
+      // Function Callsを処理
+      if (res.data.function_calls && res.data.function_calls.length > 0) {
+        handleFunctionCalls(res.data.function_calls);
+      }
     } catch (error) {
       console.error("Chat Error:", error);
       setMessages(prev => [...prev, { role: 'ai', content: "申し訳ありません。通信エラーが発生しました。" }]);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Function Callの結果をUIに反映
+  const handleFunctionCalls = (functionCalls) => {
+    for (const fc of functionCalls) {
+      const { name, result } = fc;
+      console.log(`[Function Call] ${name}:`, result);
+
+      switch (result?.action) {
+        case 'navigate':
+          // ページ遷移
+          if (result.path) {
+            setTimeout(() => {
+              window.location.href = result.path;
+            }, 500);
+          }
+          break;
+
+        case 'search_items':
+          // 検索結果ページに遷移
+          if (result.query) {
+            setTimeout(() => {
+              window.location.href = `/search?q=${encodeURIComponent(result.query)}`;
+            }, 500);
+          }
+          break;
+
+        case 'get_item_details':
+          // 商品詳細ページに遷移
+          if (result.item?.item_id) {
+            setTimeout(() => {
+              window.location.href = `/items/${result.item.item_id}`;
+            }, 500);
+          }
+          break;
+
+        case 'draw_gacha':
+          // ガチャ結果をメッセージに追加表示
+          if (result.result) {
+            const gachaResult = result.result;
+            setMessages(prev => [...prev, {
+              role: 'ai',
+              content: `🎉 ${gachaResult.is_new ? '【NEW】' : ''}${gachaResult.name} (★${gachaResult.rarity}) をゲット！`,
+              type: 'gacha_result'
+            }]);
+          }
+          break;
+
+        case 'check_balance':
+          // 残高表示はAIの返答に含まれるので特別な処理不要
+          break;
+
+        case 'like_item':
+          // いいね完了メッセージ
+          if (result.status === 'liked') {
+            setMessages(prev => [...prev, {
+              role: 'ai',
+              content: '❤️ いいねしました！',
+              type: 'action_result'
+            }]);
+          }
+          break;
+
+        case 'start_listing':
+          // 出品ページに遷移（フォームにプリフィル）
+          if (result.prefill) {
+            const params = new URLSearchParams();
+            if (result.prefill.name) params.set('name', result.prefill.name);
+            if (result.prefill.price) params.set('price', result.prefill.price);
+            if (result.prefill.category) params.set('category', result.prefill.category);
+            if (result.prefill.description) params.set('description', result.prefill.description);
+            setTimeout(() => {
+              window.location.href = `/items/create?${params.toString()}`;
+            }, 500);
+          }
+          break;
+
+        case 'suggest_price':
+          // 価格提案はAIの返答に含まれるので特別な処理不要
+          break;
+
+        default:
+          console.log('Unknown function action:', result?.action);
+      }
+    }
+  };
+
+  // 画像アップロード用のref
+  const imageInputRef = useRef(null);
+
+  // 画像アップロード処理
+  const handleImageUpload = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // 画像をbase64に変換
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const base64 = reader.result;
+
+      // プレビューメッセージを追加
+      setMessages(prev => [...prev, {
+        role: 'user',
+        content: '📷 画像を送信しました（解析中...）',
+        type: 'image'
+      }]);
+      setIsLoading(true);
+
+      try {
+        // 画像解析APIを呼び出し
+        const res = await apiClient.post('/chat/analyze-image', {
+          image_base64: base64,
+          prompt: '出品したい商品の画像です。情報を教えてください。'
+        });
+
+        const result = res.data;
+
+        // 結果メッセージを構築
+        let responseText = result.message || '画像を解析しました。';
+        if (result.name) {
+          responseText += `\n\n📦 商品名: ${result.name}`;
+        }
+        if (result.category) {
+          responseText += `\n📁 カテゴリ: ${result.category}`;
+        }
+        if (result.condition) {
+          responseText += `\n✨ 状態: ${result.condition}`;
+        }
+        if (result.suggested_price) {
+          responseText += `\n💰 推定価格: ¥${result.suggested_price.toLocaleString()}`;
+        }
+        if (result.price_range) {
+          responseText += ` (¥${result.price_range.min?.toLocaleString()}〜¥${result.price_range.max?.toLocaleString()})`;
+        }
+        if (result.description) {
+          responseText += `\n\n📝 説明文案:\n${result.description}`;
+        }
+
+        // 出品リンクを追加
+        if (result.name) {
+          responseText += `\n\n👉 この内容で出品しますか？「出品して」と言ってください！`;
+        }
+
+        setMessages(prev => [...prev, {
+          role: 'ai',
+          content: responseText,
+          type: 'image_analysis'
+        }]);
+
+        // 結果をセッションに保存（出品時に使用）
+        if (result.name) {
+          sessionStorage.setItem('listing_suggestion', JSON.stringify(result));
+        }
+
+      } catch (error) {
+        console.error('Image analysis error:', error);
+        setMessages(prev => [...prev, {
+          role: 'ai',
+          content: '画像の解析に失敗しました。もう一度お試しください。',
+          type: 'error'
+        }]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    reader.readAsDataURL(file);
+
+    // inputをリセット
+    event.target.value = '';
   };
 
   const handleKeyPress = (e) => {
@@ -341,6 +516,23 @@ const AIChatWidget = () => {
             }
           }}
         />
+        {/* 画像アップロード用の隠しinput */}
+        <input
+          type="file"
+          accept="image/*"
+          ref={imageInputRef}
+          style={{ display: 'none' }}
+          onChange={handleImageUpload}
+        />
+        <IconButton
+          onClick={() => imageInputRef.current?.click()}
+          disabled={isLoading}
+          size="small"
+          sx={{ color: isLoading ? '#666' : '#00ff00' }}
+          title="画像を送信（出品サポート）"
+        >
+          <ImageIcon />
+        </IconButton>
         <IconButton
           color="primary"
           onClick={handleSend}
