@@ -30,18 +30,25 @@ const GachaPage = () => {
   const userCoins = currentUser?.coins || 0;
   const canAfford = userCoins >= GACHA_COST;
 
-  // ページコンテキストを設定
+  // ページコンテキストを設定（詳細なガチャ結果情報）
   useEffect(() => {
     setPageContext({
       page: 'gacha',
       user_coins: userCoins,
       gacha_cost: GACHA_COST,
       can_afford: canAfford,
+      // ガチャ結果の詳細
       has_result: !!result,
-      result_rarity: result?.persona?.rarity,
+      result_persona_name: result?.persona?.name || null,
+      result_rarity: result?.persona?.rarity || null,
+      result_is_new: result?.is_new || false,
+      // 状態
+      is_loading: loading,
+      has_error: !!error,
+      error_message: error || null,
     });
     return () => setPageContext(null);
-  }, [userCoins, canAfford, result, setPageContext]);
+  }, [userCoins, canAfford, result, loading, error, setPageContext]);
 
   const handleDrawGacha = async () => {
     if (!canAfford) {

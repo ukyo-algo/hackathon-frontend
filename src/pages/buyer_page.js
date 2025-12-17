@@ -13,18 +13,26 @@ const BuyerPage = () => {
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState(null);
 
-  // ページコンテキストを設定
+  // ページコンテキストを設定（詳細な配送情報）
   useEffect(() => {
-    const pendingCount = list.filter(t => t.status === 'pending_shipment').length;
-    const inTransitCount = list.filter(t => t.status === 'in_transit').length;
+    const pendingItems = list.filter(t => t.status === 'pending_shipment');
+    const inTransitItems = list.filter(t => t.status === 'in_transit');
     setPageContext({
       page: 'buyer_deliveries',
-      pending_shipment_count: pendingCount,
-      in_transit_count: inTransitCount,
+      // 配送状況
+      pending_shipment_count: pendingItems.length,
+      in_transit_count: inTransitItems.length,
       total_count: list.length,
+      // 空状態
+      no_deliveries: list.length === 0,
+      has_receivable: inTransitItems.length > 0,
+      // アイテム情報（最大3件）
+      pending_items: pendingItems.slice(0, 3).map(t => t.item?.name || 'unknown'),
+      in_transit_items: inTransitItems.slice(0, 3).map(t => t.item?.name || 'unknown'),
+      is_loading: loading,
     });
     return () => setPageContext(null);
-  }, [list, setPageContext]);
+  }, [list, loading, setPageContext]);
 
   useEffect(() => {
     if (!currentUser) return;

@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
-  Box, Alert, Select, MenuItem, FormControl, Tabs, Tab
+  Box, Alert, Select, MenuItem, FormControl, Tabs, Tab, LinearProgress, Typography
 } from '@mui/material';
 import {
   API_BASE_URL,
@@ -12,7 +12,8 @@ import {
   SORT_OPTIONS,
   PAGINATION,
   COLORS,
-  MESSAGES
+  MESSAGES,
+  RECOMMEND_COOLDOWN_MINUTES
 } from '../config';
 import {
   sortItems,
@@ -52,6 +53,46 @@ const Homepage = () => {
   const [recommendedItems, setRecommendedItems] = useState([]);
   const [recommendReasons, setRecommendReasons] = useState({});
   const [recommendLoading, setRecommendLoading] = useState(false);
+
+  // クールダウンゲージ用（次回おすすめまでの残り時間）
+  const [cooldownProgress, setCooldownProgress] = useState(0);
+  const [cooldownRemaining, setCooldownRemaining] = useState('');
+
+  // クールダウンゲージを更新するタイマー
+  useEffect(() => {
+    const STORAGE_KEY = 'lastRecommendAt';
+
+    const updateCooldown = () => {
+      const lastAt = localStorage.getItem(STORAGE_KEY);
+      if (!lastAt) {
+        setCooldownProgress(100);
+        setCooldownRemaining('準備完了！');
+        return;
+      }
+
+      const elapsedMs = Date.now() - new Date(lastAt).getTime();
+      const cooldownMs = RECOMMEND_COOLDOWN_MINUTES * 60 * 1000;
+      const remainingMs = Math.max(0, cooldownMs - elapsedMs);
+      const progress = Math.min(100, (elapsedMs / cooldownMs) * 100);
+
+      setCooldownProgress(progress);
+
+      if (remainingMs <= 0) {
+        setCooldownRemaining('準備完了！');
+      } else {
+        const mins = Math.floor(remainingMs / 60000);
+        const secs = Math.floor((remainingMs % 60000) / 1000);
+        setCooldownRemaining(`${mins}分${secs}秒`);
+      }
+    };
+
+    // 初回更新
+    updateCooldown();
+
+    // 1秒ごとに更新
+    const timer = setInterval(updateCooldown, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   const { setPageContext } = usePageContext();
 
@@ -108,8 +149,6 @@ const Homepage = () => {
     // ポップアップが開いている間は履歴を取得しない
     if (recommendOpen) return;
     if (selectedCategory !== 'recommended' || !currentUser) return;
-    // 初回表示時はポップアップが閉じてから取得
-    if (!recommendNeedsRefresh && recommendedItems.length === 0) return;
 
     const fetchRecommendHistory = async () => {
       setRecommendLoading(true);
@@ -284,6 +323,47 @@ const Homepage = () => {
         // おすすめタブ（LLMレコメンド + 吹き出し理由）
         <Box>
           <SectionHeader title="✨ おすすめ" showSeeAll={false} />
+
+          {/* クールダウンゲージ（次回AIおすすめまで） */}
+          <Box sx={{
+            mb: 3,
+            p: 2,
+            backgroundColor: '#1a1a2e',
+            borderRadius: 2,
+            border: `1px solid ${cooldownProgress >= 100 ? COLORS.PRIMARY : '#444'}`
+          }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+              <Typography sx={{
+                fontSize: '0.85rem',
+                color: cooldownProgress >= 100 ? COLORS.PRIMARY : '#aaa',
+                fontFamily: '"VT323", monospace'
+              }}>
+                🤖 次のAIおすすめまで
+              </Typography>
+              <Typography sx={{
+                fontSize: '0.9rem',
+                fontWeight: 'bold',
+                color: cooldownProgress >= 100 ? COLORS.PRIMARY : '#fff',
+                fontFamily: '"VT323", monospace'
+              }}>
+                {cooldownRemaining}
+              </Typography>
+            </Box>
+            <LinearProgress
+              variant="determinate"
+              value={cooldownProgress}
+              sx={{
+                height: 8,
+                borderRadius: 1,
+                backgroundColor: '#333',
+                '& .MuiLinearProgress-bar': {
+                  backgroundColor: cooldownProgress >= 100 ? COLORS.PRIMARY : '#4ade80',
+                  transition: 'transform 0.5s ease',
+                }
+              }}
+            />
+          </Box>
+
           {recommendLoading ? (
             <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
               <Alert severity="info">AIがおすすめを考えています...</Alert>

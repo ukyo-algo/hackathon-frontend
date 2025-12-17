@@ -14,18 +14,26 @@ const SellerPage = () => {
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState(null);
 
-  // ページコンテキストを設定
+  // ページコンテキストを設定（詳細な発送情報）
   useEffect(() => {
-    const pendingCount = list.filter(t => t.status === 'pending_shipment').length;
-    const inTransitCount = list.filter(t => t.status === 'in_transit').length;
+    const pendingItems = list.filter(t => t.status === 'pending_shipment');
+    const inTransitItems = list.filter(t => t.status === 'in_transit');
     setPageContext({
       page: 'seller_shipments',
-      pending_shipment_count: pendingCount,
-      in_transit_count: inTransitCount,
+      // 発送状況
+      pending_shipment_count: pendingItems.length,
+      in_transit_count: inTransitItems.length,
       unsold_count: unsoldItems.length,
+      // 空状態
+      no_transactions: list.length === 0,
+      no_unsold: unsoldItems.length === 0,
+      // アイテム情報（最大3件）
+      pending_items: pendingItems.slice(0, 3).map(t => t.item?.name || 'unknown'),
+      unsold_items: unsoldItems.slice(0, 3).map(i => i.name || 'unknown'),
+      is_loading: loading,
     });
     return () => setPageContext(null);
-  }, [list, unsoldItems.length, setPageContext]);
+  }, [list, unsoldItems, loading, setPageContext]);
 
   useEffect(() => {
     if (!currentUser) return;

@@ -20,18 +20,32 @@ const MyPage = () => {
   const { setPageContext } = usePageContext();
   const API_URL = process.env.REACT_APP_API_URL;
 
-  // ページコンテキストを設定
+  // ページコンテキストを設定（詳細なアクティビティ情報）
   useEffect(() => {
     setPageContext({
       page: 'my_page',
       active_tab: activeTab,
+      // 各タブの件数
       selling_count: sellingItems.length,
       bought_count: boughtItems.length,
       liked_count: likedItems.length,
       commented_count: commentedItems.length,
+      // 空状態の検出
+      selling_empty: sellingItems.length === 0,
+      bought_empty: boughtItems.length === 0,
+      liked_empty: likedItems.length === 0,
+      commented_empty: commentedItems.length === 0,
+      // 現在表示中のアイテム情報（最大3件）
+      current_tab_items: (
+        activeTab === 'selling' ? sellingItems :
+          activeTab === 'bought' ? boughtItems.map(t => t.item) :
+            activeTab === 'likes' ? likedItems :
+              commentedItems
+      ).slice(0, 3).map(item => item?.name || 'unknown'),
+      is_loading: loading,
     });
     return () => setPageContext(null);
-  }, [activeTab, sellingItems.length, boughtItems.length, likedItems.length, commentedItems.length, setPageContext]);
+  }, [activeTab, sellingItems, boughtItems, likedItems, commentedItems, loading, setPageContext]);
 
   useEffect(() => {
     if (!currentUser) return;

@@ -43,16 +43,29 @@ const PersonaSelectionPage = () => {
   const [detailOpen, setDetailOpen] = useState(false);
   const [selectedDetailPersona, setSelectedDetailPersona] = useState(null);
 
-  // ページコンテキストを設定
+  // 現在のペルソナ名を取得
+  const currentPersonaName = allPersonas.find(p => p.id === currentPersonaId)?.name || null;
+
+  // ページコンテキストを設定（詳細なキャラ情報）
   useEffect(() => {
     setPageContext({
       page: 'persona_selection',
       total_personas: allPersonas.length,
-      owned_personas: ownedPersonas.length,
+      owned_personas_count: ownedPersonas.length,
+      locked_personas_count: allPersonas.length - ownedPersonas.length,
       current_persona_id: currentPersonaId,
+      current_persona_name: currentPersonaName,
+      // 詳細モーダル表示中のキャラ
+      viewing_persona: selectedDetailPersona ? {
+        name: selectedDetailPersona.name,
+        rarity: selectedDetailPersona.rarity,
+        is_owned: ownedPersonas.some(p => p.id === selectedDetailPersona.id),
+        is_current: selectedDetailPersona.id === currentPersonaId,
+      } : null,
+      modal_open: detailOpen,
     });
     return () => setPageContext(null);
-  }, [allPersonas.length, ownedPersonas.length, currentPersonaId, setPageContext]);
+  }, [allPersonas.length, ownedPersonas, currentPersonaId, currentPersonaName, selectedDetailPersona, detailOpen, setPageContext]);
 
   useEffect(() => {
     const fetchData = async () => {
