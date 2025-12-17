@@ -22,7 +22,7 @@ import ShipmentsPage from './pages/seller_page';
 import DeliveriesPage from './pages/buyer_page';
 import BuyPage from './pages/buy_page';
 // Components
-import AIChatWidgetSlide from './components/AIChatWidgetSlide';
+import AIChatWidgetFloating from './components/AIChatWidgetFloating';
 
 
 
@@ -59,7 +59,7 @@ function App() {
                                 </Box>
 
                                 {/* 右端に重ねて表示するAIチャットウィジェット */}
-                                <AIChatWidgetSlide />
+                                <AIChatWidgetFloating />
                             </Box>
                         </Box>
                     </PageContextProvider>
