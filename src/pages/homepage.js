@@ -447,56 +447,17 @@ const Homepage = () => {
           )}
         </Box>
       ) : (
-        // 全表示モード：セクションベース
-        <>
-          {sections.map(section => {
-            if (section.type === 'hero') return null;
-
-            if (section.type === SECTION_TYPES.NEWEST) {
-              const newestItems = getSectionItems(section);
-              if (newestItems.length === 0) return null;
-
-              return (
-                <Box key={section.id} sx={{ mb: 6 }}>
-                  <SectionHeader
-                    title={section.title}
-                    showSeeAll={section.config.showSeeAll}
-                  />
-                  <ProductGrid
-                    items={newestItems.slice(0, PAGINATION.ITEMS_PER_ROW)}
-                    loading={loading}
-                    skeletonCount={PAGINATION.ITEMS_PER_ROW}
-                  />
-                </Box>
-              );
-            }
-
-            if (section.type === SECTION_TYPES.CATEGORY) {
-              return CATEGORIES.map(category => {
-                const categoryItems = sortItems(itemsByCategory[category], sortBy);
-
-                if (categoryItems.length === 0) return null;
-
-                return (
-                  <Box key={category} sx={{ mb: 6 }}>
-                    <SectionHeader
-                      title={`📦 ${category}`}
-                      onSeeAll={() => handleCategoryChange(null, category)}
-                      showSeeAll={section.config.showSeeAll}
-                    />
-                    <ProductGrid
-                      items={categoryItems.slice(0, PAGINATION.ITEMS_PER_ROW)}
-                      loading={loading}
-                      skeletonCount={PAGINATION.ITEMS_PER_ROW}
-                    />
-                  </Box>
-                );
-              });
-            }
-
-            return null;
-          })}
-        </>
+        // 全表示モード：シンプルに全商品をソートして表示
+        <Box>
+          <ProductGrid
+            items={sortItems(items, sortBy)}
+            loading={loading}
+            skeletonCount={12}
+          />
+          {!loading && items.length === 0 && (
+            <Alert severity="info">{MESSAGES.EMPTY_STATE.NO_ITEMS}</Alert>
+          )}
+        </Box>
       )}
 
       {/* 商品がない場合 */}

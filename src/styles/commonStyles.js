@@ -3,12 +3,12 @@
 
 import { colors, spacing, borderRadius, fontSize } from './theme';
 
-// ボタンスタイル (レトロゲーム風)
+// ボタンスタイル (レトロゲーム風・落ち着いたダークテーマ)
 export const buttonStyles = {
     primary: {
-        backgroundColor: colors.primary,
-        color: colors.background,
-        border: `2px solid ${colors.primary}`,
+        backgroundColor: '#2d3748',
+        color: '#e2e8f0',
+        border: '2px solid #4a5568',
         px: 2,
         py: 1,
         borderRadius: `${borderRadius.sm}px`,
@@ -17,14 +17,14 @@ export const buttonStyles = {
         cursor: 'pointer',
         transition: 'all 0.2s',
         '&:hover': {
-            boxShadow: `0 0 15px ${colors.primary}`,
-            transform: 'translateY(-1px)',
+            backgroundColor: '#4a5568',
+            borderColor: '#718096',
         },
     },
     outlined: {
         backgroundColor: 'transparent',
-        color: colors.primary,
-        border: `2px solid ${colors.primary}`,
+        color: '#a0aec0',
+        border: '2px solid #4a5568',
         px: 2,
         py: 1,
         borderRadius: `${borderRadius.sm}px`,
@@ -33,14 +33,15 @@ export const buttonStyles = {
         cursor: 'pointer',
         transition: 'all 0.2s',
         '&:hover': {
-            backgroundColor: `${colors.primary}20`,
-            boxShadow: `0 0 10px ${colors.primary}40`,
+            backgroundColor: '#2d374820',
+            borderColor: '#718096',
+            color: '#e2e8f0',
         },
     },
     secondary: {
         backgroundColor: 'transparent',
-        color: colors.secondary,
-        border: `2px solid ${colors.secondary}`,
+        color: '#9f7aea',
+        border: '2px solid #6b46c1',
         px: 2,
         py: 1,
         borderRadius: `${borderRadius.sm}px`,
@@ -49,14 +50,14 @@ export const buttonStyles = {
         cursor: 'pointer',
         transition: 'all 0.2s',
         '&:hover': {
-            backgroundColor: `${colors.secondary}20`,
-            boxShadow: `0 0 10px ${colors.secondary}40`,
+            backgroundColor: '#6b46c120',
+            borderColor: '#9f7aea',
         },
     },
     success: {
         backgroundColor: 'transparent',
-        color: colors.success,
-        border: `2px solid ${colors.success}`,
+        color: '#68d391',
+        border: '2px solid #38a169',
         px: 2,
         py: 1,
         borderRadius: `${borderRadius.sm}px`,
@@ -65,14 +66,14 @@ export const buttonStyles = {
         cursor: 'pointer',
         transition: 'all 0.2s',
         '&:hover': {
-            backgroundColor: `${colors.success}20`,
-            boxShadow: `0 0 10px ${colors.success}40`,
+            backgroundColor: '#38a16920',
+            borderColor: '#68d391',
         },
     },
     warning: {
         backgroundColor: 'transparent',
-        color: colors.warning,
-        border: `2px solid ${colors.warning}`,
+        color: '#f6ad55',
+        border: '2px solid #dd6b20',
         px: 2,
         py: 1,
         borderRadius: `${borderRadius.sm}px`,
@@ -81,14 +82,14 @@ export const buttonStyles = {
         cursor: 'pointer',
         transition: 'all 0.2s',
         '&:hover': {
-            backgroundColor: `${colors.warning}20`,
-            boxShadow: `0 0 10px ${colors.warning}40`,
+            backgroundColor: '#dd6b2020',
+            borderColor: '#f6ad55',
         },
     },
     neutral: {
         backgroundColor: 'transparent',
-        color: colors.textSecondary,
-        border: `2px solid ${colors.border}`,
+        color: '#718096',
+        border: '2px solid #4a5568',
         px: 2,
         py: 1,
         borderRadius: `${borderRadius.sm}px`,
@@ -97,8 +98,8 @@ export const buttonStyles = {
         cursor: 'pointer',
         transition: 'all 0.2s',
         '&:hover': {
-            borderColor: colors.textSecondary,
-            backgroundColor: `${colors.border}40`,
+            borderColor: '#718096',
+            backgroundColor: '#2d374840',
         },
     },
 };
