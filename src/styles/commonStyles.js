@@ -1,86 +1,104 @@
 // src/styles/commonStyles.js
-// 共通のスタイルオブジェクトを定義
+// el;ma 共通スタイル (ダークモード + レトロゲーム風)
 
 import { colors, spacing, borderRadius, fontSize } from './theme';
 
-// ボタンスタイル
+// ボタンスタイル (レトロゲーム風)
 export const buttonStyles = {
     primary: {
         backgroundColor: colors.primary,
-        color: colors.white,
-        border: 'none',
+        color: colors.background,
+        border: `2px solid ${colors.primary}`,
         px: 2,
         py: 1,
         borderRadius: `${borderRadius.sm}px`,
-        fontWeight: 'bold',
+        fontFamily: '"VT323", monospace',
+        fontSize: '1.1rem',
         cursor: 'pointer',
+        transition: 'all 0.2s',
         '&:hover': {
-            backgroundColor: colors.primaryDark,
+            boxShadow: `0 0 15px ${colors.primary}`,
+            transform: 'translateY(-1px)',
         },
     },
     outlined: {
-        backgroundColor: colors.white,
+        backgroundColor: 'transparent',
         color: colors.primary,
-        border: `1px solid ${colors.primary}`,
+        border: `2px solid ${colors.primary}`,
         px: 2,
         py: 1,
         borderRadius: `${borderRadius.sm}px`,
-        fontWeight: 'bold',
+        fontFamily: '"VT323", monospace',
+        fontSize: '1.1rem',
         cursor: 'pointer',
+        transition: 'all 0.2s',
         '&:hover': {
-            backgroundColor: colors.background,
+            backgroundColor: `${colors.primary}20`,
+            boxShadow: `0 0 10px ${colors.primary}40`,
         },
     },
     secondary: {
-        backgroundColor: colors.white,
+        backgroundColor: 'transparent',
         color: colors.secondary,
-        border: `1px solid ${colors.secondary}`,
+        border: `2px solid ${colors.secondary}`,
         px: 2,
         py: 1,
         borderRadius: `${borderRadius.sm}px`,
-        fontWeight: 'bold',
+        fontFamily: '"VT323", monospace',
+        fontSize: '1.1rem',
         cursor: 'pointer',
+        transition: 'all 0.2s',
         '&:hover': {
-            backgroundColor: colors.background,
+            backgroundColor: `${colors.secondary}20`,
+            boxShadow: `0 0 10px ${colors.secondary}40`,
         },
     },
     success: {
-        backgroundColor: colors.white,
+        backgroundColor: 'transparent',
         color: colors.success,
-        border: `1px solid ${colors.success}`,
+        border: `2px solid ${colors.success}`,
         px: 2,
         py: 1,
         borderRadius: `${borderRadius.sm}px`,
-        fontWeight: 'bold',
+        fontFamily: '"VT323", monospace',
+        fontSize: '1.1rem',
         cursor: 'pointer',
+        transition: 'all 0.2s',
         '&:hover': {
-            backgroundColor: colors.background,
+            backgroundColor: `${colors.success}20`,
+            boxShadow: `0 0 10px ${colors.success}40`,
         },
     },
     warning: {
-        backgroundColor: colors.white,
+        backgroundColor: 'transparent',
         color: colors.warning,
-        border: `1px solid ${colors.warning}`,
+        border: `2px solid ${colors.warning}`,
         px: 2,
         py: 1,
         borderRadius: `${borderRadius.sm}px`,
-        fontWeight: 'bold',
+        fontFamily: '"VT323", monospace',
+        fontSize: '1.1rem',
         cursor: 'pointer',
+        transition: 'all 0.2s',
         '&:hover': {
-            backgroundColor: colors.background,
+            backgroundColor: `${colors.warning}20`,
+            boxShadow: `0 0 10px ${colors.warning}40`,
         },
     },
     neutral: {
-        backgroundColor: colors.white,
+        backgroundColor: 'transparent',
         color: colors.textSecondary,
-        border: `1px solid ${colors.border}`,
+        border: `2px solid ${colors.border}`,
         px: 2,
         py: 1,
         borderRadius: `${borderRadius.sm}px`,
-        fontWeight: 'bold',
+        fontFamily: '"VT323", monospace',
+        fontSize: '1.1rem',
         cursor: 'pointer',
+        transition: 'all 0.2s',
         '&:hover': {
-            backgroundColor: colors.background,
+            borderColor: colors.textSecondary,
+            backgroundColor: `${colors.border}40`,
         },
     },
 };
@@ -108,15 +126,17 @@ export const layoutStyles = {
     },
 };
 
-// カードスタイル
+// カードスタイル (ゲームウィンドウ風)
 export const cardStyles = {
     card: {
-        borderRadius: `${borderRadius.md}px`,
+        backgroundColor: colors.paper,
+        borderRadius: `${borderRadius.sm}px`,
         border: `1px solid ${colors.border}`,
-        transition: 'transform 0.2s, box-shadow 0.2s',
+        transition: 'all 0.2s',
         '&:hover': {
             transform: 'translateY(-4px)',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+            borderColor: colors.primary,
+            boxShadow: `0 0 20px ${colors.primary}30`,
         },
     },
     cardImage: {
@@ -131,19 +151,20 @@ export const paperStyles = {
     outlined: {
         border: `1px solid ${colors.border}`,
         borderRadius: `${borderRadius.md}px`,
-        backgroundColor: colors.white,
+        backgroundColor: colors.paper,
     },
     elevated: {
-        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+        boxShadow: `0 4px 20px ${colors.background}`,
         borderRadius: `${borderRadius.md}px`,
-        backgroundColor: colors.white,
+        backgroundColor: colors.paper,
+        border: `1px solid ${colors.border}`,
     },
 };
 
-// ナビゲーションバースタイル
+// ナビゲーションバースタイル (ダークモード)
 export const navBarStyles = {
     container: {
-        backgroundColor: colors.white,
+        backgroundColor: colors.backgroundAlt,
         borderBottom: `1px solid ${colors.border}`,
     },
     topSection: {
@@ -167,6 +188,23 @@ export const navBarStyles = {
         '& .MuiOutlinedInput-root': {
             borderRadius: `${borderRadius.sm}px`,
             backgroundColor: colors.background,
+            color: colors.textPrimary,
+            '& fieldset': {
+                borderColor: colors.border,
+            },
+            '&:hover fieldset': {
+                borderColor: colors.primary,
+            },
+            '&.Mui-focused fieldset': {
+                borderColor: colors.primary,
+            },
+        },
+        '& .MuiInputBase-input': {
+            color: colors.textPrimary,
+            '&::placeholder': {
+                color: colors.textTertiary,
+                opacity: 1,
+            },
         },
     },
     navButtons: {
@@ -176,6 +214,7 @@ export const navBarStyles = {
         py: 1,
         borderTop: `1px solid ${colors.border}`,
         justifyContent: 'flex-start',
+        flexWrap: 'wrap',
     },
 };
 
@@ -207,17 +246,18 @@ export const commentStyles = {
         display: 'flex',
         flexDirection: 'column',
         boxSizing: 'border-box',
-        bgcolor: colors.white,
+        bgcolor: colors.paper,
         border: `1px solid ${colors.border}`,
     },
     scrollArea: {
         flexGrow: 1,
         overflowY: 'auto',
         mb: 2,
-        border: `1px solid #eee`,
+        border: `1px solid ${colors.border}`,
         borderRadius: 1,
         p: 2,
         width: '100%',
+        backgroundColor: colors.backgroundAlt,
     },
     emptyState: {
         height: '100%',
@@ -232,7 +272,7 @@ export const commentStyles = {
         gap: 1,
         alignItems: 'center',
         pt: 2,
-        borderTop: `1px solid #eee`,
+        borderTop: `1px solid ${colors.border}`,
         width: '100%',
     },
 };

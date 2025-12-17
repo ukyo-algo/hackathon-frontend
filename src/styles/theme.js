@@ -1,20 +1,37 @@
 // src/styles/theme.js
+// el;ma - 廃棄されたゲームキャラたちの市場
 import { createTheme } from '@mui/material/styles';
 
-// カラーパレット
+// ===== el;ma カラーパレット (ダークモード + レトロゲーム) =====
 export const colors = {
-  primary: '#ff0099',
-  primaryDark: '#e60080',
-  secondary: '#9c27b0',
-  background: '#f5f5f5',
-  textPrimary: '#333',
-  textSecondary: '#666',
-  textTertiary: '#999',
-  border: '#e0e0e0',
-  success: '#2e7d32',
-  error: '#d32f2f',
-  warning: '#f57c00',
-  white: '#ffffff',
+  // メインカラー
+  primary: '#00ff88',        // ネオングリーン (レトロゲーム風)
+  primaryDark: '#00cc6a',
+  secondary: '#ff00ff',      // マゼンタ (グリッチ感)
+  accent: '#00ffff',         // シアン
+
+  // 背景
+  background: '#0d1117',     // 深い黒
+  backgroundAlt: '#161b22',  // 少し明るい黒
+  paper: '#1c2128',          // カード背景
+
+  // テキスト
+  textPrimary: '#e6edf3',    // 明るいグレー
+  textSecondary: '#8b949e',  // 中間グレー
+  textTertiary: '#6e7681',   // 暗めグレー
+  textAccent: '#00ff88',     // アクセント (価格など)
+
+  // ボーダー
+  border: '#30363d',
+  borderLight: '#444c56',
+
+  // ステータス
+  success: '#00ff88',
+  error: '#ff6b6b',
+  warning: '#ffcc00',
+
+  // 価格 (ネオン風)
+  price: '#00ff88',
 };
 
 // スペーシング
@@ -26,11 +43,11 @@ export const spacing = {
   xl: 32,
 };
 
-// ボーダー半径
+// ボーダー半径 (レトロゲーム風は角張り気味)
 export const borderRadius = {
-  sm: 4,
-  md: 8,
-  lg: 16,
+  sm: 2,
+  md: 4,
+  lg: 8,
 };
 
 // フォントサイズ
@@ -52,12 +69,14 @@ export const breakpoints = {
   xl: 1920,
 };
 
-// MUIテーマの作成
+// MUIテーマの作成 (ダークモード)
 const theme = createTheme({
   palette: {
+    mode: 'dark',
     primary: {
       main: colors.primary,
       dark: colors.primaryDark,
+      contrastText: '#0d1117',
     },
     secondary: {
       main: colors.secondary,
@@ -73,36 +92,153 @@ const theme = createTheme({
     },
     background: {
       default: colors.background,
-      paper: colors.white,
+      paper: colors.paper,
     },
     text: {
       primary: colors.textPrimary,
       secondary: colors.textSecondary,
     },
+    divider: colors.border,
   },
   typography: {
     fontFamily: [
+      '"VT323"',           // レトロゲームフォント (Google Fonts)
+      '"Press Start 2P"',  // ドット風フォント (フォールバック)
+      'monospace',
       '-apple-system',
       'BlinkMacSystemFont',
-      '"Segoe UI"',
-      'Roboto',
-      '"Helvetica Neue"',
-      'Arial',
       'sans-serif',
     ].join(','),
+    h1: {
+      fontFamily: '"VT323", monospace',
+      fontWeight: 400,
+    },
+    h2: {
+      fontFamily: '"VT323", monospace',
+      fontWeight: 400,
+    },
+    h3: {
+      fontFamily: '"VT323", monospace',
+      fontWeight: 400,
+    },
     h4: {
-      fontWeight: 'bold',
+      fontFamily: '"VT323", monospace',
+      fontWeight: 400,
+    },
+    h5: {
+      fontFamily: '"VT323", monospace',
+      fontWeight: 400,
     },
     h6: {
-      fontWeight: 'bold',
+      fontFamily: '"VT323", monospace',
+      fontWeight: 400,
+    },
+    body1: {
+      fontFamily: 'monospace, sans-serif',
+    },
+    body2: {
+      fontFamily: 'monospace, sans-serif',
     },
   },
   shape: {
     borderRadius: borderRadius.sm,
   },
-  spacing: 8, // MUIのspacing基本単位
+  spacing: 8,
   breakpoints: {
     values: breakpoints,
+  },
+  components: {
+    // ボタンのスタイル (レトロゲーム風)
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          textTransform: 'none',
+          borderRadius: 2,
+          fontFamily: '"VT323", monospace',
+          fontSize: '1.1rem',
+          letterSpacing: '0.05em',
+          border: '2px solid',
+          '&:hover': {
+            boxShadow: `0 0 10px ${colors.primary}`,
+          },
+        },
+        contained: {
+          backgroundColor: colors.primary,
+          color: colors.background,
+          borderColor: colors.primary,
+          '&:hover': {
+            backgroundColor: colors.primaryDark,
+          },
+        },
+        outlined: {
+          borderColor: colors.primary,
+          color: colors.primary,
+        },
+      },
+    },
+    // カードのスタイル (ゲームウィンドウ風)
+    MuiCard: {
+      styleOverrides: {
+        root: {
+          backgroundColor: colors.paper,
+          border: `1px solid ${colors.border}`,
+          borderRadius: 4,
+          '&:hover': {
+            borderColor: colors.primary,
+            boxShadow: `0 0 12px ${colors.primary}40`,
+          },
+        },
+      },
+    },
+    // 紙のスタイル
+    MuiPaper: {
+      styleOverrides: {
+        root: {
+          backgroundColor: colors.paper,
+          backgroundImage: 'none',
+        },
+      },
+    },
+    // 入力フィールド
+    MuiTextField: {
+      styleOverrides: {
+        root: {
+          '& .MuiOutlinedInput-root': {
+            '& fieldset': {
+              borderColor: colors.border,
+            },
+            '&:hover fieldset': {
+              borderColor: colors.primary,
+            },
+            '&.Mui-focused fieldset': {
+              borderColor: colors.primary,
+            },
+          },
+        },
+      },
+    },
+    // タブ
+    MuiTab: {
+      styleOverrides: {
+        root: {
+          fontFamily: '"VT323", monospace',
+          fontSize: '1.1rem',
+          textTransform: 'none',
+          '&.Mui-selected': {
+            color: colors.primary,
+          },
+        },
+      },
+    },
+    // チップ
+    MuiChip: {
+      styleOverrides: {
+        root: {
+          fontFamily: 'monospace',
+          borderRadius: 4,
+        },
+      },
+    },
   },
 });
 

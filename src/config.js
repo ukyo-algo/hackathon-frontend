@@ -37,18 +37,23 @@ export const API_ENDPOINTS = {
   REWARD_SEEING_RECOMMEND: '/api/v1/rewards/claim/seeing_recommend',
 };
 
-// ========== UI設定 ==========
+// ========== UI設定 (el;ma ダークモード) ==========
 export const COLORS = {
-  PRIMARY: '#ff0099',
-  PRIMARY_DARK: '#e60080',
-  BACKGROUND: '#f5f5f5',
-  TEXT_PRIMARY: '#333',
-  TEXT_SECONDARY: '#666',
-  TEXT_TERTIARY: '#999',
-  BORDER: '#e0e0e0',
-  SUCCESS: '#2e7d32',
-  ERROR: '#d32f2f',
-  WARNING: '#f57c00',
+  PRIMARY: '#00ff88',       // ネオングリーン
+  PRIMARY_DARK: '#00cc6a',
+  SECONDARY: '#ff00ff',     // マゼンタ
+  ACCENT: '#00ffff',        // シアン
+  BACKGROUND: '#0d1117',    // 深い黒
+  BACKGROUND_ALT: '#161b22',
+  PAPER: '#1c2128',
+  TEXT_PRIMARY: '#e6edf3',
+  TEXT_SECONDARY: '#8b949e',
+  TEXT_TERTIARY: '#6e7681',
+  BORDER: '#30363d',
+  SUCCESS: '#00ff88',
+  ERROR: '#ff6b6b',
+  WARNING: '#ffcc00',
+  PRICE: '#00ff88',
 };
 
 export const BREAKPOINTS = {

@@ -26,8 +26,15 @@ const NavBar = () => {
       <Box sx={navBarStyles.topSection}>
         {/* ロゴ（ホームへ） */}
         <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Box sx={navBarStyles.logo}>
-            🏪 FleaMarket
+          <Box sx={{
+            ...navBarStyles.logo,
+            fontFamily: '"VT323", monospace',
+            fontSize: '2rem',
+            color: colors.primary,
+            textShadow: `0 0 10px ${colors.primary}`,
+            letterSpacing: '0.05em',
+          }}>
+            el<span style={{ color: colors.secondary }}>;</span>ma
           </Box>
         </Link>
 
