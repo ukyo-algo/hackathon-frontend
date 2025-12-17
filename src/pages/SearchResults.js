@@ -1,14 +1,15 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { Box, Grid, Card, CardContent, Typography, Container, CircularProgress, Alert, Stack } from '@mui/material';
 import { FavoriteBorder, ChatBubbleOutline } from '@mui/icons-material';
 import axios from 'axios';
 import {
-  API_BASE_URL,
-  API_ENDPOINTS,
-  COLORS,
-  MESSAGES,
+    API_BASE_URL,
+    API_ENDPOINTS,
+    COLORS,
+    MESSAGES,
 } from '../config';
+import { usePageContext } from '../components/AIChatWidget';
 
 const SearchResults = () => {
     const [searchParams] = useSearchParams();
@@ -16,6 +17,18 @@ const SearchResults = () => {
     const [results, setResults] = React.useState([]);
     const [loading, setLoading] = React.useState(true);
     const [error, setError] = React.useState(null);
+    const { setPageContext } = usePageContext();
+
+    // ページコンテキストを設定
+    useEffect(() => {
+        setPageContext({
+            page: 'search_results',
+            query: query,
+            result_count: results.length,
+            has_results: results.length > 0,
+        });
+        return () => setPageContext(null);
+    }, [query, results.length, setPageContext]);
 
     React.useEffect(() => {
         if (!query) {
@@ -78,13 +91,13 @@ const SearchResults = () => {
                 <Grid container spacing={2}>
                     {results.map((item) => (
                         <Grid item xs={12} sm={6} md={4} lg={3} key={item.item_id}>
-                            <Link 
-                                to={`/items/${item.item_id}`} 
-                                style={{ 
+                            <Link
+                                to={`/items/${item.item_id}`}
+                                style={{
                                     textDecoration: 'none',
-                                    display: 'block',    
-                                    width: '100%',       
-                                    height: '100%'       
+                                    display: 'block',
+                                    width: '100%',
+                                    height: '100%'
                                 }}
                             >
                                 <Card sx={{
@@ -95,7 +108,7 @@ const SearchResults = () => {
                                     transition: 'transform 0.2s',
                                     '&:hover': { transform: 'translateY(-4px)', boxShadow: 4 }
                                 }}>
-                                    
+
                                     {/* ★修正ポイント: 画像エリア
                                         height: 180px を削除し、aspectRatio: '1/1' を指定。
                                         これでカードの横幅に合わせて、高さが自動的に正方形になります。

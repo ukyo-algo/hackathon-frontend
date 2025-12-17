@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import {
@@ -15,6 +15,7 @@ import {
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import { useAuth } from '../contexts/auth_context';
 import { colors } from '../styles/theme';
+import { usePageContext } from '../components/AIChatWidget';
 
 const GACHA_COST = 100;
 
@@ -24,9 +25,23 @@ const GachaPage = () => {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
+  const { setPageContext } = usePageContext();
 
   const userCoins = currentUser?.coins || 0;
   const canAfford = userCoins >= GACHA_COST;
+
+  // ページコンテキストを設定
+  useEffect(() => {
+    setPageContext({
+      page: 'gacha',
+      user_coins: userCoins,
+      gacha_cost: GACHA_COST,
+      can_afford: canAfford,
+      has_result: !!result,
+      result_rarity: result?.persona?.rarity,
+    });
+    return () => setPageContext(null);
+  }, [userCoins, canAfford, result, setPageContext]);
 
   const handleDrawGacha = async () => {
     if (!canAfford) {

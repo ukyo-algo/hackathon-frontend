@@ -5,11 +5,13 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/auth_context';
 import { Box, Container, Grid, Paper, Typography, RadioGroup, FormControlLabel, Radio, TextField, Divider, Button, Alert } from '@mui/material';
 import { API_BASE_URL } from '../config';
+import { usePageContext } from '../components/AIChatWidget';
 
 const BuyPage = () => {
   const { itemId } = useParams();
   const navigate = useNavigate();
   const { currentUser } = useAuth();
+  const { setPageContext } = usePageContext();
 
   const [item, setItem] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -28,6 +30,21 @@ const BuyPage = () => {
   });
   const [addressError, setAddressError] = useState({});
   const [submitting, setSubmitting] = useState(false);
+
+  // ページコンテキストを設定
+  useEffect(() => {
+    if (item) {
+      setPageContext({
+        page: 'buy_confirmation',
+        item_id: itemId,
+        item_name: item.name,
+        item_price: item.price,
+        payment_method: paymentMethod,
+        delivery_option: deliveryOption,
+      });
+    }
+    return () => setPageContext(null);
+  }, [item, itemId, paymentMethod, deliveryOption, setPageContext]);
 
   useEffect(() => {
     if (!currentUser) {

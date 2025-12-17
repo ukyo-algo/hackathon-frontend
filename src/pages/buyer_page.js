@@ -4,14 +4,27 @@ import { useAuth } from '../contexts/auth_context';
 import { API_BASE_URL } from '../config';
 import { Link } from 'react-router-dom';
 import ProgressSteps from '../components/ProgressSteps';
-// import { useLLMAgent } from '../hooks/useLLMAgent';
+import { usePageContext } from '../components/AIChatWidget';
 
 const BuyerPage = () => {
   const { currentUser } = useAuth();
-  // const { message, recommendations } = useLLMAgent();
+  const { setPageContext } = usePageContext();
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState(null);
+
+  // ページコンテキストを設定
+  useEffect(() => {
+    const pendingCount = list.filter(t => t.status === 'pending_shipment').length;
+    const inTransitCount = list.filter(t => t.status === 'in_transit').length;
+    setPageContext({
+      page: 'buyer_deliveries',
+      pending_shipment_count: pendingCount,
+      in_transit_count: inTransitCount,
+      total_count: list.length,
+    });
+    return () => setPageContext(null);
+  }, [list, setPageContext]);
 
   useEffect(() => {
     if (!currentUser) return;
@@ -30,7 +43,7 @@ const BuyerPage = () => {
           let combined = [];
           if (resPending.ok) combined = [...combined, ...(await resPending.json())];
           if (resTransit.ok) combined = [...combined, ...(await resTransit.json())];
-          
+
           setList(combined);
           setLastUpdated(new Date());
         }
@@ -46,7 +59,7 @@ const BuyerPage = () => {
     };
   }, [currentUser]);
 
-  if (!currentUser) return <div style={{padding: 20}}>ログインしてください</div>;
+  if (!currentUser) return <div style={{ padding: 20 }}>ログインしてください</div>;
 
   return (
     <div style={{ padding: 20 }}>

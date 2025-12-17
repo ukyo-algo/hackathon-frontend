@@ -4,15 +4,28 @@ import { useAuth } from '../contexts/auth_context';
 import { API_BASE_URL } from '../config';
 import { Link } from 'react-router-dom';
 import ProgressSteps from '../components/ProgressSteps';
-// import { useLLMAgent } from '../hooks/useLLMAgent';
+import { usePageContext } from '../components/AIChatWidget';
 
 const SellerPage = () => {
   const { currentUser } = useAuth();
-  // const { message } = useLLMAgent();
+  const { setPageContext } = usePageContext();
   const [list, setList] = useState([]);
   const [unsoldItems, setUnsoldItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState(null);
+
+  // ページコンテキストを設定
+  useEffect(() => {
+    const pendingCount = list.filter(t => t.status === 'pending_shipment').length;
+    const inTransitCount = list.filter(t => t.status === 'in_transit').length;
+    setPageContext({
+      page: 'seller_shipments',
+      pending_shipment_count: pendingCount,
+      in_transit_count: inTransitCount,
+      unsold_count: unsoldItems.length,
+    });
+    return () => setPageContext(null);
+  }, [list, unsoldItems.length, setPageContext]);
 
   useEffect(() => {
     if (!currentUser) return;
@@ -33,7 +46,7 @@ const SellerPage = () => {
           let combined = [];
           if (resPending.ok) combined = [...combined, ...(await resPending.json())];
           if (resTransit.ok) combined = [...combined, ...(await resTransit.json())];
-          
+
           setList(combined);
           if (resMyItems.ok) {
             const items = await resMyItems.json();
@@ -57,7 +70,7 @@ const SellerPage = () => {
     };
   }, [currentUser]);
 
-  if (!currentUser) return <div style={{padding: 20}}>ログインしてください</div>;
+  if (!currentUser) return <div style={{ padding: 20 }}>ログインしてください</div>;
 
   return (
     <div style={{ padding: 20 }}>

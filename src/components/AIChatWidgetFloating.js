@@ -26,6 +26,9 @@ const AIChatWidgetFloating = () => {
     const [position, setPosition] = useState({ x: window.innerWidth - DEFAULT_WIDTH - 20, y: 80 });
     const [size, setSize] = useState({ width: DEFAULT_WIDTH, height: DEFAULT_HEIGHT });
     const [lastMessage, setLastMessage] = useState('');
+    const [showBubble, setShowBubble] = useState(false);
+    const [bubbleProgress, setBubbleProgress] = useState(0);
+    const bubbleTimerRef = useRef(null);
 
     // ドラッグ用
     const [isDragging, setIsDragging] = useState(false);
@@ -41,11 +44,35 @@ const AIChatWidgetFloating = () => {
     const avatarUrl = currentPersona?.avatar_url || '/avatars/default.png';
     const personaName = currentPersona?.name || 'AIアシスタント';
 
-    // LLMからのメッセージを保持
+    // LLMからのメッセージを保持 + 10秒タイマー
     useEffect(() => {
         if (llmAgent.message && !llmAgent.isLoading) {
             setLastMessage(llmAgent.message);
+            setShowBubble(true);
+            setBubbleProgress(0);
+
+            // 既存のタイマーをクリア
+            if (bubbleTimerRef.current) {
+                clearInterval(bubbleTimerRef.current);
+            }
+
+            // 100msごとにプログレスを更新（10秒 = 100ステップ）
+            let progress = 0;
+            bubbleTimerRef.current = setInterval(() => {
+                progress += 1;
+                setBubbleProgress(progress);
+                if (progress >= 100) {
+                    setShowBubble(false);
+                    clearInterval(bubbleTimerRef.current);
+                }
+            }, 100);
         }
+
+        return () => {
+            if (bubbleTimerRef.current) {
+                clearInterval(bubbleTimerRef.current);
+            }
+        };
     }, [llmAgent.message, llmAgent.isLoading]);
 
     // ドラッグ開始
@@ -157,22 +184,26 @@ const AIChatWidgetFloating = () => {
     if (!isOpen) {
         return (
             <Box sx={{ position: 'fixed', bottom: 20, right: 20, zIndex: 2000 }}>
-                {/* 吹き出し（最新メッセージ） */}
-                {lastMessage && (
+                {/* 吹き出し（最新メッセージ）- 10秒で自動消去 */}
+                {showBubble && lastMessage && (
                     <Box
-                        onClick={() => setIsOpen(true)}
+                        onClick={() => {
+                            setShowBubble(false);
+                            if (bubbleTimerRef.current) clearInterval(bubbleTimerRef.current);
+                            setIsOpen(true);
+                        }}
                         sx={{
                             position: 'absolute',
                             bottom: 64,
                             right: 0,
-                            maxWidth: 200,
+                            width: 280,
+                            maxWidth: 'calc(100vw - 60px)',
                             backgroundColor: colors.paper,
                             border: `1px solid ${colors.primary}`,
                             borderRadius: 2,
-                            px: 1.5,
-                            py: 1,
+                            overflow: 'hidden',
                             cursor: 'pointer',
-                            boxShadow: `0 0 10px ${colors.primary}30`,
+                            boxShadow: `0 0 15px ${colors.primary}40`,
                             '&::after': {
                                 content: '""',
                                 position: 'absolute',
@@ -186,21 +217,37 @@ const AIChatWidgetFloating = () => {
                             },
                         }}
                     >
-                        <Typography
+                        {/* プログレスバー（上部） */}
+                        <Box
                             sx={{
-                                color: colors.textPrimary,
-                                fontSize: '0.75rem',
-                                fontFamily: '"VT323", monospace',
-                                lineHeight: 1.3,
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                                display: '-webkit-box',
-                                WebkitLineClamp: 3,
-                                WebkitBoxOrient: 'vertical',
+                                position: 'absolute',
+                                top: 0,
+                                left: 0,
+                                width: `${bubbleProgress}%`,
+                                height: 3,
+                                backgroundColor: colors.primary,
+                                transition: 'width 0.1s linear',
                             }}
-                        >
-                            {lastMessage}
-                        </Typography>
+                        />
+
+                        {/* メッセージ本文 */}
+                        <Box sx={{ px: 1.5, py: 1.5, pt: 2 }}>
+                            <Typography
+                                sx={{
+                                    color: colors.textPrimary,
+                                    fontSize: '0.85rem',
+                                    fontFamily: '"VT323", monospace',
+                                    lineHeight: 1.4,
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    display: '-webkit-box',
+                                    WebkitLineClamp: 8,
+                                    WebkitBoxOrient: 'vertical',
+                                }}
+                            >
+                                {lastMessage}
+                            </Typography>
+                        </Box>
                     </Box>
                 )}
 

@@ -17,6 +17,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import LockIcon from '@mui/icons-material/Lock';
 import { useAuth } from '../contexts/auth_context';
 import CharacterDetailModal from '../components/CharacterDetailModal';
+import { usePageContext } from '../components/AIChatWidget';
 
 const RARITIES_BASE = [
   { key: 'ノーマル', label: 'ノーマル', color: '#888888', order: 1 },
@@ -36,10 +37,22 @@ const PersonaSelectionPage = () => {
   const [error, setError] = useState(null);
   const [updating, setUpdating] = useState(false);
   const { refreshUser } = useAuth();
+  const { setPageContext } = usePageContext();
 
   // 詳細モーダルの状態
   const [detailOpen, setDetailOpen] = useState(false);
   const [selectedDetailPersona, setSelectedDetailPersona] = useState(null);
+
+  // ページコンテキストを設定
+  useEffect(() => {
+    setPageContext({
+      page: 'persona_selection',
+      total_personas: allPersonas.length,
+      owned_personas: ownedPersonas.length,
+      current_persona_id: currentPersonaId,
+    });
+    return () => setPageContext(null);
+  }, [allPersonas.length, ownedPersonas.length, currentPersonaId, setPageContext]);
 
   useEffect(() => {
     const fetchData = async () => {
