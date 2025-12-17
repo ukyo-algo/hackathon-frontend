@@ -14,7 +14,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import StarIcon from '@mui/icons-material/Star';
 import { colors } from '../styles/theme';
 
-const CharacterDetailModal = ({ open, onClose, character, onSetPartner }) => {
+const CharacterDetailModal = ({ open, onClose, character, onSetPartner, level = 1, onLevelUp, memoryFragments = 0 }) => {
     if (!character) return null;
 
     // レアリティに応じた色
@@ -142,8 +142,22 @@ const CharacterDetailModal = ({ open, onClose, character, onSetPartner }) => {
                         color: colors.textPrimary,
                         fontFamily: '"VT323", monospace',
                         fontSize: '1.8rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1,
                     }}>
                         {character.name}
+                        <Box sx={{
+                            bgcolor: 'rgba(100, 200, 255, 0.3)',
+                            color: '#64c8ff',
+                            px: 1,
+                            py: 0.25,
+                            borderRadius: 1,
+                            fontSize: '1rem',
+                            fontWeight: 'bold',
+                        }}>
+                            Lv.{level}
+                        </Box>
                     </Typography>
 
                     {/* 説明文 */}
@@ -227,6 +241,28 @@ const CharacterDetailModal = ({ open, onClose, character, onSetPartner }) => {
                 >
                     パートナーにする
                 </Button>
+                {level < 10 && onLevelUp && (
+                    <Button
+                        variant="contained"
+                        onClick={() => onLevelUp(character.id)}
+                        sx={{
+                            backgroundColor: '#8b5cf6',
+                            color: '#fff',
+                            fontWeight: 'bold',
+                            py: 1.5,
+                            px: 2,
+                            borderRadius: 1,
+                            fontFamily: '"VT323", monospace',
+                            fontSize: '1rem',
+                            textTransform: 'none',
+                            '&:hover': {
+                                backgroundColor: '#7c3aed',
+                            }
+                        }}
+                    >
+                        💎 LvUP
+                    </Button>
+                )}
                 <Button
                     variant="outlined"
                     onClick={onClose}

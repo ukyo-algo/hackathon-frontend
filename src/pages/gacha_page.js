@@ -27,14 +27,14 @@ const GachaPage = () => {
   const [error, setError] = useState(null);
   const { setPageContext } = usePageContext();
 
-  const userCoins = currentUser?.coins || 0;
-  const canAfford = userCoins >= GACHA_COST;
+  const userGachaPoints = currentUser?.gacha_points || 0;
+  const canAfford = userGachaPoints >= GACHA_COST;
 
   // ページコンテキストを設定（詳細なガチャ結果情報）
   useEffect(() => {
     setPageContext({
       page: 'gacha',
-      user_coins: userCoins,
+      user_gacha_points: userGachaPoints,
       gacha_cost: GACHA_COST,
       can_afford: canAfford,
       // ガチャ結果の詳細
@@ -48,11 +48,11 @@ const GachaPage = () => {
       error_message: error || null,
     });
     return () => setPageContext(null);
-  }, [userCoins, canAfford, result, loading, error, setPageContext]);
+  }, [userGachaPoints, canAfford, result, loading, error, setPageContext]);
 
   const handleDrawGacha = async () => {
     if (!canAfford) {
-      setError(`コインが足りません（必要: ${GACHA_COST}コイン、所持: ${userCoins}コイン）`);
+      setError(`ガチャポイントが足りません（必要: ${GACHA_COST}ポイント、所持: ${userGachaPoints}ポイント）`);
       return;
     }
 
@@ -105,14 +105,14 @@ const GachaPage = () => {
         border: `1px solid ${colors.border}`,
       }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Typography sx={{ fontSize: '1.5rem' }}>🪙</Typography>
+          <Typography sx={{ fontSize: '1.5rem' }}>🎫</Typography>
           <Typography sx={{ fontFamily: '"VT323", monospace', fontSize: '1.5rem', color: colors.warning }}>
-            {userCoins.toLocaleString()}
+            {userGachaPoints.toLocaleString()}
           </Typography>
         </Box>
         <Typography sx={{ color: colors.textSecondary }}>|</Typography>
         <Typography sx={{ fontFamily: '"VT323", monospace', color: colors.textSecondary }}>
-          1回 = {GACHA_COST}コイン
+          1回 = {GACHA_COST}ポイント
         </Typography>
       </Box>
 

@@ -36,7 +36,8 @@ const PersonaSelectionPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [updating, setUpdating] = useState(false);
-  const { refreshUser } = useAuth();
+  const [ownedPersonaLevels, setOwnedPersonaLevels] = useState({});  // persona_id -> level
+  const { refreshUser, currentUser } = useAuth();
   const { setPageContext } = usePageContext();
 
   // 詳細モーダルの状態
@@ -79,6 +80,11 @@ const PersonaSelectionPage = () => {
 
         const ownedRes = await api.get('/users/me/personas');
         setOwnedPersonas(ownedRes.data);
+
+        // レベル情報を取得（単純化のためデフォルトを1とする）
+        const levels = {};
+        ownedRes.data.forEach(p => { levels[p.id] = p.level || 1; });
+        setOwnedPersonaLevels(levels);
       } catch (err) {
         console.error('Error fetching data:', err);
         setError('データの取得に失敗しました。');
@@ -116,6 +122,28 @@ const PersonaSelectionPage = () => {
     } catch (err) {
       console.error('Error updating persona:', err);
       setError('ペルソナの変更に失敗しました。');
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  // レベルアップハンドラ
+  const handleLevelUp = async (personaId) => {
+    try {
+      setUpdating(true);
+      const res = await api.post(`/users/me/personas/${personaId}/levelup`);
+      if (res.data.success) {
+        // レベルを更新
+        setOwnedPersonaLevels(prev => ({
+          ...prev,
+          [personaId]: res.data.new_level,
+        }));
+        await refreshUser();
+      }
+    } catch (err) {
+      console.error('Error leveling up:', err);
+      const msg = err.response?.data?.detail || 'レベルアップに失敗しました';
+      setError(msg);
     } finally {
       setUpdating(false);
     }
@@ -285,6 +313,19 @@ const PersonaSelectionPage = () => {
                     >
                       {persona.name}
                     </Typography>
+                    {isOwned && (
+                      <Chip
+                        label={`Lv.${ownedPersonaLevels[persona.id] || 1}`}
+                        size="small"
+                        sx={{
+                          bgcolor: 'rgba(100, 200, 255, 0.3)',
+                          color: '#64c8ff',
+                          fontWeight: 'bold',
+                          fontSize: '10px',
+                          height: '18px',
+                        }}
+                      />
+                    )}
                     {!isOwned && (
                       <Typography variant="body2" color="text.secondary" align="center" sx={{ fontSize: '12px' }}>
                         未所持
@@ -315,6 +356,9 @@ const PersonaSelectionPage = () => {
         onClose={handleCloseDetail}
         character={selectedDetailPersona}
         onSetPartner={handleSetPartner}
+        level={selectedDetailPersona ? ownedPersonaLevels[selectedDetailPersona.id] || 1 : 1}
+        onLevelUp={handleLevelUp}
+        memoryFragments={currentUser?.memory_fragments || 0}
       />
     </Container>
   );

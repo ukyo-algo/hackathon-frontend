@@ -78,14 +78,35 @@ const NavBar = () => {
             px: 1.5,
             py: 0.5,
           }}>
-            <Box sx={{ fontSize: '1.2rem' }}>🪙</Box>
+            <Box sx={{ fontSize: '1.2rem' }}>🎫</Box>
             <Box sx={{
               fontFamily: '"VT323", monospace',
               fontSize: '1.2rem',
               color: colors.warning,
               textShadow: `0 0 8px ${colors.warning}40`,
             }}>
-              {(currentUser.coins || 0).toLocaleString()}
+              {(currentUser.gacha_points || 0).toLocaleString()}
+            </Box>
+          </Box>
+        )}
+        {currentUser && (
+          <Box sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 0.5,
+            padding: '4px 8px',
+            borderRadius: '8px',
+            background: 'rgba(128, 0, 255, 0.15)',
+            border: '1px solid rgba(128, 0, 255, 0.3)',
+          }}>
+            <Box sx={{ fontSize: '1rem' }}>💎</Box>
+            <Box sx={{
+              fontFamily: '"VT323", monospace',
+              fontSize: '1rem',
+              color: '#c080ff',
+              textShadow: `0 0 8px rgba(128, 0, 255, 0.4)`,
+            }}>
+              {(currentUser.memory_fragments || 0).toLocaleString()}
             </Box>
           </Box>
         )}
