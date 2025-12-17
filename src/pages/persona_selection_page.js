@@ -37,6 +37,7 @@ const PersonaSelectionPage = () => {
   const [error, setError] = useState(null);
   const [updating, setUpdating] = useState(false);
   const [ownedPersonaLevels, setOwnedPersonaLevels] = useState({});  // persona_id -> level
+  const [levelUpError, setLevelUpError] = useState(null);  // レベルアップ専用エラー（ページを壊さない）
   const { refreshUser, currentUser } = useAuth();
   const { setPageContext } = usePageContext();
 
@@ -143,7 +144,9 @@ const PersonaSelectionPage = () => {
     } catch (err) {
       console.error('Error leveling up:', err);
       const msg = err.response?.data?.detail || 'レベルアップに失敗しました';
-      setError(msg);
+      setLevelUpError(msg);
+      // 3秒後にエラーを消す
+      setTimeout(() => setLevelUpError(null), 3000);
     } finally {
       setUpdating(false);
     }

@@ -29,6 +29,21 @@ const CharacterDetailModal = ({ open, onClose, character, onSetPartner, level = 
         }
     };
 
+    // レベルアップコスト計算
+    const LEVEL_UP_COSTS = {
+        1: [5, 10, 15, 20, 30, 40, 50, 60, 70],
+        2: [10, 20, 30, 40, 60, 80, 100, 120, 140],
+        3: [15, 30, 45, 60, 90, 120, 150, 180, 210],
+        4: [20, 40, 60, 80, 120, 160, 200, 240, 280],
+        5: [30, 60, 90, 120, 180, 240, 300, 360, 420],
+    };
+    const getLevelUpCost = () => {
+        if (level >= 10) return 0;
+        const costs = LEVEL_UP_COSTS[character.rarity] || LEVEL_UP_COSTS[1];
+        return costs[level - 1] || 0;
+    };
+    const levelUpCost = getLevelUpCost();
+
     const rarityColor = getRarityColor(character.rarity);
 
     // クラロワ風ステータスアイテム
@@ -245,8 +260,9 @@ const CharacterDetailModal = ({ open, onClose, character, onSetPartner, level = 
                     <Button
                         variant="contained"
                         onClick={() => onLevelUp(character.id)}
+                        disabled={memoryFragments < levelUpCost}
                         sx={{
-                            backgroundColor: '#8b5cf6',
+                            backgroundColor: memoryFragments >= levelUpCost ? '#8b5cf6' : '#555',
                             color: '#fff',
                             fontWeight: 'bold',
                             py: 1.5,
@@ -256,11 +272,14 @@ const CharacterDetailModal = ({ open, onClose, character, onSetPartner, level = 
                             fontSize: '1rem',
                             textTransform: 'none',
                             '&:hover': {
-                                backgroundColor: '#7c3aed',
+                                backgroundColor: memoryFragments >= levelUpCost ? '#7c3aed' : '#555',
+                            },
+                            '&:disabled': {
+                                color: '#999',
                             }
                         }}
                     >
-                        💎 LvUP
+                        💎 LvUP ({levelUpCost})
                     </Button>
                 )}
                 <Button
