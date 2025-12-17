@@ -45,6 +45,8 @@ const Homepage = () => {
   const [sortBy, setSortBy] = useState('newest');
   const [selectedCategory, setSelectedCategory] = useState(categoryParam || 'recommended');
   const [recommendOpen, setRecommendOpen] = useState(false);
+  // ポップアップが閉じた後に履歴を再取得するためのフラグ
+  const [recommendNeedsRefresh, setRecommendNeedsRefresh] = useState(false);
 
   // おすすめタブ用
   const [recommendedItems, setRecommendedItems] = useState([]);
@@ -101,9 +103,13 @@ const Homepage = () => {
     setRecommendOpen(true);
   }, [currentUser]);
 
-  // おすすめタブ選択時にDB履歴を取得
+  // おすすめタブ選択時 or ポップアップ閉じた後にDB履歴を取得
   useEffect(() => {
+    // ポップアップが開いている間は履歴を取得しない
+    if (recommendOpen) return;
     if (selectedCategory !== 'recommended' || !currentUser) return;
+    // 初回表示時はポップアップが閉じてから取得
+    if (!recommendNeedsRefresh && recommendedItems.length === 0) return;
 
     const fetchRecommendHistory = async () => {
       setRecommendLoading(true);
@@ -138,12 +144,17 @@ const Homepage = () => {
         console.error('recommend history fetch failed:', e);
       } finally {
         setRecommendLoading(false);
+        setRecommendNeedsRefresh(false);
       }
     };
     fetchRecommendHistory();
-  }, [selectedCategory, currentUser]);
+  }, [selectedCategory, currentUser, recommendOpen, recommendNeedsRefresh]);
 
-  const handleCloseRecommend = useCallback(() => setRecommendOpen(false), []);
+  const handleCloseRecommend = useCallback(() => {
+    setRecommendOpen(false);
+    // ポップアップが閉じたら履歴を再取得
+    setRecommendNeedsRefresh(true);
+  }, []);
   const handleNavigateItem = useCallback((item) => {
     // ここで商品詳細へ遷移などを実装（既存のルーターに合わせてください）
     window.location.href = `/items/${item.id}`;
