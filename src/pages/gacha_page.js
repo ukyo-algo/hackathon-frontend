@@ -8,20 +8,32 @@ import {
   Button,
   Card,
   CardContent,
-  CardMedia,
   CircularProgress,
   Alert,
   Fade
 } from '@mui/material';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
+import { useAuth } from '../contexts/auth_context';
+import { colors } from '../styles/theme';
+
+const GACHA_COST = 100;
 
 const GachaPage = () => {
   const navigate = useNavigate();
+  const { currentUser, refreshUser } = useAuth();
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
 
+  const userCoins = currentUser?.coins || 0;
+  const canAfford = userCoins >= GACHA_COST;
+
   const handleDrawGacha = async () => {
+    if (!canAfford) {
+      setError(`コインが足りません（必要: ${GACHA_COST}コイン、所持: ${userCoins}コイン）`);
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
@@ -29,14 +41,21 @@ const GachaPage = () => {
 
       // ガチャを引くAPI呼び出し
       const response = await api.post('/gacha/draw');
-      
-      // 少し演出のために待機（オプション）
+
+      // 少し演出のために待機
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       setResult(response.data);
+
+      // ユーザー情報を更新（コイン残高を反映）
+      await refreshUser();
     } catch (err) {
       console.error('Gacha failed:', err);
-      setError('ガチャの実行に失敗しました。');
+      if (err.response?.data?.detail) {
+        setError(err.response.data.detail);
+      } else {
+        setError('ガチャの実行に失敗しました。');
+      }
     } finally {
       setLoading(false);
     }
@@ -44,38 +63,72 @@ const GachaPage = () => {
 
   return (
     <Container maxWidth="sm" sx={{ mt: 4, textAlign: 'center' }}>
-      <Typography variant="h4" component="h1" gutterBottom fontWeight="bold">
+      <Typography variant="h4" component="h1" gutterBottom sx={{
+        fontFamily: '"VT323", monospace',
+        fontSize: '2.5rem',
+      }}>
         ペルソナガチャ
       </Typography>
-      <Typography variant="body1" color="text.secondary" paragraph>
-        ポイントを使って新しいペルソナをゲットしよう！<br />
-        （現在はキャンペーン中で0ポイントで回せます）
-      </Typography>
+
+      {/* コイン情報 */}
+      <Box sx={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        gap: 2,
+        mb: 3,
+        p: 2,
+        backgroundColor: colors.backgroundAlt,
+        borderRadius: 2,
+        border: `1px solid ${colors.border}`,
+      }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Typography sx={{ fontSize: '1.5rem' }}>🪙</Typography>
+          <Typography sx={{ fontFamily: '"VT323", monospace', fontSize: '1.5rem', color: colors.warning }}>
+            {userCoins.toLocaleString()}
+          </Typography>
+        </Box>
+        <Typography sx={{ color: colors.textSecondary }}>|</Typography>
+        <Typography sx={{ fontFamily: '"VT323", monospace', color: colors.textSecondary }}>
+          1回 = {GACHA_COST}コイン
+        </Typography>
+      </Box>
 
       <Box sx={{ my: 4 }}>
         {!result && !loading && (
           <Button
             variant="contained"
             size="large"
-            color="secondary"
+            disabled={!canAfford}
             startIcon={<AutoAwesomeIcon />}
             onClick={handleDrawGacha}
-            sx={{ 
-              fontSize: '1.5rem', 
-              py: 2, 
+            sx={{
+              fontSize: '1.5rem',
+              py: 2,
               px: 6,
-              borderRadius: 50,
-              boxShadow: '0 8px 20px rgba(233, 30, 99, 0.3)'
+              borderRadius: 2,
+              fontFamily: '"VT323", monospace',
+              backgroundColor: canAfford ? colors.primary : colors.border,
+              color: canAfford ? colors.background : colors.textTertiary,
+              boxShadow: canAfford ? `0 0 20px ${colors.primary}40` : 'none',
+              '&:hover': {
+                backgroundColor: canAfford ? colors.primaryDark : colors.border,
+                boxShadow: canAfford ? `0 0 30px ${colors.primary}60` : 'none',
+              },
+              '&:disabled': {
+                backgroundColor: colors.border,
+                color: colors.textTertiary,
+              }
             }}
           >
-            ガチャを回す
+            {canAfford ? 'ガチャを回す' : 'コインが足りません'}
           </Button>
         )}
 
         {loading && (
           <Box display="flex" flexDirection="column" alignItems="center">
-            <CircularProgress size={60} color="secondary" />
-            <Typography variant="h6" sx={{ mt: 2 }}>
+            <CircularProgress size={60} sx={{ color: colors.primary }} />
+            <Typography variant="h6" sx={{ mt: 2, fontFamily: '"VT323", monospace' }}>
               召喚中...
             </Typography>
           </Box>
@@ -89,12 +142,24 @@ const GachaPage = () => {
 
         {result && (
           <Fade in={true} timeout={1000}>
-            <Card sx={{ mt: 2, overflow: 'visible', border: '4px solid gold' }}>
-              <Box sx={{ position: 'relative', p: 3, bgcolor: '#fff8e1' }}>
-                <Typography variant="h5" color="primary" fontWeight="bold" gutterBottom>
+            <Card sx={{
+              mt: 2,
+              overflow: 'visible',
+              border: `2px solid ${colors.warning}`,
+              backgroundColor: colors.paper,
+              boxShadow: `0 0 30px ${colors.warning}30`,
+            }}>
+              <Box sx={{ position: 'relative', p: 3 }}>
+                <Typography variant="h5" sx={{
+                  color: colors.primary,
+                  fontWeight: 'bold',
+                  fontFamily: '"VT323", monospace',
+                  fontSize: '1.8rem',
+                  mb: 2,
+                }}>
                   {result.message}
                 </Typography>
-                
+
                 <Box
                   sx={{
                     height: 300,
@@ -114,36 +179,57 @@ const GachaPage = () => {
                       maxHeight: '100%',
                       objectFit: 'contain',
                       imageRendering: 'pixelated',
-                      filter: 'drop-shadow(0 10px 10px rgba(0,0,0,0.2))'
+                      filter: 'drop-shadow(0 10px 10px rgba(0,0,0,0.4))'
                     }}
                   />
                 </Box>
 
-                <Typography variant="h4" fontWeight="bold">
+                <Typography variant="h4" sx={{
+                  fontWeight: 'bold',
+                  fontFamily: '"VT323", monospace',
+                  fontSize: '2rem',
+                }}>
                   {result.persona.name}
                 </Typography>
-                  <Typography variant="subtitle1" color="text.secondary">
-                    レアリティ: {'★'.repeat(result.persona.rarity)}
-                    {result.persona.rarity_name ? `（${result.persona.rarity_name}）` : ''}
-                  </Typography>
-                
+                <Typography sx={{ color: colors.warning, fontFamily: '"VT323", monospace' }}>
+                  {'★'.repeat(result.persona.rarity)}
+                  {result.persona.rarity_name ? ` ${result.persona.rarity_name}` : ''}
+                </Typography>
+
                 {!result.is_new && (
-                  <Typography variant="body2" sx={{ mt: 1, bgcolor: '#eee', display: 'inline-block', px: 2, py: 0.5, borderRadius: 4 }}>
+                  <Typography sx={{
+                    mt: 1,
+                    backgroundColor: colors.backgroundAlt,
+                    display: 'inline-block',
+                    px: 2,
+                    py: 0.5,
+                    borderRadius: 1,
+                    fontFamily: '"VT323", monospace',
+                  }}>
                     所持数: {result.stack_count} (+1)
                   </Typography>
                 )}
               </Box>
-              
+
               <CardContent>
-                <Button 
-                  variant="contained" 
+                <Button
+                  variant="contained"
                   onClick={() => setResult(null)}
-                  sx={{ mt: 2, minWidth: 200 }}
+                  disabled={!canAfford}
+                  sx={{
+                    mt: 2,
+                    minWidth: 200,
+                    fontFamily: '"VT323", monospace',
+                    fontSize: '1.2rem',
+                  }}
                 >
-                  もう一度回す
+                  もう一度回す ({GACHA_COST}コイン)
                 </Button>
                 <Box mt={2}>
-                  <Button onClick={() => navigate('/mypage')}>
+                  <Button
+                    onClick={() => navigate('/mypage')}
+                    sx={{ fontFamily: '"VT323", monospace' }}
+                  >
                     マイページへ戻る
                   </Button>
                 </Box>

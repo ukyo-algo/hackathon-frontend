@@ -66,6 +66,30 @@ const NavBar = () => {
           />
         </form>
 
+        {/* コイン残高表示 */}
+        {currentUser && (
+          <Box sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1,
+            backgroundColor: colors.backgroundAlt,
+            border: `1px solid ${colors.border}`,
+            borderRadius: 1,
+            px: 1.5,
+            py: 0.5,
+          }}>
+            <Box sx={{ fontSize: '1.2rem' }}>🪙</Box>
+            <Box sx={{
+              fontFamily: '"VT323", monospace',
+              fontSize: '1.2rem',
+              color: colors.warning,
+              textShadow: `0 0 8px ${colors.warning}40`,
+            }}>
+              {(currentUser.coins || 0).toLocaleString()}
+            </Box>
+          </Box>
+        )}
+
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }} />
       </Box>
 
