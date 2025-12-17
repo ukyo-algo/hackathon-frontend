@@ -101,49 +101,46 @@ const Homepage = () => {
     setRecommendOpen(true);
   }, [currentUser]);
 
-  // おすすめタブ選択時にLLMレコメンドを取得（キャッシュあれば使用）
+  // おすすめタブ選択時にDB履歴を取得
   useEffect(() => {
     if (selectedCategory !== 'recommended' || !currentUser) return;
 
-    // キャッシュがあればそれを使用
-    const cacheKey = `recommend_cache_${currentUser.uid}`;
-    const cached = localStorage.getItem(cacheKey);
-    if (cached) {
-      try {
-        const data = JSON.parse(cached);
-        setRecommendedItems(data.items || []);
-        setRecommendReasons(data.reasons || {});
-        return; // キャッシュがあれば再取得しない
-      } catch (e) {
-        console.error('cache parse failed:', e);
-      }
-    }
-
-    const fetchRecommend = async () => {
+    const fetchRecommendHistory = async () => {
       setRecommendLoading(true);
       try {
-        const res = await fetch(`${API_BASE_URL}${API_ENDPOINTS.RECOMMEND}`, {
-          method: 'POST',
+        // DB履歴を取得（理由付き）
+        const res = await fetch(`${API_BASE_URL}${API_ENDPOINTS.RECOMMEND}/history?limit=20`, {
+          method: 'GET',
           headers: {
-            'Content-Type': 'application/json',
             'X-Firebase-Uid': currentUser.uid,
           },
-          body: JSON.stringify({ user_id: currentUser.uid, mode: 'history', keyword: null }),
         });
         if (res.ok) {
           const data = await res.json();
-          setRecommendedItems(data.items || []);
-          setRecommendReasons(data.reasons || {});
-          // キャッシュに保存
-          localStorage.setItem(cacheKey, JSON.stringify(data));
+          // 履歴を商品形式に変換
+          const items = data.map(rec => ({
+            item_id: rec.item_id,
+            name: rec.name,
+            price: rec.price,
+            image_url: rec.image_url,
+          }));
+          // 理由マップを作成
+          const reasons = {};
+          data.forEach(rec => {
+            if (rec.reason) {
+              reasons[rec.item_id] = rec.reason;
+            }
+          });
+          setRecommendedItems(items);
+          setRecommendReasons(reasons);
         }
       } catch (e) {
-        console.error('recommend fetch failed:', e);
+        console.error('recommend history fetch failed:', e);
       } finally {
         setRecommendLoading(false);
       }
     };
-    fetchRecommend();
+    fetchRecommendHistory();
   }, [selectedCategory, currentUser]);
 
   const handleCloseRecommend = useCallback(() => setRecommendOpen(false), []);

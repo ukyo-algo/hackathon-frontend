@@ -170,9 +170,7 @@ export default function RecommendPage({ onClose, onNavigateItem }) {
                       {typeof it.price !== 'undefined' && (
                         <Typography sx={{ ...styles.itemPrice, pointerEvents: 'none' }}>¥{it.price?.toLocaleString()}</Typography>
                       )}
-                      {reasons[itemId] && (
-                        <Typography sx={styles.itemReason}>{reasons[itemId]}</Typography>
-                      )}
+                      {/* 理由はポップアップでは非表示 - おすすめタブで表示 */}
                     </Box>
                   );
                 })}
