@@ -21,6 +21,7 @@ import SearchResults from './pages/SearchResults';
 import ShipmentsPage from './pages/seller_page';
 import DeliveriesPage from './pages/buyer_page';
 import BuyPage from './pages/buy_page';
+import MissionPage from './pages/mission_page';
 // Components
 import AIChatWidgetFloating from './components/AIChatWidgetFloating';
 
@@ -54,6 +55,7 @@ function App() {
                                             <Route path="/seller" element={<ShipmentsPage />} />
                                             <Route path="/buyer" element={<DeliveriesPage />} />
                                             <Route path="/buy/:itemId" element={<BuyPage />} />
+                                            <Route path="/mission" element={<MissionPage />} />
                                         </Routes>
                                     </Container>
                                 </Box>

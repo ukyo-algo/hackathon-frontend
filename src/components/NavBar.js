@@ -140,6 +140,9 @@ const NavBar = () => {
           <Link to="/gacha" style={{ textDecoration: 'none' }}>
             <Box component="button" sx={buttonStyles.secondary}>ガチャ</Box>
           </Link>
+          <Link to="/mission" style={{ textDecoration: 'none' }}>
+            <Box component="button" sx={buttonStyles.outlined}>🎯ミッション</Box>
+          </Link>
           <Link to="/persona-selection" style={{ textDecoration: 'none' }}>
             <Box component="button" sx={buttonStyles.outlined}>キャラ変更</Box>
           </Link>
