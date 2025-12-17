@@ -2,12 +2,14 @@
 // ドラッグ＆リサイズ可能なフローティングチャットウィジェット（コンパクト版）
 
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { Box, IconButton, Tooltip } from '@mui/material';
+import { Box, IconButton, Tooltip, Typography } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 import { useAuth } from '../contexts/auth_context';
 import AIChatWidget from './AIChatWidget';
 import { colors } from '../styles/theme';
+import { useLLMAgent } from '../hooks/useLLMAgent';
+import { usePageContext } from './AIChatWidget';
 
 const MIN_WIDTH = 300;
 const MIN_HEIGHT = 350;
@@ -16,11 +18,14 @@ const DEFAULT_HEIGHT = 450;
 
 const AIChatWidgetFloating = () => {
     const { currentUser } = useAuth();
+    const { pageContext } = usePageContext();
+    const llmAgent = useLLMAgent({ page_context: pageContext });
 
     // 状態管理
     const [isOpen, setIsOpen] = useState(false);
     const [position, setPosition] = useState({ x: window.innerWidth - DEFAULT_WIDTH - 20, y: 80 });
     const [size, setSize] = useState({ width: DEFAULT_WIDTH, height: DEFAULT_HEIGHT });
+    const [lastMessage, setLastMessage] = useState('');
 
     // ドラッグ用
     const [isDragging, setIsDragging] = useState(false);
@@ -35,6 +40,13 @@ const AIChatWidgetFloating = () => {
     const currentPersona = currentUser?.current_persona;
     const avatarUrl = currentPersona?.avatar_url || '/avatars/default.png';
     const personaName = currentPersona?.name || 'AIアシスタント';
+
+    // LLMからのメッセージを保持
+    useEffect(() => {
+        if (llmAgent.message && !llmAgent.isLoading) {
+            setLastMessage(llmAgent.message);
+        }
+    }, [llmAgent.message, llmAgent.isLoading]);
 
     // ドラッグ開始
     const handleDragStart = useCallback((e) => {
@@ -141,44 +153,90 @@ const AIChatWidgetFloating = () => {
 
     if (!currentUser) return null;
 
-    // 閉じた状態: キャラクターアバターボタン
+    // 閉じた状態: キャラクターアバターボタン + 吹き出し
     if (!isOpen) {
         return (
-            <Tooltip title={`${personaName}と話す`} placement="left">
-                <Box
-                    onClick={() => setIsOpen(true)}
-                    sx={{
-                        position: 'fixed',
-                        bottom: 20,
-                        right: 20,
-                        zIndex: 2000,
-                        width: 56,
-                        height: 56,
-                        borderRadius: '50%',
-                        overflow: 'hidden',
-                        cursor: 'pointer',
-                        border: `2px solid ${colors.primary}`,
-                        boxShadow: `0 0 15px ${colors.primary}50`,
-                        transition: 'all 0.2s ease',
-                        '&:hover': {
-                            transform: 'scale(1.08)',
-                            boxShadow: `0 0 25px ${colors.primary}70`,
-                        },
-                    }}
-                >
+            <Box sx={{ position: 'fixed', bottom: 20, right: 20, zIndex: 2000 }}>
+                {/* 吹き出し（最新メッセージ） */}
+                {lastMessage && (
                     <Box
-                        component="img"
-                        src={avatarUrl}
-                        alt={personaName}
+                        onClick={() => setIsOpen(true)}
                         sx={{
-                            width: '100%',
-                            height: '100%',
-                            objectFit: 'cover',
-                            imageRendering: 'pixelated',
+                            position: 'absolute',
+                            bottom: 64,
+                            right: 0,
+                            maxWidth: 200,
+                            backgroundColor: colors.paper,
+                            border: `1px solid ${colors.primary}`,
+                            borderRadius: 2,
+                            px: 1.5,
+                            py: 1,
+                            cursor: 'pointer',
+                            boxShadow: `0 0 10px ${colors.primary}30`,
+                            '&::after': {
+                                content: '""',
+                                position: 'absolute',
+                                bottom: -8,
+                                right: 20,
+                                width: 0,
+                                height: 0,
+                                borderLeft: '8px solid transparent',
+                                borderRight: '8px solid transparent',
+                                borderTop: `8px solid ${colors.primary}`,
+                            },
                         }}
-                    />
-                </Box>
-            </Tooltip>
+                    >
+                        <Typography
+                            sx={{
+                                color: colors.textPrimary,
+                                fontSize: '0.75rem',
+                                fontFamily: '"VT323", monospace',
+                                lineHeight: 1.3,
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                display: '-webkit-box',
+                                WebkitLineClamp: 3,
+                                WebkitBoxOrient: 'vertical',
+                            }}
+                        >
+                            {lastMessage}
+                        </Typography>
+                    </Box>
+                )}
+
+                {/* アバターボタン */}
+                <Tooltip title={`${personaName}と話す`} placement="left">
+                    <Box
+                        onClick={() => setIsOpen(true)}
+                        sx={{
+                            width: 56,
+                            height: 56,
+                            borderRadius: '50%',
+                            overflow: 'hidden',
+                            cursor: 'pointer',
+                            border: `2px solid ${colors.primary}`,
+                            boxShadow: `0 0 15px ${colors.primary}50`,
+                            transition: 'all 0.2s ease',
+                            '&:hover': {
+                                transform: 'scale(1.08)',
+                                boxShadow: `0 0 25px ${colors.primary}70`,
+                            },
+                        }}
+                    >
+                        <Box
+                            component="img"
+                            src={avatarUrl}
+                            alt={personaName}
+                            sx={{
+                                width: '100%',
+                                height: '100%',
+                                objectFit: 'cover',
+                                imageRendering: 'pixelated',
+                            }}
+                        />
+                    </Box>
+                </Tooltip>
+            </Box>
         );
     }
 

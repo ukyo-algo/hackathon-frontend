@@ -97,15 +97,15 @@ hackathon-frontend/src/
 │   ├── register_page.js           # 新規登録
 │   └── SearchResults.js           # 検索結果
 │
-└── components/                    # 🧩 再利用コンポーネント (8)
-    ├── AIChatWidget.js            # AIチャット
-    ├── AIChatWidgetSlide.js       # チャットスライドUI
+└── components/                    # 🧩 再利用コンポーネント
+    ├── AIChatWidget.js            # AIチャット本体
+    ├── AIChatWidgetFloating.js    # フローティングチャット（ドラッグ＆リサイズ対応）
     ├── CharacterDetailModal.js    # キャラ詳細ポップアップ
-    ├── NavBar.js                  # ナビゲーション
+    ├── NavBar.js                  # ナビゲーション（コイン表示付き）
     ├── HomepageComponents.js      # ホーム用部品
     ├── HeaderShipmentPanel.js     # 配送状況パネル
     ├── ProgressSteps.js           # 進捗ステップ
-    └── recommend_page.js          # おすすめ表示
+    └── recommend_page.js          # おすすめ表示ポップアップ
 ```
 
 ---
@@ -259,22 +259,25 @@ Firebase Authを使ったログイン・新規登録。
 
 ## 🧩 コンポーネント一覧
 
-### 1. 🤖 AIChatWidget
-画面右下に常駐するAIチャットUI。
+### 1. 🤖 AIChatWidgetFloating（フローティングチャット）
+画面上に自由に配置可能なAIチャットUI。ドラッグ＆リサイズ対応。
 
-```mermaid
-graph TD
-    Widget[AIChatWidget] --> Header[キャラ名表示]
-    Widget --> Avatar[キャラ画像<br/>クリックで詳細]
-    Widget --> Messages[会話履歴]
-    Widget --> Input[入力欄]
-    
-    Avatar --> Modal[CharacterDetailModal]
-    Input --> API[POST /chat]
+**機能:**
+| 機能 | 説明 |
+|------|------|
+| ドラッグ移動 | キャラ画像エリアをドラッグして自由に配置 |
+| リサイズ | 右・下・右下角をドラッグしてサイズ変更 |
+| 閉じる/開く | 閉じるとキャラアバターボタン（右下）になる |
+
 ```
-
-**Props:**
-- なし（内部でAuthContext使用）
+閉じた状態:              開いた状態:
+         ┌────┐          ┌──────────────┐
+         │ 🧙 │          │⋮           ✕│
+         └────┘          │    🧙       │
+                         ├──────────────┤
+                         │ チャット履歴 │
+                         └──────────────┘
+```
 
 ---
 
