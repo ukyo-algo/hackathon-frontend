@@ -1,3 +1,5 @@
+// src/components/CharacterDetailModal.js
+// クラロワ風キャラクター詳細モーダル
 
 import React from 'react';
 import {
@@ -6,14 +8,11 @@ import {
     Typography,
     IconButton,
     Button,
-    Chip,
-    Grid,
-    Divider
+    Grid
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
-import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import StarIcon from '@mui/icons-material/Star';
-import { COLORS } from '../config';
+import { colors } from '../styles/theme';
 
 const CharacterDetailModal = ({ open, onClose, character, onSetPartner }) => {
     if (!character) return null;
@@ -32,6 +31,30 @@ const CharacterDetailModal = ({ open, onClose, character, onSetPartner }) => {
 
     const rarityColor = getRarityColor(character.rarity);
 
+    // クラロワ風ステータスアイテム
+    const StatItem = ({ icon, label, value }) => (
+        <Box sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1,
+            py: 1,
+            px: 1.5,
+            backgroundColor: colors.backgroundAlt,
+            borderRadius: 1,
+            border: `1px solid ${colors.border}`,
+        }}>
+            <Box sx={{ fontSize: '1.2rem' }}>{icon}</Box>
+            <Box>
+                <Typography variant="caption" sx={{ color: colors.textTertiary, display: 'block', fontSize: '0.7rem' }}>
+                    {label}
+                </Typography>
+                <Typography variant="body2" sx={{ color: colors.textPrimary, fontWeight: 'bold', fontFamily: '"VT323", monospace' }}>
+                    {value || '???'}
+                </Typography>
+            </Box>
+        </Box>
+    );
+
     return (
         <Dialog
             open={open}
@@ -40,176 +63,185 @@ const CharacterDetailModal = ({ open, onClose, character, onSetPartner }) => {
             fullWidth
             PaperProps={{
                 sx: {
-                    borderRadius: 3,
+                    borderRadius: 2,
                     overflow: 'hidden',
-                    backgroundImage: 'linear-gradient(to bottom, #f5f5f5, #ffffff)',
-                    border: '1px solid #ccc',
-                    boxShadow: '0 8px 32px rgba(0,0,0,0.2)'
+                    backgroundColor: colors.paper,
+                    border: `2px solid ${rarityColor}`,
+                    boxShadow: `0 0 30px ${rarityColor}40`
                 }
             }}
         >
-            {/* 閉じるボタン */}
-            <IconButton
-                onClick={onClose}
-                sx={{
-                    position: 'absolute',
-                    right: 8,
-                    top: 8,
-                    color: '#fff',
-                    zIndex: 10,
-                    background: 'rgba(0,0,0,0.3)',
-                    '&:hover': { background: 'rgba(0,0,0,0.5)' }
-                }}
-            >
-                <CloseIcon />
-            </IconButton>
-
-            {/* ヘッダーエリア（画像 + 背景） */}
+            {/* ヘッダー: キャラ画像 + 基本情報 (クラロワ風) */}
             <Box sx={{
-                position: 'relative',
-                height: '240px',
-                background: `linear-gradient(135deg, ${character.theme_color} 0%, #000 100%)`,
                 display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                overflow: 'hidden'
+                background: `linear-gradient(135deg, ${colors.background} 0%, ${character.theme_color}30 100%)`,
+                p: 2,
+                borderBottom: `1px solid ${colors.border}`,
             }}>
-                {/* レアリティバッジ */}
-                <Box sx={{
-                    position: 'absolute',
-                    top: 16,
-                    left: 16,
-                    background: 'rgba(0,0,0,0.6)',
-                    color: rarityColor,
-                    padding: '4px 12px',
-                    borderRadius: 4,
-                    fontWeight: 'bold',
-                    border: `1px solid ${rarityColor}`,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 0.5
-                }}>
-                    <StarIcon fontSize="small" /> {character.rarity_name || 'Normal'}
+                {/* 左: キャラ画像 + レアリティ */}
+                <Box sx={{ position: 'relative' }}>
+                    {/* コスト風バッジ (レアリティ) */}
+                    <Box sx={{
+                        position: 'absolute',
+                        top: -8,
+                        left: -8,
+                        width: 32,
+                        height: 32,
+                        borderRadius: '50%',
+                        backgroundColor: rarityColor,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontWeight: 'bold',
+                        color: '#000',
+                        fontSize: '1.2rem',
+                        fontFamily: '"VT323", monospace',
+                        boxShadow: `0 0 10px ${rarityColor}`,
+                        zIndex: 2,
+                    }}>
+                        {character.rarity}
+                    </Box>
+
+                    {/* キャラ画像 */}
+                    <Box
+                        component="img"
+                        src={character.avatar_url || '/avatars/default.png'}
+                        sx={{
+                            width: 100,
+                            height: 100,
+                            objectFit: 'contain',
+                            borderRadius: 2,
+                            border: `2px solid ${rarityColor}`,
+                            backgroundColor: colors.background,
+                        }}
+                    />
                 </Box>
 
-                {/* キャラクター画像 */}
-                <Box
-                    component="img"
-                    src={character.avatar_url || '/avatars/default.png'}
-                    sx={{
-                        height: '200px',
-                        filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.4))',
-                        transition: 'transform 0.3s ease',
-                        '&:hover': { transform: 'scale(1.05)' }
-                    }}
-                />
+                {/* 右: 名前 + レアリティ + 説明 */}
+                <Box sx={{ ml: 2, flex: 1 }}>
+                    {/* レアリティラベル */}
+                    <Box sx={{
+                        display: 'inline-block',
+                        backgroundColor: rarityColor,
+                        color: '#000',
+                        px: 1,
+                        py: 0.25,
+                        borderRadius: 0.5,
+                        fontSize: '0.7rem',
+                        fontWeight: 'bold',
+                        fontFamily: '"VT323", monospace',
+                        mb: 0.5,
+                    }}>
+                        ★ {character.rarity_name || 'Normal'}
+                    </Box>
 
-                {/* 背景エフェクト（パーティクル風） */}
-                <Box sx={{
-                    position: 'absolute',
-                    width: '100%',
-                    height: '100%',
-                    backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.2) 1px, transparent 1px)',
-                    backgroundSize: '20px 20px',
-                    opacity: 0.3,
-                    pointerEvents: 'none'
-                }} />
-            </Box>
-
-            {/* 詳細情報エリア */}
-            <Box sx={{ p: 3 }}>
-                {/* 名前とMBTI */}
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                    <Typography variant="h5" sx={{ fontWeight: '900', color: '#333' }}>
+                    {/* 名前 */}
+                    <Typography variant="h5" sx={{
+                        fontWeight: 'bold',
+                        color: colors.textPrimary,
+                        fontFamily: '"VT323", monospace',
+                        fontSize: '1.8rem',
+                    }}>
                         {character.name}
                     </Typography>
-                    {character.mbti && (
-                        <Chip
-                            label={character.mbti}
-                            size="small"
-                            sx={{ background: '#e0e0e0', fontWeight: 'bold' }}
-                        />
-                    )}
+
+                    {/* 説明文 */}
+                    <Typography variant="body2" sx={{
+                        color: colors.textSecondary,
+                        mt: 1,
+                        lineHeight: 1.4,
+                    }}>
+                        {character.description}
+                    </Typography>
                 </Box>
 
-                {/* 情報セクション */}
-                <Grid container spacing={2}>
-                    {/* Profile */}
-                    <Grid item xs={12}>
-                        <Box sx={{ background: '#fafafa', p: 2, borderRadius: 2, border: '1px solid #eee' }}>
-                            <Typography variant="subtitle2" sx={{ color: '#666', mb: 1, display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                <AutoAwesomeIcon fontSize="small" /> Profile
-                            </Typography>
-                            <Typography variant="body2" sx={{ mb: 1 }}>
-                                <b>Origin:</b> {character.origin}
-                            </Typography>
-                            <Typography variant="body2">
-                                {character.description}
-                            </Typography>
-                        </Box>
-                    </Grid>
+                {/* 閉じるボタン */}
+                <IconButton
+                    onClick={onClose}
+                    sx={{
+                        position: 'absolute',
+                        right: 8,
+                        top: 8,
+                        color: colors.textSecondary,
+                        '&:hover': { color: colors.textPrimary }
+                    }}
+                >
+                    <CloseIcon />
+                </IconButton>
+            </Box>
 
-                    {/* Deep Dive */}
-                    <Grid item xs={12}>
-                        <Box sx={{ background: '#fff0f5', p: 2, borderRadius: 2, border: '1px solid #fce4ec' }}>
-                            <Typography variant="subtitle2" sx={{ color: '#d81b60', mb: 1 }}>
-                                💔 Tragedy & Obsession
-                            </Typography>
-                            <Typography variant="body2" sx={{ mb: 1 }}>
-                                <b>Tragedy:</b> {character.tragedy}
-                            </Typography>
-                            <Typography variant="body2">
-                                <b>Obsession:</b> {character.obsession}
-                            </Typography>
-                        </Box>
+            {/* ステータスグリッド (クラロワ風) */}
+            <Box sx={{ p: 2 }}>
+                <Grid container spacing={1}>
+                    <Grid item xs={6}>
+                        <StatItem icon="🎮" label="Origin" value={character.origin} />
                     </Grid>
-
-                    {/* Skill */}
+                    <Grid item xs={6}>
+                        <StatItem icon="🧠" label="MBTI" value={character.mbti} />
+                    </Grid>
+                    <Grid item xs={6}>
+                        <StatItem icon="💔" label="Tragedy" value={character.tragedy} />
+                    </Grid>
+                    <Grid item xs={6}>
+                        <StatItem icon="🔥" label="Obsession" value={character.obsession} />
+                    </Grid>
                     {character.skill_name && (
-                        <Grid item xs={12}>
-                            <Box sx={{
-                                background: `linear-gradient(90deg, #fff 0%, ${character.theme_color}11 100%)`,
-                                p: 2,
-                                borderRadius: 2,
-                                borderLeft: `4px solid ${character.theme_color}`
-                            }}>
-                                <Typography variant="subtitle2" sx={{ color: character.theme_color, mb: 0.5, fontWeight: 'bold' }}>
-                                    ★ SKILL: {character.skill_name}
-                                </Typography>
-                                <Typography variant="body2">
-                                    {character.skill_effect}
-                                </Typography>
-                            </Box>
-                        </Grid>
+                        <>
+                            <Grid item xs={6}>
+                                <StatItem icon="⚡" label="Skill" value={character.skill_name} />
+                            </Grid>
+                            <Grid item xs={6}>
+                                <StatItem icon="✨" label="Effect" value={character.skill_effect} />
+                            </Grid>
+                        </>
                     )}
                 </Grid>
+            </Box>
 
-                <Box sx={{ mt: 3, display: 'flex', gap: 2 }}>
-                    <Button
-                        variant="contained"
-                        fullWidth
-                        onClick={() => onSetPartner(character)}
-                        sx={{
-                            background: COLORS.PRIMARY,
-                            color: '#fff',
-                            fontWeight: 'bold',
-                            py: 1.5,
-                            borderRadius: 2,
-                            boxShadow: '0 4px 6px rgba(255,107,0,0.3)',
-                            textTransform: 'none',
-                            fontSize: '1rem'
-                        }}
-                    >
-                        パートナーにする
-                    </Button>
-                    <Button
-                        variant="outlined"
-                        onClick={onClose}
-                        sx={{ borderRadius: 2, fontWeight: 'bold', color: '#666', borderColor: '#ccc' }}
-                    >
-                        閉じる
-                    </Button>
-                </Box>
+            {/* アクションボタン */}
+            <Box sx={{
+                display: 'flex',
+                gap: 1,
+                p: 2,
+                pt: 0,
+            }}>
+                <Button
+                    variant="contained"
+                    fullWidth
+                    onClick={() => onSetPartner(character)}
+                    sx={{
+                        backgroundColor: colors.primary,
+                        color: colors.background,
+                        fontWeight: 'bold',
+                        py: 1.5,
+                        borderRadius: 1,
+                        fontFamily: '"VT323", monospace',
+                        fontSize: '1.2rem',
+                        textTransform: 'none',
+                        '&:hover': {
+                            backgroundColor: colors.primary,
+                            boxShadow: `0 0 20px ${colors.primary}`,
+                        }
+                    }}
+                >
+                    パートナーにする
+                </Button>
+                <Button
+                    variant="outlined"
+                    onClick={onClose}
+                    sx={{
+                        borderColor: colors.border,
+                        color: colors.textSecondary,
+                        fontFamily: '"VT323", monospace',
+                        fontSize: '1.2rem',
+                        px: 3,
+                        '&:hover': {
+                            borderColor: colors.textSecondary,
+                        }
+                    }}
+                >
+                    閉じる
+                </Button>
             </Box>
         </Dialog>
     );
