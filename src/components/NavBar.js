@@ -96,28 +96,34 @@ const NavBar = () => {
       {/* 下部: 主要ページ遷移ボタン群 */}
       {currentUser ? (
         <Box sx={navBarStyles.navButtons}>
+          {/* 基本ナビゲーション */}
           <Link to="/" style={{ textDecoration: 'none' }}>
-            <Box component="button" sx={buttonStyles.outlined}>ホーム</Box>
-          </Link>
-          <Link to="/items/create" style={{ textDecoration: 'none' }}>
-            <Box component="button" sx={buttonStyles.primary}>出品</Box>
+            <Box component="button" sx={buttonStyles.primary}>ホーム</Box>
           </Link>
           <Link to="/mypage" style={{ textDecoration: 'none' }}>
             <Box component="button" sx={buttonStyles.outlined}>マイページ</Box>
           </Link>
-          <Link to="/persona-selection" style={{ textDecoration: 'none' }}>
-            <Box component="button" sx={buttonStyles.secondary}>キャラを変更する</Box>
+
+          {/* 出品・取引 */}
+          <Link to="/items/create" style={{ textDecoration: 'none' }}>
+            <Box component="button" sx={buttonStyles.success}>出品</Box>
           </Link>
-          <Link to="/gacha" style={{ textDecoration: 'none' }}>
-            <Box component="button" sx={buttonStyles.success}>ガチャを引く</Box>
-          </Link>
-          {/* 取引関連ショートカット */}
           <Link to="/seller" style={{ textDecoration: 'none' }}>
-            <Box component="button" sx={buttonStyles.success}>売品の状況</Box>
+            <Box component="button" sx={buttonStyles.outlined}>売品の状況</Box>
           </Link>
           <Link to="/buyer" style={{ textDecoration: 'none' }}>
-            <Box component="button" sx={buttonStyles.warning}>購入物の状況</Box>
+            <Box component="button" sx={buttonStyles.outlined}>購入物の状況</Box>
           </Link>
+
+          {/* エンタメ・キャラ */}
+          <Link to="/gacha" style={{ textDecoration: 'none' }}>
+            <Box component="button" sx={buttonStyles.secondary}>ガチャ</Box>
+          </Link>
+          <Link to="/persona-selection" style={{ textDecoration: 'none' }}>
+            <Box component="button" sx={buttonStyles.outlined}>キャラ変更</Box>
+          </Link>
+
+          {/* システム */}
           <Box component="button" onClick={logout} sx={buttonStyles.neutral}>ログアウト</Box>
         </Box>
       ) : (

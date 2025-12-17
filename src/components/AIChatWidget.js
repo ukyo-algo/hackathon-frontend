@@ -75,13 +75,15 @@ const AIChatWidget = () => {
     handleCloseDetail();
   };
 
-  // ペルソナが変更されたらUIを即反映し、チャット履歴もリセット
+  // ペルソナが変更されたらUIを即反映し、初期メッセージをセット
   useEffect(() => {
     if (currentUser?.current_persona) {
       setPersona(currentUser.current_persona);
     } else {
       setPersona(defaultPersona);
     }
+
+    // 初期メッセージをセット（履歴はAPIから取得する）
     setMessages([
       {
         role: 'ai',
@@ -97,17 +99,61 @@ const AIChatWidget = () => {
     } else {
       setIsGuidanceLoading(false);
       if (llmAgent.message) {
-        setMessages(prev => [
-          ...prev,
-          {
-            role: 'ai',
-            content: llmAgent.message,
-            type: 'guidance'
-          }
-        ]);
+        const newAIMessage = {
+          role: 'ai',
+          content: llmAgent.message,
+          type: 'guidance'
+        };
+        setMessages(prev => [...prev, newAIMessage]);
+
+        // AIメッセージをDBに保存
+        saveMessageToAPI(newAIMessage);
       }
     }
   }, [llmAgent.message, llmAgent.isLoading]);
+
+  // チャットウィジェット開始時に履歴をAPIから取得
+  useEffect(() => {
+    const loadHistory = async () => {
+      try {
+        const res = await apiClient.get('/chat/messages?limit=10');
+        if (res.data && res.data.length > 0) {
+          const historyMessages = res.data.map(msg => ({
+            role: msg.role,
+            content: msg.content,
+            type: msg.type || 'chat'
+          }));
+          setMessages(prev => {
+            // 重複を避ける: 初期メッセージの後に履歴を追加
+            if (prev.length <= 1) {
+              return [...prev, ...historyMessages];
+            }
+            return prev;
+          });
+        }
+      } catch (error) {
+        console.log("履歴取得をスキップ:", error.message);
+      }
+    };
+
+    if (currentUser) {
+      loadHistory();
+    }
+  }, [currentUser?.id]);
+
+  // メッセージをAPIに保存するヘルパー関数
+  const saveMessageToAPI = async (message) => {
+    try {
+      await apiClient.post('/chat/messages', {
+        role: message.role,
+        content: message.content,
+        type: message.type || 'chat',
+        page_path: window.location.pathname
+      });
+    } catch (error) {
+      console.log("メッセージ保存エラー:", error.message);
+    }
+  };
 
   useEffect(() => {
     scrollToBottom();
@@ -116,10 +162,13 @@ const AIChatWidget = () => {
   const handleSend = async () => {
     if (!input.trim()) return;
 
-    const userMessage = { role: 'user', content: input };
+    const userMessage = { role: 'user', content: input, type: 'chat' };
     setMessages(prev => [...prev, userMessage]);
     setInput("");
     setIsLoading(true);
+
+    // ユーザーメッセージをDBに保存
+    saveMessageToAPI(userMessage);
 
     try {
       // ページコンテキストも一緒に送信
@@ -130,9 +179,13 @@ const AIChatWidget = () => {
       const aiMessage = {
         role: 'ai',
         content: res.data.reply,
-        persona: res.data.persona
+        persona: res.data.persona,
+        type: 'chat'
       };
       setMessages(prev => [...prev, aiMessage]);
+
+      // AIメッセージをDBに保存
+      saveMessageToAPI(aiMessage);
     } catch (error) {
       console.error("Chat Error:", error);
       setMessages(prev => [...prev, { role: 'ai', content: "申し訳ありません。通信エラーが発生しました。" }]);
