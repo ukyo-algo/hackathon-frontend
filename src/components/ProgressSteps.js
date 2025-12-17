@@ -1,6 +1,6 @@
 // src/components/ProgressSteps.js
 import React from 'react';
-import { Box, Typography, LinearProgress } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 import { PROGRESS_STEPS } from '../config';
 import { colors } from '../styles/theme';
 
@@ -9,19 +9,27 @@ const ProgressSteps = ({ status, compact = false }) => {
   const currentIndex = PROGRESS_STEPS.STATUS_INDEX[status] ?? 0;
   const totalSteps = PROGRESS_STEPS.LABELS.length;
 
-  // プログレス割合を計算（0%, 33%, 66%, 100%）
-  const progressPercent = (currentIndex / (totalSteps - 1)) * 100;
+  // プログレス割合を計算
+  // 現在のステップと次のステップの中間に配置
+  // 例: 0 → 12.5%, 1 → 37.5%, 2 → 62.5%, 3 → 100%
+  const getProgressPercent = () => {
+    if (currentIndex >= totalSteps - 1) return 100; // 完了
+    // 現在のステップの位置 + 半ステップ分進める
+    return ((currentIndex + 0.5) / (totalSteps - 1)) * 100;
+  };
 
-  // ステータスに応じた色
+  const progressPercent = getProgressPercent();
+
+  // ステータスに応じた色（白文字で見やすく）
   const getStepColor = (idx) => {
-    if (idx < currentIndex) return colors.primary; // 完了
-    if (idx === currentIndex) return '#f59e0b'; // 現在（アンバー）
-    return '#555'; // 未到達
+    if (idx < currentIndex) return colors.primary; // 完了（緑）
+    if (idx === currentIndex) return '#fbbf24'; // 現在（黄色・明るめ）
+    return '#9ca3af'; // 未到達（明るいグレー）
   };
 
   return (
     <Box sx={{ width: '100%', minWidth: compact ? 150 : 250 }}>
-      {/* ステップラベル（上部） */}
+      {/* ステップラベル（上部）- 白文字で見やすく */}
       <Box sx={{
         display: 'flex',
         justifyContent: 'space-between',
@@ -38,6 +46,7 @@ const ProgressSteps = ({ status, compact = false }) => {
               fontWeight: idx === currentIndex ? 'bold' : 'normal',
               textAlign: 'center',
               flex: 1,
+              textShadow: idx === currentIndex ? '0 0 4px rgba(251, 191, 36, 0.5)' : 'none',
             }}
           >
             {label}
@@ -49,10 +58,10 @@ const ProgressSteps = ({ status, compact = false }) => {
       <Box sx={{
         position: 'relative',
         height: compact ? 6 : 10,
-        backgroundColor: '#333',
+        backgroundColor: '#4b5563', // より明るいグレー
         borderRadius: 1,
-        overflow: 'hidden',
-        border: '1px solid #444'
+        overflow: 'visible', // マーカーがはみ出しても見えるように
+        border: '1px solid #6b7280'
       }}>
         {/* 進捗バー */}
         <Box sx={{
@@ -66,24 +75,25 @@ const ProgressSteps = ({ status, compact = false }) => {
           transition: 'width 0.5s ease',
         }} />
 
-        {/* 現在位置マーカー */}
+        {/* 現在位置マーカー（中間地点） */}
         {currentIndex < totalSteps - 1 && (
           <Box sx={{
             position: 'absolute',
             top: '50%',
             left: `${progressPercent}%`,
             transform: 'translate(-50%, -50%)',
-            width: compact ? 10 : 14,
-            height: compact ? 10 : 14,
+            width: compact ? 12 : 16,
+            height: compact ? 12 : 16,
             borderRadius: '50%',
-            backgroundColor: '#f59e0b',
+            backgroundColor: '#fbbf24', // 黄色
             border: '2px solid #fff',
-            boxShadow: '0 0 8px rgba(245, 158, 11, 0.6)',
+            boxShadow: '0 0 10px rgba(251, 191, 36, 0.8)',
+            zIndex: 10,
             animation: 'pulse 1.5s infinite',
             '@keyframes pulse': {
-              '0%': { boxShadow: '0 0 4px rgba(245, 158, 11, 0.4)' },
-              '50%': { boxShadow: '0 0 12px rgba(245, 158, 11, 0.8)' },
-              '100%': { boxShadow: '0 0 4px rgba(245, 158, 11, 0.4)' },
+              '0%': { boxShadow: '0 0 6px rgba(251, 191, 36, 0.5)' },
+              '50%': { boxShadow: '0 0 14px rgba(251, 191, 36, 1)' },
+              '100%': { boxShadow: '0 0 6px rgba(251, 191, 36, 0.5)' },
             }
           }} />
         )}
@@ -95,7 +105,8 @@ const ProgressSteps = ({ status, compact = false }) => {
             right: 4,
             top: '50%',
             transform: 'translateY(-50%)',
-            fontSize: compact ? '0.7rem' : '0.9rem',
+            fontSize: compact ? '0.8rem' : '1rem',
+            color: '#fff',
           }}>
             ✓
           </Box>
@@ -113,12 +124,13 @@ const ProgressSteps = ({ status, compact = false }) => {
           <Box
             key={`dot-${label}`}
             sx={{
-              width: compact ? 6 : 8,
-              height: compact ? 6 : 8,
+              width: compact ? 8 : 10,
+              height: compact ? 8 : 10,
               borderRadius: '50%',
-              backgroundColor: idx <= currentIndex ? colors.primary : '#555',
-              border: idx === currentIndex ? '2px solid #f59e0b' : 'none',
+              backgroundColor: idx <= currentIndex ? colors.primary : '#6b7280',
+              border: idx === currentIndex ? '2px solid #fbbf24' : '1px solid #9ca3af',
               transition: 'all 0.3s ease',
+              boxShadow: idx === currentIndex ? '0 0 6px rgba(251, 191, 36, 0.6)' : 'none',
             }}
           />
         ))}

@@ -174,14 +174,14 @@ const ItemDetailPage = () => {
               <Button startIcon={isLiked ? <FavoriteIcon /> : <FavoriteBorderIcon />} onClick={handleLike} color={isLiked ? "error" : "inherit"} size="large">{likeCount}</Button>
             </Box>
 
-            <Paper sx={{ p: 2, mb: 3, backgroundColor: '#f9f9f9', borderRadius: 2 }} variant="outlined">
+            <Paper sx={{ p: 2, mb: 3, backgroundColor: '#1a1a2e', borderRadius: 2, border: '1px solid #333' }} variant="outlined">
               <Grid container spacing={2}>
-                <Grid item xs={4}><Typography variant="caption" sx={{ color: '#666' }}>カテゴリ</Typography></Grid>
-                <Grid item xs={8}><Typography variant="body2">{item.category}</Typography></Grid>
-                <Grid item xs={4}><Typography variant="caption" sx={{ color: '#666' }}>状態</Typography></Grid>
-                <Grid item xs={8}><Typography variant="body2">{item.condition}</Typography></Grid>
-                <Grid item xs={4}><Typography variant="caption" sx={{ color: '#666' }}>発送予定</Typography></Grid>
-                <Grid item xs={8}><Typography variant="body2">{item.shipping_days || '1-2日'}</Typography></Grid>
+                <Grid item xs={4}><Typography variant="caption" sx={{ color: '#9ca3af' }}>カテゴリ</Typography></Grid>
+                <Grid item xs={8}><Typography variant="body2" sx={{ color: '#fff' }}>{item.category}</Typography></Grid>
+                <Grid item xs={4}><Typography variant="caption" sx={{ color: '#9ca3af' }}>状態</Typography></Grid>
+                <Grid item xs={8}><Typography variant="body2" sx={{ color: '#fff' }}>{item.condition}</Typography></Grid>
+                <Grid item xs={4}><Typography variant="caption" sx={{ color: '#9ca3af' }}>発送予定</Typography></Grid>
+                <Grid item xs={8}><Typography variant="body2" sx={{ color: '#fff' }}>{item.shipping_days || '1-2日'}</Typography></Grid>
               </Grid>
             </Paper>
 
@@ -194,9 +194,9 @@ const ItemDetailPage = () => {
             )}
 
             <Box sx={{ mb: 3 }}>
-              <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 1 }}>商品説明</Typography>
-              <Paper variant="outlined" sx={{ p: 2, minHeight: '100px', bgcolor: '#fff' }}>
-                <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', color: '#333', lineHeight: 1.6, overflowWrap: 'anywhere' }}>{item.description}</Typography>
+              <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 1, color: '#fff' }}>商品説明</Typography>
+              <Paper variant="outlined" sx={{ p: 2, minHeight: '100px', bgcolor: '#1a1a2e', border: '1px solid #333' }}>
+                <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', color: '#e5e7eb', lineHeight: 1.6, overflowWrap: 'anywhere' }}>{item.description}</Typography>
               </Paper>
             </Box>
           </Box>

@@ -168,11 +168,11 @@ export const CARD = {
 
 // ========== 進捗ステップ設定 ==========
 export const PROGRESS_STEPS = {
-  LABELS: ['注文済み', '発送済み', '配達中', '配達済み'],
+  LABELS: ['注文済み', '発送済み', '受け取り完了'],
   STATUS_INDEX: {
     pending_shipment: 0,
-    in_transit: 2,
-    completed: 3,
+    in_transit: 1,
+    completed: 2,
   },
   ACTIVE_COLOR: '#1976d2',
   INACTIVE_COLOR: '#ccc',
