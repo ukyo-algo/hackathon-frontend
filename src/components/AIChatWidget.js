@@ -39,7 +39,7 @@ const AIChatWidget = () => {
   // ページ遷移検知のためのLLMフック＆ガイダンスメッセージ取得
   const { pageContext } = usePageContext();
   const llmAgent = useLLMAgent({ page_context: pageContext });
-  const { currentUser } = useAuth();
+  const { currentUser, refreshUser } = useAuth();
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -241,13 +241,18 @@ const AIChatWidget = () => {
             setMessages(prev => [...prev, {
               role: 'ai',
               content: `🎉 ${gachaResult.is_new ? '【NEW】' : ''}${gachaResult.name} (★${gachaResult.rarity}) をゲット！`,
-              type: 'gacha_result'
+              type: 'gacha_result',
+              gachaData: gachaResult // 画像表示用データ
             }]);
+
+            // コイン残高が変わったので更新
+            if (refreshUser) refreshUser();
           }
           break;
 
         case 'check_balance':
-          // 残高表示はAIの返答に含まれるので特別な処理不要
+          // 残高表示はAIの返答に含まれるが、念のためユーザー情報も更新しておく
+          if (refreshUser) refreshUser();
           break;
 
         case 'like_item':
@@ -434,6 +439,26 @@ const AIChatWidget = () => {
                 {msg.type === 'guidance' && '💡 '}
                 {msg.role === 'user' ? `> ${msg.content}` : `* ${msg.content}`}
               </Typography>
+
+              {/* ガチャ結果画像の表示 */}
+              {msg.type === 'gacha_result' && msg.gachaData && (
+                <Box sx={{ mt: 1, textAlign: 'center' }}>
+                  <img
+                    src={msg.gachaData.avatar_url || "/default_avatar.png"}
+                    alt={msg.gachaData.name}
+                    style={{
+                      width: '120px',
+                      height: '120px',
+                      borderRadius: '8px',
+                      border: '2px solid #00ff00',
+                      objectFit: 'cover'
+                    }}
+                  />
+                  <Typography variant="caption" display="block" sx={{ color: '#00ff00', mt: 0.5 }}>
+                    ★{msg.gachaData.rarity} {msg.gachaData.name}
+                  </Typography>
+                </Box>
+              )}
             </Paper>
           </Box>
         ))}
