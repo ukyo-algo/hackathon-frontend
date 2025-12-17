@@ -156,48 +156,7 @@ const AIChatWidget = () => {
       backgroundColor: '#1a1a1a',
       color: 'white'
     }}>
-      {/* ヘッダー */}
-      <Box sx={{
-        p: 2,
-        borderBottom: '2px solid #333',
-        backgroundColor: '#0d0d0d'
-      }}>
-        <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: 'white' }}>
-          {persona.name}
-        </Typography>
-        <Typography variant="caption" sx={{ color: COLORS.TEXT_TERTIARY }}>
-          オンライン
-        </Typography>
-      </Box>
-
-      {/* キャラクター画像（クリックで詳細表示） */}
-      <Box sx={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        p: 2,
-        backgroundColor: '#0d0d0d',
-        borderBottom: '2px solid #333',
-        minHeight: '150px',
-        cursor: 'pointer',
-        transition: 'background 0.2s',
-        '&:hover': { backgroundColor: '#1a1a1a' }
-      }}
-        onClick={handleOpenDetail}
-      >
-        <img
-          src={persona.avatar_url}
-          alt={persona.name}
-          style={{
-            maxWidth: '120px',
-            maxHeight: '150px',
-            imageRendering: 'auto',
-            filter: 'drop-shadow(0 0 8px rgba(255,255,255,0.1))'
-          }}
-        />
-      </Box>
-
-      {/* 詳細モーダル */}
+      {/* ヘッダーとアバター画像はAIChatWidgetFloating.jsで表示するため削除 */}
       <CharacterDetailModal
         open={detailOpen}
         onClose={handleCloseDetail}
