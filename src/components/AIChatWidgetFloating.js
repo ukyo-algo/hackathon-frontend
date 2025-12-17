@@ -2,7 +2,7 @@
 // ドラッグ＆リサイズ可能なフローティングチャットウィジェット（コンパクト版）
 
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { Box, IconButton, Typography, Tooltip } from '@mui/material';
+import { Box, IconButton, Tooltip } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 import { useAuth } from '../contexts/auth_context';
@@ -206,84 +206,63 @@ const AIChatWidgetFloating = () => {
                 backgroundColor: colors.paper,
             }}
         >
-            {/* コンパクトヘッダー: [ドラッグ][アバター][名前...] [×] */}
+            {/* キャラ画像エリア（ドラッグ可能 + 閉じるボタン） */}
             <Box
+                onMouseDown={handleDragStart}
+                onTouchStart={handleDragStart}
                 sx={{
+                    position: 'relative',
                     display: 'flex',
                     alignItems: 'center',
-                    minHeight: 36,
-                    py: 0.5,
-                    backgroundColor: colors.primary,
+                    justifyContent: 'center',
+                    py: 1.5,
+                    backgroundColor: '#0a0a0a',
+                    borderBottom: `1px solid ${colors.border}`,
+                    cursor: 'move',
                     userSelect: 'none',
                 }}
             >
-                {/* ドラッグハンドル */}
-                <Box
-                    onMouseDown={handleDragStart}
-                    onTouchStart={handleDragStart}
-                    sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        cursor: 'move',
-                        px: 0.5,
-                        alignSelf: 'stretch',
-                    }}
-                >
-                    <DragIndicatorIcon sx={{ color: colors.background, fontSize: 18 }} />
+                {/* ドラッグアイコン（左上） */}
+                <Box sx={{ position: 'absolute', top: 4, left: 4 }}>
+                    <DragIndicatorIcon sx={{ color: colors.primary, fontSize: 18, opacity: 0.6 }} />
                 </Box>
 
-                {/* アバター */}
+                {/* 閉じるボタン（右上） */}
+                <IconButton
+                    size="small"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        setIsOpen(false);
+                    }}
+                    sx={{
+                        position: 'absolute',
+                        top: 2,
+                        right: 2,
+                        color: colors.primary,
+                        p: 0.3,
+                        '&:hover': { backgroundColor: 'rgba(57, 255, 20, 0.2)' }
+                    }}
+                >
+                    <CloseIcon sx={{ fontSize: 18 }} />
+                </IconButton>
+
+                {/* キャラドット絵 */}
                 <Box
                     component="img"
                     src={avatarUrl}
                     alt={personaName}
                     sx={{
-                        width: 26,
-                        height: 26,
-                        borderRadius: '50%',
-                        border: `1.5px solid ${colors.background}`,
-                        objectFit: 'cover',
+                        maxWidth: 80,
+                        maxHeight: 100,
+                        objectFit: 'contain',
                         imageRendering: 'pixelated',
-                        flexShrink: 0,
-                        alignSelf: 'flex-start',
-                        mt: 0.25,
+                        filter: 'drop-shadow(0 0 8px rgba(57, 255, 20, 0.3))',
                     }}
                 />
-
-                {/* 名前（折り返し可能、アバターに被らない） */}
-                <Typography
-                    sx={{
-                        flex: 1,
-                        ml: 1,
-                        mr: 0.5,
-                        color: colors.background,
-                        fontFamily: '"VT323", monospace',
-                        fontSize: '1rem',
-                        lineHeight: 1.2,
-                        wordBreak: 'break-word',
-                    }}
-                >
-                    {personaName}
-                </Typography>
-
-                {/* 閉じるボタン */}
-                <IconButton
-                    size="small"
-                    onClick={() => setIsOpen(false)}
-                    sx={{
-                        color: colors.background,
-                        p: 0.5,
-                        mr: 0.5,
-                        alignSelf: 'flex-start',
-                        '&:hover': { backgroundColor: 'rgba(0,0,0,0.2)' }
-                    }}
-                >
-                    <CloseIcon sx={{ fontSize: 18 }} />
-                </IconButton>
             </Box>
 
             {/* チャット本体 */}
-            <Box sx={{ height: 'calc(100% - 36px)', overflow: 'hidden' }}>
+            <Box sx={{ height: 'calc(100% - 120px)', overflow: 'hidden' }}>
                 <AIChatWidget />
             </Box>
 
