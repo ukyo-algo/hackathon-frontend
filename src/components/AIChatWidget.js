@@ -7,7 +7,6 @@ import {
   Box, Paper, TextField, IconButton, Typography
 } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
-import ImageIcon from '@mui/icons-material/Image';
 import { useAuth } from '../contexts/auth_context';
 import apiClient from '../api/axios';
 import { COLORS } from '../config';
@@ -290,90 +289,6 @@ const AIChatWidget = () => {
     }
   };
 
-  // 画像アップロード用のref
-  const imageInputRef = useRef(null);
-
-  // 画像アップロード処理
-  const handleImageUpload = async (event) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    // 画像をbase64に変換
-    const reader = new FileReader();
-    reader.onload = async () => {
-      const base64 = reader.result;
-
-      // プレビューメッセージを追加
-      setMessages(prev => [...prev, {
-        role: 'user',
-        content: '📷 画像を送信しました（解析中...）',
-        type: 'image'
-      }]);
-      setIsLoading(true);
-
-      try {
-        // 画像解析APIを呼び出し
-        const res = await apiClient.post('/chat/analyze-image', {
-          image_base64: base64,
-          prompt: '出品したい商品の画像です。情報を教えてください。'
-        });
-
-        const result = res.data;
-
-        // 結果メッセージを構築
-        let responseText = result.message || '画像を解析しました。';
-        if (result.name) {
-          responseText += `\n\n📦 商品名: ${result.name}`;
-        }
-        if (result.category) {
-          responseText += `\n📁 カテゴリ: ${result.category}`;
-        }
-        if (result.condition) {
-          responseText += `\n✨ 状態: ${result.condition}`;
-        }
-        if (result.suggested_price) {
-          responseText += `\n💰 推定価格: ¥${result.suggested_price.toLocaleString()}`;
-        }
-        if (result.price_range) {
-          responseText += ` (¥${result.price_range.min?.toLocaleString()}〜¥${result.price_range.max?.toLocaleString()})`;
-        }
-        if (result.description) {
-          responseText += `\n\n📝 説明文案:\n${result.description}`;
-        }
-
-        // 出品リンクを追加
-        if (result.name) {
-          responseText += `\n\n👉 この内容で出品しますか？「出品して」と言ってください！`;
-        }
-
-        setMessages(prev => [...prev, {
-          role: 'ai',
-          content: responseText,
-          type: 'image_analysis'
-        }]);
-
-        // 結果をセッションに保存（出品時に使用）
-        if (result.name) {
-          sessionStorage.setItem('listing_suggestion', JSON.stringify(result));
-        }
-
-      } catch (error) {
-        console.error('Image analysis error:', error);
-        setMessages(prev => [...prev, {
-          role: 'ai',
-          content: '画像の解析に失敗しました。もう一度お試しください。',
-          type: 'error'
-        }]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    reader.readAsDataURL(file);
-
-    // inputをリセット
-    event.target.value = '';
-  };
-
   const handleKeyPress = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -541,23 +456,6 @@ const AIChatWidget = () => {
             }
           }}
         />
-        {/* 画像アップロード用の隠しinput */}
-        <input
-          type="file"
-          accept="image/*"
-          ref={imageInputRef}
-          style={{ display: 'none' }}
-          onChange={handleImageUpload}
-        />
-        <IconButton
-          onClick={() => imageInputRef.current?.click()}
-          disabled={isLoading}
-          size="small"
-          sx={{ color: isLoading ? '#666' : '#00ff00' }}
-          title="画像を送信（出品サポート）"
-        >
-          <ImageIcon />
-        </IconButton>
         <IconButton
           color="primary"
           onClick={handleSend}
