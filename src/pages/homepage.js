@@ -31,6 +31,7 @@ import {
   HeroBanner
 } from '../components/HomepageComponents';
 import RecommendPage from '../components/recommend_page';
+import MissionBanner from '../components/MissionBanner';
 import { useAuth } from '../contexts/auth_context';
 import { usePageContext } from '../components/AIChatWidget';
 import { buildItemContext } from '../hooks/useLLMAgent';
@@ -263,6 +264,9 @@ const Homepage = () => {
           gradient="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
         />
       )}
+
+      {/* ミッションバナー */}
+      <MissionBanner />
 
       {/* カテゴリタブ */}
       <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>

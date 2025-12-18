@@ -11,6 +11,7 @@ import {
     CircularProgress,
     Alert,
     Chip,
+    LinearProgress,
 } from '@mui/material';
 import { useAuth } from '../contexts/auth_context';
 import { colors } from '../styles/theme';
@@ -22,8 +23,9 @@ const MissionPage = () => {
     const [missions, setMissions] = useState([]);
     const [coupons, setCoupons] = useState([]);
     const [equippedPersona, setEquippedPersona] = useState(null);
-    const [claiming, setClaiming] = useState(false);
+    const [claiming, setClaiming] = useState(null); // missionIdを格納
     const [message, setMessage] = useState(null);
+    const [stats, setStats] = useState({ loginStreak: 0, totalLoginDays: 0 });
 
     useEffect(() => {
         fetchData();
@@ -39,6 +41,10 @@ const MissionPage = () => {
             setMissions(missionsRes.data.missions || []);
             setCoupons(couponsRes.data.coupons || []);
             setEquippedPersona(missionsRes.data.equipped_persona);
+            setStats({
+                loginStreak: missionsRes.data.login_streak || 0,
+                totalLoginDays: missionsRes.data.total_login_days || 0,
+            });
         } catch (err) {
             console.error('Error fetching missions:', err);
         } finally {
@@ -46,10 +52,23 @@ const MissionPage = () => {
         }
     };
 
-    const handleClaimCoupon = async () => {
+    const handleClaimMission = async (missionId) => {
+        // ミッションIDに応じたAPIエンドポイント
+        const endpointMap = {
+            'daily_login': '/mission/daily-login/claim',
+            'daily_coupon': '/mission/daily-coupon/claim',
+            'first_listing': '/mission/first-listing/claim',
+            'first_purchase': '/mission/first-purchase/claim',
+            'login_streak_3': '/mission/login-streak/claim',
+            'weekly_likes': '/mission/weekly-likes/claim',
+        };
+
+        const endpoint = endpointMap[missionId];
+        if (!endpoint) return;
+
         try {
-            setClaiming(true);
-            const res = await api.post('/mission/daily-coupon/claim');
+            setClaiming(missionId);
+            const res = await api.post(endpoint);
             setMessage({
                 type: res.data.success ? 'success' : 'info',
                 text: res.data.message,
@@ -59,13 +78,13 @@ const MissionPage = () => {
                 await refreshUser();
             }
         } catch (err) {
-            console.error('Error claiming coupon:', err);
+            console.error('Error claiming mission:', err);
             setMessage({
                 type: 'error',
-                text: err.response?.data?.detail || 'クーポン取得に失敗しました',
+                text: err.response?.data?.detail || 'ミッション報酬の取得に失敗しました',
             });
         } finally {
-            setClaiming(false);
+            setClaiming(null);
             setTimeout(() => setMessage(null), 3000);
         }
     };
@@ -80,6 +99,27 @@ const MissionPage = () => {
         return `残り${minutes}分`;
     };
 
+    const getMissionIcon = (missionId) => {
+        const icons = {
+            'daily_login': '📅',
+            'daily_coupon': '🎫',
+            'first_listing': '📦',
+            'first_purchase': '🛒',
+            'login_streak_3': '🔥',
+            'weekly_likes': '❤️',
+        };
+        return icons[missionId] || '🎯';
+    };
+
+    const getResetBadge = (reset) => {
+        const badges = {
+            'daily': { label: '毎日', color: '#4caf50' },
+            'weekly': { label: '毎週', color: '#2196f3' },
+            'once': { label: '一回限り', color: '#ff9800' },
+        };
+        return badges[reset] || { label: '', color: '#999' };
+    };
+
     if (loading) {
         return (
             <Box display="flex" justifyContent="center" alignItems="center" minHeight="50vh">
@@ -88,12 +128,10 @@ const MissionPage = () => {
         );
     }
 
-    const dailyMission = missions.find(m => m.id === 'daily_coupon');
-
     return (
         <Container maxWidth="md" sx={{ mt: 4, mb: 4 }}>
             {/* ヘッダー */}
-            <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
+            <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
                 <Typography variant="h4" component="h1" fontWeight="bold" sx={{
                     fontFamily: '"VT323", monospace',
                     color: colors.textPrimary,
@@ -103,6 +141,30 @@ const MissionPage = () => {
                 <Button variant="outlined" onClick={() => navigate('/mypage')}>
                     マイページに戻る
                 </Button>
+            </Box>
+
+            {/* ログイン統計 */}
+            <Box sx={{
+                display: 'flex',
+                gap: 2,
+                mb: 3,
+                p: 2,
+                background: 'linear-gradient(135deg, rgba(255, 152, 0, 0.1), rgba(255, 87, 34, 0.1))',
+                borderRadius: 2,
+                border: '1px solid rgba(255, 152, 0, 0.3)',
+            }}>
+                <Box textAlign="center">
+                    <Typography variant="h5" fontWeight="bold" sx={{ color: '#ff9800' }}>
+                        🔥 {stats.loginStreak}
+                    </Typography>
+                    <Typography variant="caption" color="textSecondary">連続ログイン</Typography>
+                </Box>
+                <Box textAlign="center">
+                    <Typography variant="h5" fontWeight="bold" sx={{ color: '#4caf50' }}>
+                        📆 {stats.totalLoginDays}
+                    </Typography>
+                    <Typography variant="caption" color="textSecondary">累計ログイン</Typography>
+                </Box>
             </Box>
 
             {message && (
@@ -136,58 +198,159 @@ const MissionPage = () => {
                 </Card>
             )}
 
-            {/* デイリーミッション */}
+            {/* ミッション一覧 */}
             <Typography variant="h6" sx={{ mb: 2, color: colors.textPrimary }}>
-                📅 デイリーミッション
+                📋 ミッション一覧
             </Typography>
 
-            {dailyMission && (
-                <Card sx={{
-                    mb: 4,
-                    background: dailyMission.completed
-                        ? 'rgba(0, 200, 0, 0.1)'
-                        : 'linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(59, 130, 246, 0.2))',
-                    border: `2px solid ${dailyMission.completed ? '#4caf50' : '#8b5cf6'}`,
-                }}>
-                    <CardContent>
-                        <Box display="flex" justifyContent="space-between" alignItems="center">
-                            <Box>
-                                <Typography variant="h6" fontWeight="bold" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                    🎫 {dailyMission.name}
-                                    {dailyMission.completed && (
-                                        <Chip label="完了" size="small" color="success" />
-                                    )}
-                                </Typography>
-                                <Typography variant="body2" color="textSecondary" sx={{ mt: 1 }}>
-                                    {dailyMission.description}
-                                </Typography>
-                                {dailyMission.reward_preview && !dailyMission.completed && (
-                                    <Typography variant="body2" sx={{ mt: 1, color: '#8b5cf6' }}>
-                                        報酬: {dailyMission.reward_preview.type === 'shipping_discount' ? '送料' : 'ガチャ'}
-                                        {dailyMission.reward_preview.discount_percent}%OFF
-                                        （{dailyMission.reward_preview.hours}時間有効）
-                                    </Typography>
-                                )}
-                            </Box>
-                            {!dailyMission.completed && (
-                                <Button
-                                    variant="contained"
-                                    onClick={handleClaimCoupon}
-                                    disabled={claiming}
-                                    sx={{
-                                        backgroundColor: '#8b5cf6',
-                                        fontWeight: 'bold',
-                                        px: 3,
-                                        '&:hover': { backgroundColor: '#7c3aed' },
-                                    }}
-                                >
-                                    {claiming ? <CircularProgress size={24} /> : '受け取る'}
-                                </Button>
-                            )}
-                        </Box>
-                    </CardContent>
-                </Card>
-            )}
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mb: 4 }}>
+                {missions.map(mission => {
+                    const resetBadge = getResetBadge(mission.reset);
+                    const isClaimable = mission.claimable && !mission.completed;
+
+                    return (
+                        <Card
+                            key={mission.id}
+                            sx={{
+                                background: mission.completed
+                                    ? 'rgba(76, 175, 80, 0.1)'
+                                    : isClaimable
+                                        ? 'linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(59, 130, 246, 0.2))'
+                                        : colors.backgroundAlt,
+                                border: `2px solid ${mission.completed
+                                        ? '#4caf50'
+                                        : isClaimable
+                                            ? '#8b5cf6'
+                                            : colors.border
+                                    }`,
+                                transition: 'all 0.3s ease',
+                                '&:hover': isClaimable ? {
+                                    transform: 'translateY(-2px)',
+                                    boxShadow: '0 4px 20px rgba(139, 92, 246, 0.3)',
+                                } : {},
+                            }}
+                        >
+                            <CardContent>
+                                <Box display="flex" justifyContent="space-between" alignItems="flex-start">
+                                    <Box flex={1}>
+                                        <Box display="flex" alignItems="center" gap={1} mb={1}>
+                                            <Typography variant="h6" fontWeight="bold">
+                                                {getMissionIcon(mission.id)} {mission.name}
+                                            </Typography>
+                                            <Chip
+                                                label={resetBadge.label}
+                                                size="small"
+                                                sx={{
+                                                    backgroundColor: resetBadge.color,
+                                                    color: '#fff',
+                                                    fontSize: '0.7rem',
+                                                    height: 20,
+                                                }}
+                                            />
+                                            {mission.completed && (
+                                                <Chip label="達成済" size="small" color="success" />
+                                            )}
+                                        </Box>
+
+                                        <Typography variant="body2" color="textSecondary" sx={{ mb: 1 }}>
+                                            {mission.description}
+                                        </Typography>
+
+                                        {/* 報酬表示 */}
+                                        {mission.reward && (
+                                            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 1 }}>
+                                                {mission.reward.gacha_points && (
+                                                    <Chip
+                                                        label={`🎫 +${mission.reward.gacha_points}pt`}
+                                                        size="small"
+                                                        sx={{ backgroundColor: '#ffc107', color: '#000' }}
+                                                    />
+                                                )}
+                                                {mission.reward.coupon && (
+                                                    <Chip
+                                                        label={`🎟️ ${mission.reward.coupon}`}
+                                                        size="small"
+                                                        sx={{ backgroundColor: '#e040fb', color: '#fff' }}
+                                                    />
+                                                )}
+                                            </Box>
+                                        )}
+
+                                        {mission.reward_preview && !mission.completed && (
+                                            <Typography variant="body2" sx={{ color: '#8b5cf6' }}>
+                                                報酬: {mission.reward_preview.type === 'shipping_discount' ? '送料' : 'ガチャ'}
+                                                {mission.reward_preview.discount_percent}%OFF
+                                                （{mission.reward_preview.hours}時間有効）
+                                            </Typography>
+                                        )}
+
+                                        {/* 進捗バー */}
+                                        {mission.progress && !mission.completed && (
+                                            <Box sx={{ mt: 1 }}>
+                                                <Box display="flex" justifyContent="space-between" mb={0.5}>
+                                                    <Typography variant="caption" color="textSecondary">
+                                                        進捗
+                                                    </Typography>
+                                                    <Typography variant="caption" color="textSecondary">
+                                                        {mission.progress.current} / {mission.progress.target}
+                                                    </Typography>
+                                                </Box>
+                                                <LinearProgress
+                                                    variant="determinate"
+                                                    value={(mission.progress.current / mission.progress.target) * 100}
+                                                    sx={{
+                                                        height: 8,
+                                                        borderRadius: 1,
+                                                        backgroundColor: '#333',
+                                                        '& .MuiLinearProgress-bar': {
+                                                            backgroundColor: isClaimable ? '#4caf50' : '#8b5cf6',
+                                                        }
+                                                    }}
+                                                />
+                                            </Box>
+                                        )}
+                                    </Box>
+
+                                    {/* 受け取るボタン */}
+                                    <Box sx={{ ml: 2 }}>
+                                        {isClaimable ? (
+                                            <Button
+                                                variant="contained"
+                                                onClick={() => handleClaimMission(mission.id)}
+                                                disabled={claiming === mission.id}
+                                                sx={{
+                                                    backgroundColor: '#8b5cf6',
+                                                    fontWeight: 'bold',
+                                                    px: 3,
+                                                    animation: 'pulse 2s infinite',
+                                                    '@keyframes pulse': {
+                                                        '0%': { boxShadow: '0 0 0 0 rgba(139, 92, 246, 0.4)' },
+                                                        '70%': { boxShadow: '0 0 0 10px rgba(139, 92, 246, 0)' },
+                                                        '100%': { boxShadow: '0 0 0 0 rgba(139, 92, 246, 0)' },
+                                                    },
+                                                    '&:hover': { backgroundColor: '#7c3aed' },
+                                                }}
+                                            >
+                                                {claiming === mission.id ? <CircularProgress size={24} /> : '受け取る'}
+                                            </Button>
+                                        ) : mission.completed ? (
+                                            <Chip label="✓" color="success" sx={{ fontSize: '1.2rem' }} />
+                                        ) : mission.requires_persona && !equippedPersona ? (
+                                            <Button
+                                                variant="outlined"
+                                                size="small"
+                                                onClick={() => navigate('/persona-selection')}
+                                            >
+                                                ペルソナ装備
+                                            </Button>
+                                        ) : null}
+                                    </Box>
+                                </Box>
+                            </CardContent>
+                        </Card>
+                    );
+                })}
+            </Box>
 
             {/* 所持クーポン */}
             <Typography variant="h6" sx={{ mb: 2, color: colors.textPrimary }}>
