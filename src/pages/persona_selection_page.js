@@ -272,7 +272,7 @@ const PersonaSelectionPage = () => {
                           zIndex: 2,
                         }}
                       >
-                        <LockIcon sx={{ fontSize: 40, color: '#757575' }} />
+                        <LockIcon sx={{ fontSize: 40, color: '#8b949e' }} />
                       </Box>
                     )}
                     <Box
@@ -280,7 +280,7 @@ const PersonaSelectionPage = () => {
                         width: '100%',
                         aspectRatio: '1 / 1',
                         position: 'relative',
-                        bgcolor: '#222',
+                        bgcolor: '#1c2128',
                         overflow: 'hidden',
                         mb: 1,
                         display: 'flex',
@@ -297,7 +297,7 @@ const PersonaSelectionPage = () => {
                           height: '100%',
                           objectFit: 'contain',
                           imageRendering: 'pixelated',
-                          background: '#eee',
+                          background: '#161b22',
                         }}
                       />
                     </Box>
@@ -345,7 +345,7 @@ const PersonaSelectionPage = () => {
       {updating && (
         <Box sx={{
           position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-          bgcolor: 'rgba(255,255,255,0.7)',
+          bgcolor: 'rgba(0,0,0,0.8)',
           zIndex: 9999,
           display: 'flex', justifyContent: 'center', alignItems: 'center'
         }}>

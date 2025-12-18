@@ -1,11 +1,21 @@
 // src/pages/item_create_page.js
+/**
+ * 出品ページ
+ * el;ma テーマ - レトロゲーム風UI
+ */
 
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { storage } from '../firebase_config';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-// ↓↓↓ 1. 追加: useAuth をインポート
 import { useAuth } from '../contexts/auth_context';
+import {
+  Box, Container, Typography, TextField, Button, Paper,
+  Alert, CircularProgress, FormControl, InputLabel, Select,
+  MenuItem, FormControlLabel, Checkbox
+} from '@mui/material';
+import { AddPhotoAlternate, Sell } from '@mui/icons-material';
+import { colors } from '../styles/theme';
 
 const CATEGORIES = ["ファッション", "家電・スマホ・カメラ", "靴", "PC周辺機器", "その他"];
 const CONDITIONS = ["新品、未使用", "未使用に近い", "目立った傷や汚れなし", "やや傷や汚れあり", "傷や汚れあり", "全体的に状態が悪い"];
@@ -15,18 +25,17 @@ const ItemCreatePage = () => {
   const [error, setError] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [imageFile, setImageFile] = useState(null);
+  const [category, setCategory] = useState('');
+  const [condition, setCondition] = useState('');
+  const [instantBuy, setInstantBuy] = useState(true);
 
   const navigate = useNavigate();
-  // ↓↓↓ 2. 追加: currentUser を取得
   const { currentUser } = useAuth();
 
   const nameRef = useRef();
   const descriptionRef = useRef();
   const priceRef = useRef();
-  const instantBuyRef = useRef();
-  const categoryRef = useRef();
   const brandRef = useRef();
-  const conditionRef = useRef();
 
   const API_URL = process.env.REACT_APP_API_URL;
 
@@ -40,13 +49,10 @@ const ItemCreatePage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // ログインチェック（念のため）
     if (!currentUser) {
       setError("ログインが必要です。");
       return;
     }
-
     if (!imageFile) {
       setError("商品画像は必須です。");
       return;
@@ -65,13 +71,13 @@ const ItemCreatePage = () => {
         description: descriptionRef.current.value || null,
         price: parseInt(priceRef.current.value, 10),
         image_url: downloadURL,
-        is_instant_buy_ok: instantBuyRef.current.checked,
-        category: categoryRef.current.value,
+        is_instant_buy_ok: instantBuy,
+        category: category,
         brand: brandRef.current.value || null,
-        condition: conditionRef.current.value,
+        condition: condition,
       };
 
-      if (!itemData.category || !itemData.condition) {
+      if (!category || !condition) {
         setError("カテゴリと商品の状態は必須です。");
         setLoading(false);
         return;
@@ -81,7 +87,6 @@ const ItemCreatePage = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          // ↓↓↓ 3. 追加: ヘッダーにUIDをセットする
           'X-Firebase-Uid': currentUser.uid,
         },
         body: JSON.stringify(itemData),
@@ -92,8 +97,7 @@ const ItemCreatePage = () => {
         throw new Error(`出品に失敗しました: ${errorData.detail || response.statusText}`);
       }
 
-      navigate(`/`);
-
+      navigate('/');
     } catch (err) {
       console.error("Item creation error:", err);
       setError(err.message || "商品の出品中に予期せぬエラーが発生しました。");
@@ -103,58 +107,197 @@ const ItemCreatePage = () => {
   };
 
   return (
-    <div style={{ padding: '20px' }}>
-      <h2>商品の出品</h2>
-      {error && <p style={{ color: 'red' }}>エラー: {error}</p>}
+    <Container maxWidth="sm" sx={{ py: 4 }}>
+      {/* ヘッダー */}
+      <Typography variant="h4" sx={{
+        fontFamily: '"VT323", monospace',
+        color: colors.textPrimary,
+        display: 'flex',
+        alignItems: 'center',
+        gap: 1,
+        mb: 3,
+      }}>
+        <Sell sx={{ color: colors.primary }} /> 商品の出品
+      </Typography>
 
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px', maxWidth: '400px', border: '1px solid #ddd', padding: '20px' }}>
+      {error && (
+        <Alert severity="error" sx={{ mb: 3, backgroundColor: 'rgba(255,107,107,0.1)', border: `1px solid ${colors.error}` }}>
+          {error}
+        </Alert>
+      )}
 
-        <div>
-          <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>商品画像 *</label>
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleImageChange}
+      <Paper
+        component="form"
+        onSubmit={handleSubmit}
+        sx={{
+          p: 3,
+          background: colors.paper,
+          border: `1px solid ${colors.border}`,
+          borderRadius: 2,
+        }}
+      >
+        {/* 画像アップロード */}
+        <Box sx={{ mb: 3 }}>
+          <Typography variant="subtitle2" sx={{ color: colors.textPrimary, mb: 1, fontWeight: 'bold' }}>
+            商品画像 <span style={{ color: colors.error }}>*</span>
+          </Typography>
+
+          <Box
+            component="label"
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              minHeight: 200,
+              border: `2px dashed ${imagePreview ? colors.primary : colors.border}`,
+              borderRadius: 2,
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              backgroundColor: colors.backgroundAlt,
+              '&:hover': { borderColor: colors.primary },
+              overflow: 'hidden',
+            }}
+          >
+            <input type="file" accept="image/*" onChange={handleImageChange} hidden />
+            {imagePreview ? (
+              <Box
+                component="img"
+                src={imagePreview}
+                alt="プレビュー"
+                sx={{ width: '100%', maxHeight: 300, objectFit: 'contain' }}
+              />
+            ) : (
+              <>
+                <AddPhotoAlternate sx={{ fontSize: 48, color: colors.textTertiary, mb: 1 }} />
+                <Typography variant="body2" color="textSecondary">
+                  クリックして画像をアップロード
+                </Typography>
+              </>
+            )}
+          </Box>
+        </Box>
+
+        {/* 商品名 */}
+        <TextField
+          inputRef={nameRef}
+          label="商品名"
+          placeholder="商品名を入力"
+          required
+          fullWidth
+          variant="outlined"
+          sx={{ mb: 2 }}
+          InputProps={{ sx: { fontFamily: 'monospace', backgroundColor: colors.background } }}
+        />
+
+        {/* カテゴリ */}
+        <FormControl fullWidth sx={{ mb: 2 }}>
+          <InputLabel>カテゴリ *</InputLabel>
+          <Select
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            label="カテゴリ *"
             required
-            style={{ padding: '10px' }}
-          />
-          {imagePreview && (
-            <div style={{ marginTop: '10px' }}>
-              <img src={imagePreview} alt="プレビュー" style={{ width: '100%', maxHeight: '200px', objectFit: 'contain' }} />
-            </div>
-          )}
-        </div>
+            sx={{ backgroundColor: colors.background }}
+          >
+            {CATEGORIES.map(c => <MenuItem key={c} value={c}>{c}</MenuItem>)}
+          </Select>
+        </FormControl>
 
-        <input type="text" ref={nameRef} placeholder="商品名 *" required style={{ padding: '10px' }} />
+        {/* ブランド */}
+        <TextField
+          inputRef={brandRef}
+          label="ブランド名（任意）"
+          placeholder="ブランド名"
+          fullWidth
+          variant="outlined"
+          sx={{ mb: 2 }}
+          InputProps={{ sx: { fontFamily: 'monospace', backgroundColor: colors.background } }}
+        />
 
-        <select ref={categoryRef} required style={{ padding: '10px' }}>
-          <option value="">-- カテゴリを選択 * --</option>
-          {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-        </select>
+        {/* 状態 */}
+        <FormControl fullWidth sx={{ mb: 2 }}>
+          <InputLabel>商品の状態 *</InputLabel>
+          <Select
+            value={condition}
+            onChange={(e) => setCondition(e.target.value)}
+            label="商品の状態 *"
+            required
+            sx={{ backgroundColor: colors.background }}
+          >
+            {CONDITIONS.map(c => <MenuItem key={c} value={c}>{c}</MenuItem>)}
+          </Select>
+        </FormControl>
 
-        <input type="text" ref={brandRef} placeholder="ブランド名 (任意)" style={{ padding: '10px' }} />
+        {/* 価格 */}
+        <TextField
+          inputRef={priceRef}
+          type="number"
+          label="価格（円）"
+          placeholder="例: 3000"
+          required
+          fullWidth
+          variant="outlined"
+          inputProps={{ min: 100 }}
+          sx={{ mb: 2 }}
+          InputProps={{ sx: { fontFamily: 'monospace', backgroundColor: colors.background } }}
+        />
 
-        <select ref={conditionRef} required style={{ padding: '10px' }}>
-          <option value="">-- 商品の状態を選択 * --</option>
-          {CONDITIONS.map(c => <option key={c} value={c}>{c}</option>)}
-        </select>
+        {/* 説明 */}
+        <TextField
+          inputRef={descriptionRef}
+          label="商品の説明（任意）"
+          placeholder="商品の状態や特徴など"
+          multiline
+          rows={4}
+          fullWidth
+          variant="outlined"
+          sx={{ mb: 2 }}
+          InputProps={{ sx: { fontFamily: 'monospace', backgroundColor: colors.background } }}
+        />
 
-        <input type="number" ref={priceRef} placeholder="価格 (円) *" required min="100" style={{ padding: '10px' }} />
+        {/* クイックモード */}
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={instantBuy}
+              onChange={(e) => setInstantBuy(e.target.checked)}
+              sx={{ color: colors.primary, '&.Mui-checked': { color: colors.primary } }}
+            />
+          }
+          label={
+            <Typography variant="body2" sx={{ color: colors.textSecondary }}>
+              クイックモード対応（即購入OK）
+            </Typography>
+          }
+          sx={{ mb: 3 }}
+        />
 
-        <textarea ref={descriptionRef} placeholder="商品の説明 (任意)" rows="4" style={{ padding: '10px' }} />
+        {/* 送信ボタン */}
+        <Button
+          type="submit"
+          variant="contained"
+          fullWidth
+          disabled={loading}
+          sx={{
+            py: 1.5,
+            fontFamily: '"VT323", monospace',
+            fontSize: '1.3rem',
+            backgroundColor: colors.primary,
+            color: colors.background,
+            '&:hover': { backgroundColor: colors.primaryDark },
+            '&:disabled': { backgroundColor: colors.border },
+          }}
+        >
+          {loading ? <CircularProgress size={24} sx={{ color: colors.background }} /> : '▶ 出品する'}
+        </Button>
 
-        <label style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <input type="checkbox" ref={instantBuyRef} defaultChecked />
-          クイックモード対応 (即購入OK)
-        </label>
-
-        <button type="submit" disabled={loading} style={{ padding: '10px', backgroundColor: loading ? '#ccc' : '#007bff', color: 'white', border: 'none', cursor: loading ? 'not-allowed' : 'pointer' }}>
-          {loading ? '出品中...' : '出品する'}
-        </button>
-
-        <p style={{ fontSize: '0.8em', color: '#8b949e' }}>* は必須項目です。</p>
-      </form>
-    </div>
+        {/* 注意書き */}
+        <Typography variant="caption" sx={{ display: 'block', mt: 2, color: colors.textTertiary, textAlign: 'center' }}>
+          <span style={{ color: colors.error }}>*</span> は必須項目です
+        </Typography>
+      </Paper>
+    </Container>
   );
 };
 
