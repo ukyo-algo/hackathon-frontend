@@ -69,15 +69,15 @@ const GachaPage = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ページコンテキスト: ガチャ結果確定時のみ
+  // ページコンテキスト: ガチャ結果確定時のみLLMにガイダンスを依頼
+  // 初回ロードでは汎用メッセージを避けるため、結果が出るまでコンテキストを送信しない
   useEffect(() => {
     if (result) {
+      // ガチャ結果が出た時だけコンテキストを送信
       setPageContext({
-        page: 'gacha',
+        page: 'gacha_result',  // ←ページタイプを変更して結果時であることを明示
         user_gacha_points: userGachaPoints,
         gacha_cost: finalCost,
-        can_afford: canAfford,
-        has_result: true,
         result_persona_name: result.persona?.name || null,
         result_rarity: result.persona?.rarity || null,
         result_rarity_name: result.persona?.rarity_name || null,

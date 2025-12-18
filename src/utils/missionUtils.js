@@ -55,6 +55,27 @@ export const formatCouponExpiry = (expiresAt) => {
 };
 
 /**
+ * 次に利用可能になる時間をフォーマット（クールタイム表示）
+ */
+export const formatCooldownTime = (nextAvailableAt) => {
+    if (!nextAvailableAt) return null;
+
+    const nextTime = new Date(nextAvailableAt);
+    const now = new Date();
+    const diff = nextTime - now;
+
+    if (diff <= 0) return null; // すでに利用可能
+
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+
+    if (hours > 0) {
+        return `あと${hours}時間${minutes > 0 ? minutes + '分' : ''}で獲得可能`;
+    }
+    return `あと${minutes}分で獲得可能`;
+};
+
+/**
  * ミッション報酬のclaimを実行
  */
 export const claimMission = async (api, missionId) => {

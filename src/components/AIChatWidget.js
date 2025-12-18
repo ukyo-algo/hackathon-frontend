@@ -352,7 +352,7 @@ const AIChatWidget = () => {
             >
               <Typography variant="body2" sx={{ lineHeight: 1.6, color: 'inherit', fontFamily: 'inherit' }}>
                 {msg.type === 'guidance' && '💡 '}
-                {msg.role === 'user' ? `> ${msg.content}` : `* ${msg.content}`}
+                {msg.role === 'user' ? `> ${msg.content}` : msg.content}
               </Typography>
 
               {/* ガチャ結果画像の表示 */}
@@ -406,7 +406,7 @@ const AIChatWidget = () => {
               color: '#00ff00'
             }}>
               <Typography variant="body2" sx={{ color: 'inherit', fontFamily: 'inherit' }}>
-                * ...
+                ...
               </Typography>
             </Paper>
           </Box>

@@ -18,6 +18,7 @@ import {
     getMissionIcon,
     getResetBadge,
     formatCouponExpiry,
+    formatCooldownTime,
     claimMission
 } from '../utils/missionUtils';
 
@@ -221,6 +222,13 @@ const MissionCard = ({ mission, claiming, onClaim, onEquipPersona, hasPersona })
                         <Typography variant="body2" color="textSecondary" sx={{ mb: 1 }}>
                             {mission.description}
                         </Typography>
+
+                        {/* クールタイム表示（デイリーミッションで達成済みの場合） */}
+                        {mission.completed && mission.next_available_at && (
+                            <Typography variant="body2" sx={{ color: '#ff9800', mb: 1 }}>
+                                ⏰ {formatCooldownTime(mission.next_available_at)}
+                            </Typography>
+                        )}
 
                         {/* 報酬 */}
                         <MissionRewards mission={mission} />

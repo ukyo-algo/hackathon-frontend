@@ -67,10 +67,21 @@ const BuyPage = () => {
         item_price: item.price,
         payment_method: paymentMethod,
         delivery_option: deliveryOption,
+        // クーポン情報
+        available_coupons_count: availableCoupons.length,
+        selected_coupon: selectedCoupon ? {
+          discount_percent: selectedCoupon.discount_percent,
+          type: selectedCoupon.coupon_type,
+        } : null,
+        // 料金情報
+        base_shipping_fee: baseShippingFee,
+        shipping_discount: shippingDiscount,
+        final_shipping_fee: finalShippingFee,
+        total_price: totalPrice,
       });
     }
     return () => setPageContext(null);
-  }, [item, itemId, paymentMethod, deliveryOption, setPageContext]);
+  }, [item, itemId, paymentMethod, deliveryOption, availableCoupons, selectedCoupon, baseShippingFee, shippingDiscount, finalShippingFee, totalPrice, setPageContext]);
 
   // データ取得
   useEffect(() => {

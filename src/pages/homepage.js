@@ -120,7 +120,8 @@ const Homepage = () => {
             price: item.price,
             category: item.category,
             like_count: item.like_count || 0
-          }))
+          })),
+          user_gacha_points: currentUser?.gacha_points || 0,
         });
 
       } catch (err) {

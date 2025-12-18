@@ -57,17 +57,20 @@ const PersonaSelectionPage = () => {
       locked_personas_count: allPersonas.length - ownedPersonas.length,
       current_persona_id: currentPersonaId,
       current_persona_name: currentPersonaName,
+      // メモリーフラグメント（レベルアップに使用）
+      memory_fragments: currentUser?.memory_fragments || 0,
       // 詳細モーダル表示中のキャラ
       viewing_persona: selectedDetailPersona ? {
         name: selectedDetailPersona.name,
         rarity: selectedDetailPersona.rarity,
         is_owned: ownedPersonas.some(p => p.id === selectedDetailPersona.id),
         is_current: selectedDetailPersona.id === currentPersonaId,
+        level: ownedPersonaLevels[selectedDetailPersona.id] || 1,
       } : null,
       modal_open: detailOpen,
     });
     return () => setPageContext(null);
-  }, [allPersonas.length, ownedPersonas, currentPersonaId, currentPersonaName, selectedDetailPersona, detailOpen, setPageContext]);
+  }, [allPersonas.length, ownedPersonas, currentPersonaId, currentPersonaName, selectedDetailPersona, detailOpen, currentUser, ownedPersonaLevels, setPageContext]);
 
   useEffect(() => {
     const fetchData = async () => {

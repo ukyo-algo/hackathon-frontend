@@ -43,9 +43,14 @@ const MyPage = () => {
               commentedItems
       ).slice(0, 3).map(item => item?.name || 'unknown'),
       is_loading: loading,
+      // ユーザーステータス
+      user_gacha_points: currentUser?.gacha_points || 0,
+      memory_fragments: currentUser?.memory_fragments || 0,
+      login_streak: currentUser?.login_streak || 0,
+      equipped_persona: currentUser?.current_persona?.name || null,
     });
     return () => setPageContext(null);
-  }, [activeTab, sellingItems, boughtItems, likedItems, commentedItems, loading, setPageContext]);
+  }, [activeTab, sellingItems, boughtItems, likedItems, commentedItems, loading, currentUser, setPageContext]);
 
   useEffect(() => {
     if (!currentUser) return;
