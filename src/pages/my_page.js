@@ -89,18 +89,18 @@ const MyPage = () => {
       {/* ユーザー情報ヘッダー */}
       <div style={{ display: 'flex', alignItems: 'center', marginBottom: '30px', justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center' }}>
-          <div style={{ width: '60px', height: '60px', borderRadius: '50%', backgroundColor: '#eee', marginRight: '15px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '30px' }}>
+          <div style={{ width: '60px', height: '60px', borderRadius: '50%', backgroundColor: '#1c2128', border: '2px solid #00ff88', marginRight: '15px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '30px' }}>
             👤
           </div>
           <div>
             <h2 style={{ margin: 0 }}>{currentUser.email.split('@')[0]}</h2>
-            <p style={{ margin: 0, color: '#666' }}>{currentUser.email}</p>
+            <p style={{ margin: 0, color: '#8b949e' }}>{currentUser.email}</p>
           </div>
         </div>
         <Link to="/persona-selection" style={{ textDecoration: 'none' }}>
           <button style={{
             padding: '8px 16px',
-            backgroundColor: '#1976d2',
+            backgroundColor: '#00ff88',
             color: 'white',
             border: 'none',
             borderRadius: '4px',
@@ -116,7 +116,7 @@ const MyPage = () => {
       {/* 配送状況パネル（ヘッダー直下）は削除されました */}
 
       {/* タブ切り替えボタン */}
-      <div style={{ display: 'flex', borderBottom: '1px solid #ddd', marginBottom: '20px', overflowX: 'auto' }}>
+      <div style={{ display: 'flex', borderBottom: '1px solid #30363d', marginBottom: '20px', overflowX: 'auto' }}>
         <TabButton label="出品した商品" isActive={activeTab === 'selling'} onClick={() => setActiveTab('selling')} />
         <TabButton label="購入した商品" isActive={activeTab === 'bought'} onClick={() => setActiveTab('bought')} />
         <TabButton label="いいね一覧" isActive={activeTab === 'likes'} onClick={() => setActiveTab('likes')} />
@@ -163,8 +163,9 @@ const TabButton = ({ label, isActive, onClick }) => (
       padding: '10px 20px',
       border: 'none',
       background: 'none',
-      borderBottom: isActive ? '3px solid #e91e63' : 'none',
+      borderBottom: isActive ? '3px solid #00ff88' : 'none',
       fontWeight: isActive ? 'bold' : 'normal',
+      color: isActive ? '#00ff88' : '#8b949e',
       cursor: 'pointer',
       whiteSpace: 'nowrap'
     }}

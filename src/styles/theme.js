@@ -148,6 +148,41 @@ const theme = createTheme({
     values: breakpoints,
   },
   components: {
+    // グローバルスタイル (カスタムカーソル等)
+    MuiCssBaseline: {
+      styleOverrides: {
+        // カスタムピクセルカーソル
+        '*': {
+          cursor: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath fill='%2300ff88' d='M2 2h4v4H2zm4 4h4v4H6zm4 4h4v4h-4zm0 4h4v4h-4zm-4 0h4v4H6zm8-4h4v4h-4z'/%3E%3Cpath fill='%23000' d='M6 2h4v4H6zM2 6h4v4H2zm8 4h4v4h-4zm4 4h4v4h-4zm-8 0h4v4H6z' opacity='.3'/%3E%3C/svg%3E") 2 2, auto !important`,
+        },
+        'a, button, [role="button"], input[type="submit"], .MuiButton-root, .MuiIconButton-root, .MuiTab-root, .MuiChip-root': {
+          cursor: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath fill='%23ff00ff' d='M8 2h4v4H8zm4 4h4v4h-4zm0 4h4v4h-4zm-4 4h4v4H8zm0 4h4v4H8zm-4-4h4v4H4z'/%3E%3Cpath fill='%23000' d='M4 6h4v4H4zm8 0h4v4h-4zm4 8h4v4h-4z' opacity='.3'/%3E%3C/svg%3E") 6 2, pointer !important`,
+        },
+        'body': {
+          backgroundColor: colors.background,
+          color: colors.textPrimary,
+          fontFamily: 'monospace, sans-serif',
+        },
+        '::-webkit-scrollbar': {
+          width: '10px',
+          height: '10px',
+        },
+        '::-webkit-scrollbar-track': {
+          backgroundColor: colors.backgroundAlt,
+        },
+        '::-webkit-scrollbar-thumb': {
+          backgroundColor: colors.border,
+          border: `2px solid ${colors.backgroundAlt}`,
+          '&:hover': {
+            backgroundColor: colors.primary,
+          },
+        },
+        '::selection': {
+          backgroundColor: colors.primary,
+          color: colors.background,
+        },
+      },
+    },
     // ボタンのスタイル (レトロゲーム風)
     MuiButton: {
       styleOverrides: {

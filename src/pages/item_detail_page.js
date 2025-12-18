@@ -138,7 +138,7 @@ const ItemDetailPage = () => {
       <Grid container spacing={4} sx={{ mb: 6 }}>
         {/* 左側: 商品画像 (12分割中の6を使う = 半分) */}
         <Grid item xs={12} md={6}>
-          <Box sx={{ position: 'relative', width: '100%', maxHeight: '400px', bgcolor: '#f0f0f0', borderRadius: 2, overflow: 'hidden' }}>
+          <Box sx={{ position: 'relative', width: '100%', maxHeight: '400px', bgcolor: '#1c2128', borderRadius: 2, overflow: 'hidden' }}>
             <CardMedia
               component="img"
               image={item.image_url || "/placeholder.png"}
@@ -170,7 +170,7 @@ const ItemDetailPage = () => {
             <Divider sx={{ my: 2 }} />
 
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-              <Typography variant="h4" sx={{ fontWeight: 'bold', color: '#d32f2f' }}>¥{item.price?.toLocaleString() || '0'}</Typography>
+              <Typography variant="h4" sx={{ fontWeight: 'bold', color: '#00ff88' }}>¥{item.price?.toLocaleString() || '0'}</Typography>
               <Button startIcon={isLiked ? <FavoriteIcon /> : <FavoriteBorderIcon />} onClick={handleLike} color={isLiked ? "error" : "inherit"} size="large">{likeCount}</Button>
             </Box>
 
@@ -239,7 +239,7 @@ const ItemDetailPage = () => {
                           <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>
                             {comment.user?.username || 'ユーザー'}
                           </Typography>
-                          <Typography variant="caption" sx={{ color: '#999' }}>
+                          <Typography variant="caption" sx={{ color: '#8b949e' }}>
                             {comment.created_at ? new Date(comment.created_at).toLocaleDateString() : ''}
                           </Typography>
                         </Box>
@@ -249,7 +249,7 @@ const ItemDetailPage = () => {
                           component="div"
                           variant="body2"
                           sx={{
-                            color: '#333',
+                            color: '#e6edf3',
                             whiteSpace: 'pre-wrap',
                             // ★黒板からはみ出さないための鉄壁設定
                             overflowWrap: 'anywhere',
@@ -280,7 +280,7 @@ const ItemDetailPage = () => {
             onChange={(e) => setCommentText(e.target.value)}
             variant="outlined"
             size="small"
-            sx={{ bgcolor: '#fff' }}
+            sx={{ bgcolor: '#161b22', '& .MuiOutlinedInput-root': { color: '#e6edf3' } }}
           />
           <IconButton
             type="submit"

@@ -1,6 +1,6 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { Box, Container } from '@mui/material';
+import { Box, Container, CssBaseline } from '@mui/material';
 import { ThemeProvider } from '@mui/material/styles';
 import { AuthProvider } from './contexts/auth_context';
 import theme from './styles/theme';
@@ -30,6 +30,7 @@ import AIChatWidgetFloating from './components/AIChatWidgetFloating';
 function App() {
     return (
         <ThemeProvider theme={theme}>
+            <CssBaseline />
             <BrowserRouter>
                 <AuthProvider>
                     <PageContextProvider>

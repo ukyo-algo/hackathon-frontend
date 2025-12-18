@@ -19,7 +19,7 @@ const ItemCreatePage = () => {
   const navigate = useNavigate();
   // ↓↓↓ 2. 追加: currentUser を取得
   const { currentUser } = useAuth();
-  
+
   const nameRef = useRef();
   const descriptionRef = useRef();
   const priceRef = useRef();
@@ -27,7 +27,7 @@ const ItemCreatePage = () => {
   const categoryRef = useRef();
   const brandRef = useRef();
   const conditionRef = useRef();
-  
+
   const API_URL = process.env.REACT_APP_API_URL;
 
   const handleImageChange = (e) => {
@@ -64,17 +64,17 @@ const ItemCreatePage = () => {
         name: nameRef.current.value,
         description: descriptionRef.current.value || null,
         price: parseInt(priceRef.current.value, 10),
-        image_url: downloadURL, 
+        image_url: downloadURL,
         is_instant_buy_ok: instantBuyRef.current.checked,
         category: categoryRef.current.value,
         brand: brandRef.current.value || null,
         condition: conditionRef.current.value,
       };
-      
+
       if (!itemData.category || !itemData.condition) {
-          setError("カテゴリと商品の状態は必須です。");
-          setLoading(false);
-          return;
+        setError("カテゴリと商品の状態は必須です。");
+        setLoading(false);
+        return;
       }
 
       const response = await fetch(`${API_URL}/api/v1/items`, {
@@ -92,7 +92,7 @@ const ItemCreatePage = () => {
         throw new Error(`出品に失敗しました: ${errorData.detail || response.statusText}`);
       }
 
-      navigate(`/`); 
+      navigate(`/`);
 
     } catch (err) {
       console.error("Item creation error:", err);
@@ -106,17 +106,17 @@ const ItemCreatePage = () => {
     <div style={{ padding: '20px' }}>
       <h2>商品の出品</h2>
       {error && <p style={{ color: 'red' }}>エラー: {error}</p>}
-      
+
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px', maxWidth: '400px', border: '1px solid #ddd', padding: '20px' }}>
-        
+
         <div>
-          <label style={{display: 'block', marginBottom: '5px', fontWeight: 'bold'}}>商品画像 *</label>
-          <input 
-            type="file" 
-            accept="image/*" 
-            onChange={handleImageChange} 
-            required 
-            style={{ padding: '10px' }} 
+          <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>商品画像 *</label>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleImageChange}
+            required
+            style={{ padding: '10px' }}
           />
           {imagePreview && (
             <div style={{ marginTop: '10px' }}>
@@ -126,7 +126,7 @@ const ItemCreatePage = () => {
         </div>
 
         <input type="text" ref={nameRef} placeholder="商品名 *" required style={{ padding: '10px' }} />
-        
+
         <select ref={categoryRef} required style={{ padding: '10px' }}>
           <option value="">-- カテゴリを選択 * --</option>
           {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
@@ -138,21 +138,21 @@ const ItemCreatePage = () => {
           <option value="">-- 商品の状態を選択 * --</option>
           {CONDITIONS.map(c => <option key={c} value={c}>{c}</option>)}
         </select>
-        
+
         <input type="number" ref={priceRef} placeholder="価格 (円) *" required min="100" style={{ padding: '10px' }} />
 
         <textarea ref={descriptionRef} placeholder="商品の説明 (任意)" rows="4" style={{ padding: '10px' }} />
-        
+
         <label style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <input type="checkbox" ref={instantBuyRef} defaultChecked />
           クイックモード対応 (即購入OK)
         </label>
-        
+
         <button type="submit" disabled={loading} style={{ padding: '10px', backgroundColor: loading ? '#ccc' : '#007bff', color: 'white', border: 'none', cursor: loading ? 'not-allowed' : 'pointer' }}>
           {loading ? '出品中...' : '出品する'}
         </button>
-        
-        <p style={{ fontSize: '0.8em', color: '#666' }}>* は必須項目です。</p>
+
+        <p style={{ fontSize: '0.8em', color: '#8b949e' }}>* は必須項目です。</p>
       </form>
     </div>
   );

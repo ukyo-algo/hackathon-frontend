@@ -1,58 +1,97 @@
+// src/pages/gacha_page.js
+/**
+ * ガチャページ
+ * - ペルソナガチャを引く
+ * - クーポン適用可能
+ */
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import {
-  Container,
-  Box,
-  Typography,
-  Button,
-  Card,
-  CardContent,
-  CircularProgress,
-  Alert,
-  Fade
+  Container, Box, Typography, Button, Card, CardContent,
+  CircularProgress, Alert, Fade,
 } from '@mui/material';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import { useAuth } from '../contexts/auth_context';
 import { colors } from '../styles/theme';
 import { usePageContext } from '../components/AIChatWidget';
+import CouponSelector from '../components/CouponSelector';
 
-const GACHA_COST = 100;
+const BASE_GACHA_COST = 100;
 
 const GachaPage = () => {
   const navigate = useNavigate();
   const { currentUser, refreshUser } = useAuth();
+  const { setPageContext } = usePageContext();
+
+  // 状態
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
-  const { setPageContext } = usePageContext();
 
+  // クーポン関連
+  const [availableCoupons, setAvailableCoupons] = useState([]);
+  const [selectedCouponId, setSelectedCouponId] = useState('');
+
+  // 計算値
   const userGachaPoints = currentUser?.gacha_points || 0;
-  const canAfford = userGachaPoints >= GACHA_COST;
+  const selectedCoupon = availableCoupons.find(c => c.id === selectedCouponId);
+  const discountPercent = selectedCoupon?.discount_percent || 0;
+  const finalCost = BASE_GACHA_COST - Math.floor(BASE_GACHA_COST * discountPercent / 100);
+  const canAfford = userGachaPoints >= finalCost;
 
-  // ページコンテキストを設定（詳細なガチャ結果情報）
+  // クーポン一覧を取得
+  useEffect(() => {
+    if (!currentUser) return;
+
+    const fetchCoupons = async () => {
+      try {
+        const res = await api.get('/gacha/available-coupons');
+        setAvailableCoupons(res.data.coupons || []);
+      } catch (err) {
+        console.error('Failed to fetch coupons:', err);
+      }
+    };
+    fetchCoupons();
+  }, [currentUser]);
+
+  // ページコンテキスト: 初回ロード時のみ
   useEffect(() => {
     setPageContext({
       page: 'gacha',
       user_gacha_points: userGachaPoints,
-      gacha_cost: GACHA_COST,
+      gacha_cost: finalCost,
       can_afford: canAfford,
-      // ガチャ結果の詳細
-      has_result: !!result,
-      result_persona_name: result?.persona?.name || null,
-      result_rarity: result?.persona?.rarity || null,
-      result_is_new: result?.is_new || false,
-      // 状態
-      is_loading: loading,
-      has_error: !!error,
-      error_message: error || null,
+      has_result: false,
     });
     return () => setPageContext(null);
-  }, [userGachaPoints, canAfford, result, loading, error, setPageContext]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // ページコンテキスト: ガチャ結果確定時のみ
+  useEffect(() => {
+    if (result) {
+      setPageContext({
+        page: 'gacha',
+        user_gacha_points: userGachaPoints,
+        gacha_cost: finalCost,
+        can_afford: canAfford,
+        has_result: true,
+        result_persona_name: result.persona?.name || null,
+        result_rarity: result.persona?.rarity || null,
+        result_rarity_name: result.persona?.rarity_name || null,
+        result_is_new: result.is_new || false,
+        result_stack_count: result.stack_count || 1,
+        fragments_earned: result.fragments_earned || 0,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [result]);
 
   const handleDrawGacha = async () => {
     if (!canAfford) {
-      setError(`ガチャポイントが足りません（必要: ${GACHA_COST}ポイント、所持: ${userGachaPoints}ポイント）`);
+      setError(`ガチャポイントが足りません（必要: ${finalCost}pt、所持: ${userGachaPoints}pt）`);
       return;
     }
 
@@ -61,23 +100,24 @@ const GachaPage = () => {
       setError(null);
       setResult(null);
 
-      // ガチャを引くAPI呼び出し
-      const response = await api.post('/gacha/draw');
+      const params = selectedCouponId ? { coupon_id: selectedCouponId } : {};
+      const response = await api.post('/gacha/draw', null, { params });
 
-      // 少し演出のために待機
+      // 演出用の待機
       await new Promise(resolve => setTimeout(resolve, 1000));
 
       setResult(response.data);
 
-      // ユーザー情報を更新（コイン残高を反映）
+      // クーポン使用後は一覧から削除
+      if (selectedCouponId) {
+        setAvailableCoupons(prev => prev.filter(c => c.id !== selectedCouponId));
+        setSelectedCouponId('');
+      }
+
       await refreshUser();
     } catch (err) {
       console.error('Gacha failed:', err);
-      if (err.response?.data?.detail) {
-        setError(err.response.data.detail);
-      } else {
-        setError('ガチャの実行に失敗しました。');
-      }
+      setError(err.response?.data?.detail || 'ガチャの実行に失敗しました。');
     } finally {
       setLoading(false);
     }
@@ -92,176 +132,210 @@ const GachaPage = () => {
         ペルソナガチャ
       </Typography>
 
-      {/* コイン情報 */}
-      <Box sx={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        gap: 2,
-        mb: 3,
-        p: 2,
-        backgroundColor: colors.backgroundAlt,
-        borderRadius: 2,
-        border: `1px solid ${colors.border}`,
-      }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Typography sx={{ fontSize: '1.5rem' }}>🎫</Typography>
-          <Typography sx={{ fontFamily: '"VT323", monospace', fontSize: '1.5rem', color: colors.warning }}>
-            {userGachaPoints.toLocaleString()}
-          </Typography>
-        </Box>
-        <Typography sx={{ color: colors.textSecondary }}>|</Typography>
-        <Typography sx={{ fontFamily: '"VT323", monospace', color: colors.textSecondary }}>
-          1回 = {GACHA_COST}ポイント
-        </Typography>
-      </Box>
+      {/* ポイント情報 */}
+      <PointDisplay
+        points={userGachaPoints}
+        baseCost={BASE_GACHA_COST}
+        finalCost={finalCost}
+        discountPercent={discountPercent}
+      />
 
+      {/* クーポン選択 */}
+      {availableCoupons.length > 0 && !result && (
+        <Box sx={{ mb: 3 }}>
+          <CouponSelector
+            coupons={availableCoupons}
+            selectedCouponId={selectedCouponId}
+            onSelect={setSelectedCouponId}
+            couponType="gacha"
+          />
+        </Box>
+      )}
+
+      {/* メインエリア */}
       <Box sx={{ my: 4 }}>
         {!result && !loading && (
-          <Button
-            variant="contained"
-            size="large"
-            disabled={!canAfford}
-            startIcon={<AutoAwesomeIcon />}
+          <GachaButton
             onClick={handleDrawGacha}
-            sx={{
-              fontSize: '1.5rem',
-              py: 2,
-              px: 6,
-              borderRadius: 2,
-              fontFamily: '"VT323", monospace',
-              backgroundColor: canAfford ? colors.primary : colors.border,
-              color: canAfford ? colors.background : colors.textTertiary,
-              boxShadow: canAfford ? `0 0 20px ${colors.primary}40` : 'none',
-              '&:hover': {
-                backgroundColor: canAfford ? colors.primaryDark : colors.border,
-                boxShadow: canAfford ? `0 0 30px ${colors.primary}60` : 'none',
-              },
-              '&:disabled': {
-                backgroundColor: colors.border,
-                color: colors.textTertiary,
-              }
-            }}
-          >
-            {canAfford ? 'ガチャを回す' : 'コインが足りません'}
-          </Button>
+            canAfford={canAfford}
+            cost={finalCost}
+          />
         )}
 
-        {loading && (
-          <Box display="flex" flexDirection="column" alignItems="center">
-            <CircularProgress size={60} sx={{ color: colors.primary }} />
-            <Typography variant="h6" sx={{ mt: 2, fontFamily: '"VT323", monospace' }}>
-              召喚中...
-            </Typography>
-          </Box>
-        )}
-
-        {error && (
-          <Alert severity="error" sx={{ mt: 2 }}>
-            {error}
-          </Alert>
-        )}
-
+        {loading && <LoadingSpinner />}
+        {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}
         {result && (
-          <Fade in={true} timeout={1000}>
-            <Card sx={{
-              mt: 2,
-              overflow: 'visible',
-              border: `2px solid ${colors.warning}`,
-              backgroundColor: colors.paper,
-              boxShadow: `0 0 30px ${colors.warning}30`,
-            }}>
-              <Box sx={{ position: 'relative', p: 3 }}>
-                <Typography variant="h5" sx={{
-                  color: colors.primary,
-                  fontWeight: 'bold',
-                  fontFamily: '"VT323", monospace',
-                  fontSize: '1.8rem',
-                  mb: 2,
-                }}>
-                  {result.message}
-                </Typography>
-
-                <Box
-                  sx={{
-                    height: 300,
-                    width: '100%',
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    my: 2
-                  }}
-                >
-                  <Box
-                    component="img"
-                    src={result.persona.avatar_url || '/avatars/default.png'}
-                    alt={result.persona.name}
-                    sx={{
-                      maxWidth: '100%',
-                      maxHeight: '100%',
-                      objectFit: 'contain',
-                      imageRendering: 'pixelated',
-                      filter: 'drop-shadow(0 10px 10px rgba(0,0,0,0.4))'
-                    }}
-                  />
-                </Box>
-
-                <Typography variant="h4" sx={{
-                  fontWeight: 'bold',
-                  fontFamily: '"VT323", monospace',
-                  fontSize: '2rem',
-                }}>
-                  {result.persona.name}
-                </Typography>
-                <Typography sx={{ color: colors.warning, fontFamily: '"VT323", monospace' }}>
-                  {'★'.repeat(result.persona.rarity)}
-                  {result.persona.rarity_name ? ` ${result.persona.rarity_name}` : ''}
-                </Typography>
-
-                {!result.is_new && (
-                  <Typography sx={{
-                    mt: 1,
-                    backgroundColor: colors.backgroundAlt,
-                    display: 'inline-block',
-                    px: 2,
-                    py: 0.5,
-                    borderRadius: 1,
-                    fontFamily: '"VT323", monospace',
-                  }}>
-                    所持数: {result.stack_count} (+1)
-                  </Typography>
-                )}
-              </Box>
-
-              <CardContent>
-                <Button
-                  variant="contained"
-                  onClick={() => setResult(null)}
-                  disabled={!canAfford}
-                  sx={{
-                    mt: 2,
-                    minWidth: 200,
-                    fontFamily: '"VT323", monospace',
-                    fontSize: '1.2rem',
-                  }}
-                >
-                  もう一度回す ({GACHA_COST}コイン)
-                </Button>
-                <Box mt={2}>
-                  <Button
-                    onClick={() => navigate('/mypage')}
-                    sx={{ fontFamily: '"VT323", monospace' }}
-                  >
-                    マイページへ戻る
-                  </Button>
-                </Box>
-              </CardContent>
-            </Card>
-          </Fade>
+          <GachaResult
+            result={result}
+            onRetry={() => setResult(null)}
+            canAfford={canAfford}
+            baseCost={BASE_GACHA_COST}
+            onNavigate={() => navigate('/mypage')}
+          />
         )}
       </Box>
     </Container>
   );
 };
+
+// サブコンポーネント
+const PointDisplay = ({ points, baseCost, finalCost, discountPercent }) => (
+  <Box sx={{
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 2,
+    mb: 2,
+    p: 2,
+    backgroundColor: colors.backgroundAlt,
+    borderRadius: 2,
+    border: `1px solid ${colors.border}`,
+  }}>
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+      <Typography sx={{ fontSize: '1.5rem' }}>🎫</Typography>
+      <Typography sx={{ fontFamily: '"VT323", monospace', fontSize: '1.5rem', color: colors.warning }}>
+        {points.toLocaleString()}
+      </Typography>
+    </Box>
+    <Typography sx={{ color: colors.textSecondary }}>|</Typography>
+    <Box sx={{ textAlign: 'left' }}>
+      {discountPercent > 0 ? (
+        <>
+          <Typography sx={{
+            fontFamily: '"VT323", monospace',
+            color: colors.textSecondary,
+            textDecoration: 'line-through',
+            fontSize: '0.9rem',
+          }}>
+            1回 = {baseCost}pt
+          </Typography>
+          <Typography sx={{ fontFamily: '"VT323", monospace', color: '#4caf50', fontWeight: 'bold' }}>
+            🎟️ {discountPercent}%OFF → {finalCost}pt
+          </Typography>
+        </>
+      ) : (
+        <Typography sx={{ fontFamily: '"VT323", monospace', color: colors.textSecondary }}>
+          1回 = {baseCost}pt
+        </Typography>
+      )}
+    </Box>
+  </Box>
+);
+
+const GachaButton = ({ onClick, canAfford, cost }) => (
+  <Button
+    variant="contained"
+    size="large"
+    disabled={!canAfford}
+    startIcon={<AutoAwesomeIcon />}
+    onClick={onClick}
+    sx={{
+      fontSize: '1.5rem',
+      py: 2, px: 6,
+      borderRadius: 2,
+      fontFamily: '"VT323", monospace',
+      backgroundColor: canAfford ? colors.primary : colors.border,
+      color: canAfford ? colors.background : colors.textTertiary,
+      boxShadow: canAfford ? `0 0 20px ${colors.primary}40` : 'none',
+      '&:hover': {
+        backgroundColor: canAfford ? colors.primaryDark : colors.border,
+        boxShadow: canAfford ? `0 0 30px ${colors.primary}60` : 'none',
+      },
+    }}
+  >
+    {canAfford ? `ガチャを回す (${cost}pt)` : 'コインが足りません'}
+  </Button>
+);
+
+const LoadingSpinner = () => (
+  <Box display="flex" flexDirection="column" alignItems="center">
+    <CircularProgress size={60} sx={{ color: colors.primary }} />
+    <Typography variant="h6" sx={{ mt: 2, fontFamily: '"VT323", monospace' }}>
+      召喚中...
+    </Typography>
+  </Box>
+);
+
+const GachaResult = ({ result, onRetry, canAfford, baseCost, onNavigate }) => (
+  <Fade in={true} timeout={1000}>
+    <Card sx={{
+      mt: 2,
+      overflow: 'visible',
+      border: `2px solid ${colors.warning}`,
+      backgroundColor: colors.paper,
+      boxShadow: `0 0 30px ${colors.warning}30`,
+    }}>
+      <Box sx={{ position: 'relative', p: 3 }}>
+        <Typography variant="h5" sx={{
+          color: colors.primary,
+          fontWeight: 'bold',
+          fontFamily: '"VT323", monospace',
+          fontSize: '1.8rem',
+          mb: 2,
+        }}>
+          {result.message}
+        </Typography>
+
+        <Box sx={{ height: 300, display: 'flex', justifyContent: 'center', alignItems: 'center', my: 2 }}>
+          <Box
+            component="img"
+            src={result.persona.avatar_url || '/avatars/default.png'}
+            alt={result.persona.name}
+            sx={{
+              maxWidth: '100%',
+              maxHeight: '100%',
+              objectFit: 'contain',
+              imageRendering: 'pixelated',
+              filter: 'drop-shadow(0 10px 10px rgba(0,0,0,0.4))'
+            }}
+          />
+        </Box>
+
+        <Typography variant="h4" sx={{ fontWeight: 'bold', fontFamily: '"VT323", monospace', fontSize: '2rem' }}>
+          {result.persona.name}
+        </Typography>
+        <Typography sx={{ color: colors.warning, fontFamily: '"VT323", monospace' }}>
+          {'★'.repeat(result.persona.rarity)}
+          {result.persona.rarity_name ? ` ${result.persona.rarity_name}` : ''}
+        </Typography>
+
+        {!result.is_new && (
+          <Typography sx={{
+            mt: 1,
+            backgroundColor: colors.backgroundAlt,
+            display: 'inline-block',
+            px: 2, py: 0.5,
+            borderRadius: 1,
+            fontFamily: '"VT323", monospace',
+          }}>
+            所持数: {result.stack_count} (+1)
+          </Typography>
+        )}
+
+        {result.discount_applied > 0 && (
+          <Typography sx={{ mt: 1, color: '#4caf50', fontFamily: '"VT323", monospace' }}>
+            🎟️ {result.discount_applied}%OFFクーポン適用済み
+          </Typography>
+        )}
+      </Box>
+
+      <CardContent>
+        <Button
+          variant="contained"
+          onClick={onRetry}
+          disabled={!canAfford}
+          sx={{ mt: 2, minWidth: 200, fontFamily: '"VT323", monospace', fontSize: '1.2rem' }}
+        >
+          もう一度回す ({baseCost}pt)
+        </Button>
+        <Box mt={2}>
+          <Button onClick={onNavigate} sx={{ fontFamily: '"VT323", monospace' }}>
+            マイページへ戻る
+          </Button>
+        </Box>
+      </CardContent>
+    </Card>
+  </Fade>
+);
 
 export default GachaPage;
