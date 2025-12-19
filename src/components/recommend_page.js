@@ -4,6 +4,7 @@ import { Box, Typography, IconButton, CircularProgress } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { useAuth } from '../contexts/auth_context';
 import { API_BASE_URL, API_ENDPOINTS, RECOMMEND_COOLDOWN_MINUTES } from '../config';
+import { usePageContext } from './AIChatWidget';
 
 const STORAGE_KEYS = {
   LAST_RECOMMEND_AT: (uid) => `lastRecommendAt_${uid}`,
@@ -26,8 +27,7 @@ export default function RecommendPage({ onClose, onNavigateItem }) {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [reasons, setReasons] = useState({});
-
-
+  const { setPageContext } = usePageContext();
 
   // Hooksは必ずトップレベルで呼ぶ
   const canShow = useMemo(() => {
@@ -63,6 +63,21 @@ export default function RecommendPage({ onClose, onNavigateItem }) {
         setItems(data.items || []);
         setPersona(data.persona || null);
         setReasons(data.reasons || {});
+
+        // ★ LLMにコンテキストを設定（おすすめ商品を認識させる）
+        setPageContext({
+          page_type: 'recommend_page',
+          visible_items: (data.items || []).slice(0, 10).map(item => ({
+            item_id: item.item_id,
+            name: item.name,
+            price: item.price,
+            category: item.category,
+            like_count: item.like_count || 0,
+            reason: (data.reasons || {})[item.item_id] // 推薦理由も含める
+          })),
+          user_gacha_points: currentUser?.gacha_points || 0,
+        });
+
         // LLMがペルソナの口調で生成した紹介文を使用
         setMessage(data.intro_message || 'おすすめ商品をご紹介します！');
 
@@ -93,8 +108,10 @@ export default function RecommendPage({ onClose, onNavigateItem }) {
     };
 
     fetchRecommend();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [canShow, currentUser]);
+
+    // クリーンアップ
+    return () => setPageContext(null);
+  }, [canShow, currentUser, setPageContext]);
 
   if (!currentUser || !canShow) return null;
 

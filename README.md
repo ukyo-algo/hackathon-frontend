@@ -198,11 +198,16 @@ graph LR
 ---
 
 #### 3. 💳 BuyPage (`/buy/:id`)
-購入確認ページ。配送先入力、決済（簡易）。
+購入確認ページ。配送先入力、決済、クーポン適用。
 
 | 機能 | API |
 |------|-----|
-| 購入実行 | `POST /items/{id}/buy` |
+| 使用可能クーポン取得 | `GET /items/{id}/available-coupons` |
+| 購入実行 | `POST /items/{id}/buy?coupon_id=X` |
+
+**購入報酬:**
+- 購入金額の10%がガチャポイントとして付与
+- 装備中ペルソナのスキルでボーナス追加
 
 ---
 
@@ -239,11 +244,21 @@ graph LR
 ---
 
 #### 7. 🎰 GachaPage (`/gacha`)
-キャラクターガチャ。
+キャラクターガチャ。クーポン適用可能。
 
 | 機能 | API |
 |------|-----|
-| ガチャを引く | `POST /gacha/draw` |
+| 使用可能クーポン | `GET /gacha/available-coupons` |
+| ガチャを引く | `POST /gacha/draw?coupon_id=X` |
+
+**被り時の報酬:**
+| レアリティ | 記憶のかけら |
+|-----------|-------------|
+| ★1 | 5個 |
+| ★2 | 15個 |
+| ★3 | 30個 |
+| ★4 | 50個 |
+| ★5 | 100個 |
 
 ```mermaid
 sequenceDiagram
@@ -257,17 +272,44 @@ sequenceDiagram
 ---
 
 #### 8. 👥 PersonaSelectionPage (`/persona-selection`)
-所持キャラ一覧から装備変更。
+所持キャラ一覧から装備変更。レベルアップも可能。
 
 | 機能 | API |
 |------|-----|
 | 全キャラ一覧 | `GET /users/personas` |
 | 所持キャラ | `GET /users/me/personas` |
 | 装備変更 | `PUT /users/me/persona` |
+| レベルアップ | `POST /users/me/personas/{id}/levelup` |
 
 **フロー:**
 1. キャラをクリック → 詳細ポップアップ表示
 2. 「パートナーにする」ボタン → API呼び出し → 装備変更
+3. レベルアップボタン → 記憶のかけらを消費してレベルアップ
+
+---
+
+#### 9. 🎯 MissionPage (`/mission`)
+ミッション一覧と報酬受取。
+
+| 機能 | API |
+|------|-----|
+| ミッション一覧 | `GET /mission/missions` |
+| デイリーログイン | `POST /mission/daily-login/claim` |
+| デイリークーポン | `POST /mission/daily-coupon/claim` |
+| 初出品ボーナス | `POST /mission/first-listing/claim` |
+| 初購入ボーナス | `POST /mission/first-purchase/claim` |
+| 連続ログイン3日 | `POST /mission/login-streak/claim` |
+| 週間いいね5回 | `POST /mission/weekly-likes/claim` |
+
+**ミッション報酬:**
+| ミッション | 報酬 | リセット |
+|-----------|------|---------|
+| デイリーログイン | 50pt | 毎日 |
+| デイリークーポン | ペルソナ依存クーポン | 毎日 |
+| 初出品 | 200pt | 一回限り |
+| 初購入 | 200pt | 一回限り |
+| 連続ログイン3日 | 100pt + クーポン | 一回限り |
+| 週間いいね5回 | 30pt | 毎週 |
 
 ---
 
@@ -326,13 +368,14 @@ graph LR
 ```
 
 **表示内容:**
-- 名前、レアリティ（星）
+- 名前、レアリティ（星）、レベル
 - MBTI
 - Origin（出自）
 - Description（説明）
 - Tragedy（悲劇）
 - Obsession（執着）
 - Skill（スキル名・効果）
+- レベルアップボタン（記憶のかけら消費）
 
 ---
 

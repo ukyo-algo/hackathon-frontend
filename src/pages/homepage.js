@@ -119,19 +119,6 @@ const Homepage = () => {
         const data = await response.json();
         setItems(data);
 
-        // ★ ページコンテキストを設定（LLMに表示中の商品情報を伝える）
-        setPageContext({
-          page_type: 'homepage',
-          visible_items: data.slice(0, 10).map(item => ({
-            item_id: item.item_id,
-            name: item.name,
-            price: item.price,
-            category: item.category,
-            like_count: item.like_count || 0
-          })),
-          user_gacha_points: currentUser?.gacha_points || 0,
-        });
-
       } catch (err) {
         setError(MESSAGES.ERROR.ITEMS_LOAD_FAILED);
         console.error('Error fetching items:', err);
@@ -141,10 +128,31 @@ const Homepage = () => {
     };
 
     loadItems();
+  }, []);
+
+  // ★ カテゴリに応じてページコンテキストを更新（LLMに正しい商品情報を伝える）
+  useEffect(() => {
+    // おすすめタブの場合はおすすめ商品を、それ以外は全商品を渡す
+    const visibleItems = selectedCategory === 'recommended'
+      ? recommendedItems
+      : items;
+
+    setPageContext({
+      page_type: selectedCategory === 'recommended' ? 'recommend_page' : 'homepage',
+      current_category: selectedCategory,
+      visible_items: visibleItems.slice(0, 10).map(item => ({
+        item_id: item.item_id,
+        name: item.name,
+        price: item.price,
+        category: item.category,
+        like_count: item.like_count || 0
+      })),
+      user_gacha_points: currentUser?.gacha_points || 0,
+    });
 
     // クリーンアップ時にコンテキストをクリア
     return () => setPageContext(null);
-  }, [setPageContext]);
+  }, [selectedCategory, items, recommendedItems, currentUser, setPageContext]);
 
 
   // ホームページ表示時に、ログイン完了 or 1時間経過ならレコメンドをポップアップ
