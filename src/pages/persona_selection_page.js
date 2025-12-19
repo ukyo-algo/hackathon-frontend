@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import {
@@ -45,11 +45,20 @@ const PersonaSelectionPage = () => {
   const [detailOpen, setDetailOpen] = useState(false);
   const [selectedDetailPersona, setSelectedDetailPersona] = useState(null);
 
+  // イベント処理中（キャラ変更・レベルアップ）のデフォルトコンテキスト更新を抑制するフラグ
+  const skipDefaultContextRef = useRef(false);
+
   // 現在のペルソナ名を取得
   const currentPersonaName = allPersonas.find(p => p.id === currentPersonaId)?.name || null;
 
   // ページコンテキストを設定（詳細なキャラ情報）
   useEffect(() => {
+    // イベント処理中（レベルアップ等）はデフォルトコンテキストによる上書きを防ぐ
+    if (skipDefaultContextRef.current) {
+      console.log('[PersonaSelection] Skipping default context update due to active event');
+      return;
+    }
+
     setPageContext({
       page_type: 'persona_selection',
       total_personas: allPersonas.length,
@@ -119,26 +128,32 @@ const PersonaSelectionPage = () => {
 
     try {
       setUpdating(true);
+      skipDefaultContextRef.current = true; // デフォルト更新を抑制開始
+
       await api.put(`/users/me/persona?persona_id=${persona.id}`);
       await refreshUser();
       setCurrentPersonaId(persona.id);
       handleCloseDetail();
 
       // ペルソナ選択をLLMに通知
-      // ペルソナ選択をLLMに通知（useEffectによる上書きを防ぐため少し遅延）
+      setPageContext({
+        page_type: 'persona_selection',
+        additional_info: {
+          selected_persona_name: persona.name,
+          selected_persona_id: persona.id,
+          selected_rarity: persona.rarity_name,
+        }
+      });
+
+      // 少し経ってから抑制を解除（次の自然な更新に備える）
       setTimeout(() => {
-        setPageContext({
-          page_type: 'persona_selection',
-          additional_info: {
-            selected_persona_name: persona.name,
-            selected_persona_id: persona.id,
-            selected_rarity: persona.rarity_name,
-          }
-        });
-      }, 500);
+        skipDefaultContextRef.current = false;
+      }, 2000);
+
     } catch (err) {
       console.error('Error updating persona:', err);
       setError('ペルソナの変更に失敗しました。');
+      skipDefaultContextRef.current = false; // エラー時は即解除
     } finally {
       setUpdating(false);
     }
@@ -148,6 +163,8 @@ const PersonaSelectionPage = () => {
   const handleLevelUp = async (personaId) => {
     try {
       setUpdating(true);
+      skipDefaultContextRef.current = true; // デフォルト更新を抑制開始
+
       const res = await api.post(`/users/me/personas/${personaId}/levelup`);
       if (res.data.success) {
         // レベルを更新
@@ -157,25 +174,36 @@ const PersonaSelectionPage = () => {
         }));
         await refreshUser();
 
-        // レベルアップをLLMに通知（useEffectによる上書きを防ぐため少し遅延）
+        // レベルアップをLLMに通知
         const leveledPersona = allPersonas.find(p => p.id === personaId);
+        setPageContext({
+          page_type: 'levelup',
+          additional_info: {
+            leveled_persona_name: leveledPersona?.name || '不明',
+            leveled_persona_id: personaId,
+            new_level: res.data.new_level,
+          }
+        });
+
+        // 少し経ってから抑制を解除
         setTimeout(() => {
-          setPageContext({
-            page_type: 'levelup',
-            additional_info: {
-              leveled_persona_name: leveledPersona?.name || '不明',
-              leveled_persona_id: personaId,
-              new_level: res.data.new_level,
-            }
-          });
-        }, 500);
+          skipDefaultContextRef.current = false;
+        }, 2000);
+      } else {
+        skipDefaultContextRef.current = false; // 失敗時は解除
       }
     } catch (err) {
       console.error('Error leveling up:', err);
+      // エラー処理（略）
       const msg = err.response?.data?.detail || 'レベルアップに失敗しました';
-      setLevelUpError(msg);
-      // 3秒後にエラーを消す
+      if (msg.includes("Not enough memory fragments")) {
+        setLevelUpError(`記憶の欠片が足りません。必要: ${err.response?.data?.required}, 所持: ${err.response?.data?.current}`);
+      } else {
+        setLevelUpError(msg);
+      }
+      // 3秒後にエラー消去
       setTimeout(() => setLevelUpError(null), 3000);
+      skipDefaultContextRef.current = false; // エラー時は解除
     } finally {
       setUpdating(false);
     }
