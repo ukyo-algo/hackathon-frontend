@@ -133,7 +133,7 @@ export default function RecommendPage({ onClose, onNavigateItem }) {
       <Box sx={styles.container}>
         <Box sx={styles.header}>
           <Typography sx={styles.title}>
-            {persona?.name || 'AIアシスタント'}
+            {persona?.name || 'ドット絵の村人'}
           </Typography>
           <IconButton size="small" onClick={handleClose} sx={styles.close}>
             <CloseIcon htmlColor="#fff" />

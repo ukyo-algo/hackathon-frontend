@@ -198,7 +198,7 @@ const EquippedPersonaCard = ({ persona }) => (
         <CardContent sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <Box
                 component="img"
-                src={persona.avatar_url || '/avatars/default.png'}
+                src={persona.avatar_url || '/avatars/model1.png'}
                 sx={{ width: 60, height: 60, borderRadius: 2 }}
             />
             <Box>

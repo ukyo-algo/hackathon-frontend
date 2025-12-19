@@ -419,7 +419,7 @@ const GachaResult = ({ result, onRetry, canAfford, baseCost, onNavigate }) => (
         <Box sx={{ height: 300, display: 'flex', justifyContent: 'center', alignItems: 'center', my: 2 }}>
           <Box
             component="img"
-            src={result.persona.avatar_url || '/avatars/default.png'}
+            src={result.persona.avatar_url || '/avatars/model1.png'}
             alt={result.persona.name}
             sx={{
               maxWidth: '100%',

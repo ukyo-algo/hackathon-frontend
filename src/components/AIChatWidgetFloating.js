@@ -180,10 +180,23 @@ const AIChatWidgetFloating = () => {
 
     if (!currentUser) return null;
 
-    // 閉じた状態: キャラクターアバターボタン + 吹き出し
-    if (!isOpen) {
-        return (
-            <Box sx={{ position: 'fixed', bottom: 20, right: 20, zIndex: 2000 }}>
+    // リサイズハンドル共通スタイル
+    const resizeHandleStyle = {
+        position: 'absolute',
+        backgroundColor: 'transparent',
+        zIndex: 10,
+    };
+
+    return (
+        <>
+            {/* 閉じた状態: キャラクターアバターボタン + 吹き出し（isOpenがfalseの時のみ表示） */}
+            <Box sx={{
+                position: 'fixed',
+                bottom: 20,
+                right: 20,
+                zIndex: 2000,
+                display: isOpen ? 'none' : 'block',
+            }}>
                 {/* 吹き出し（最新メッセージ）- 10秒で自動消去 */}
                 {showBubble && lastMessage && (
                     <Box
@@ -284,127 +297,120 @@ const AIChatWidgetFloating = () => {
                     </Box>
                 </Tooltip>
             </Box>
-        );
-    }
 
-    // リサイズハンドル共通スタイル
-    const resizeHandleStyle = {
-        position: 'absolute',
-        backgroundColor: 'transparent',
-        zIndex: 10,
-    };
-
-    return (
-        <Box
-            ref={containerRef}
-            sx={{
-                position: 'fixed',
-                left: position.x,
-                top: position.y,
-                width: size.width,
-                height: size.height,
-                zIndex: 2000,
-                borderRadius: 2,
-                overflow: 'hidden',
-                boxShadow: `0 0 20px ${colors.primary}25, 0 4px 20px rgba(0,0,0,0.3)`,
-                border: `2px solid ${colors.primary}`,
-                backgroundColor: colors.paper,
-            }}
-        >
-            {/* キャラ画像エリア（ドラッグ可能 + 閉じるボタン） */}
+            {/* 開いた状態: フルチャットウィジェット（常にレンダリング、isOpenがfalseの時はdisplay:none） */}
             <Box
-                onMouseDown={handleDragStart}
-                onTouchStart={handleDragStart}
+                ref={containerRef}
                 sx={{
-                    position: 'relative',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    py: 1.5,
-                    backgroundColor: '#0a0a0a',
-                    borderBottom: `1px solid ${colors.border}`,
-                    cursor: 'move',
-                    userSelect: 'none',
+                    position: 'fixed',
+                    left: position.x,
+                    top: position.y,
+                    width: size.width,
+                    height: size.height,
+                    zIndex: 2000,
+                    borderRadius: 2,
+                    overflow: 'hidden',
+                    boxShadow: `0 0 20px ${colors.primary}25, 0 4px 20px rgba(0,0,0,0.3)`,
+                    border: `2px solid ${colors.primary}`,
+                    backgroundColor: colors.paper,
+                    display: isOpen ? 'block' : 'none',
                 }}
             >
-                {/* ドラッグアイコン（左上） */}
-                <Box sx={{ position: 'absolute', top: 4, left: 4 }}>
-                    <DragIndicatorIcon sx={{ color: colors.primary, fontSize: 18, opacity: 0.6 }} />
-                </Box>
-
-                {/* 閉じるボタン（右上） */}
-                <IconButton
-                    size="small"
-                    onClick={(e) => {
-                        e.stopPropagation();
-                        setIsOpen(false);
-                    }}
+                {/* キャラ画像エリア（ドラッグ可能 + 閉じるボタン） */}
+                <Box
+                    onMouseDown={handleDragStart}
+                    onTouchStart={handleDragStart}
                     sx={{
-                        position: 'absolute',
-                        top: 2,
-                        right: 2,
-                        color: colors.primary,
-                        p: 0.3,
-                        '&:hover': { backgroundColor: 'rgba(57, 255, 20, 0.2)' }
+                        position: 'relative',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        py: 1.5,
+                        backgroundColor: '#0a0a0a',
+                        borderBottom: `1px solid ${colors.border}`,
+                        cursor: 'move',
+                        userSelect: 'none',
                     }}
                 >
-                    <CloseIcon sx={{ fontSize: 18 }} />
-                </IconButton>
+                    {/* ドラッグアイコン（左上） */}
+                    <Box sx={{ position: 'absolute', top: 4, left: 4 }}>
+                        <DragIndicatorIcon sx={{ color: colors.primary, fontSize: 18, opacity: 0.6 }} />
+                    </Box>
 
-                {/* キャラドット絵 */}
+                    {/* 閉じるボタン（右上） */}
+                    <IconButton
+                        size="small"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setIsOpen(false);
+                        }}
+                        sx={{
+                            position: 'absolute',
+                            top: 2,
+                            right: 2,
+                            color: colors.primary,
+                            p: 0.3,
+                            '&:hover': { backgroundColor: 'rgba(57, 255, 20, 0.2)' }
+                        }}
+                    >
+                        <CloseIcon sx={{ fontSize: 18 }} />
+                    </IconButton>
+
+                    {/* キャラドット絵 */}
+                    <Box
+                        component="img"
+                        src={avatarUrl}
+                        alt={personaName}
+                        sx={{
+                            maxWidth: 80,
+                            maxHeight: 100,
+                            objectFit: 'contain',
+                            imageRendering: 'pixelated',
+                            filter: 'drop-shadow(0 0 8px rgba(57, 255, 20, 0.3))',
+                        }}
+                    />
+                </Box>
+
+                {/* チャット本体 */}
+                <Box sx={{ height: 'calc(100% - 120px)', overflow: 'hidden' }}>
+                    <AIChatWidget />
+                </Box>
+
+                {/* リサイズハンドル（右・下・右下のみ） */}
                 <Box
-                    component="img"
-                    src={avatarUrl}
-                    alt={personaName}
+                    onMouseDown={(e) => handleResizeStart(e, 'e')}
+                    onTouchStart={(e) => handleResizeStart(e, 'e')}
+                    sx={{ ...resizeHandleStyle, right: 0, top: 36, width: 6, height: 'calc(100% - 42px)', cursor: 'ew-resize' }}
+                />
+                <Box
+                    onMouseDown={(e) => handleResizeStart(e, 's')}
+                    onTouchStart={(e) => handleResizeStart(e, 's')}
+                    sx={{ ...resizeHandleStyle, bottom: 0, left: 6, width: 'calc(100% - 12px)', height: 6, cursor: 'ns-resize' }}
+                />
+                <Box
+                    onMouseDown={(e) => handleResizeStart(e, 'se')}
+                    onTouchStart={(e) => handleResizeStart(e, 'se')}
                     sx={{
-                        maxWidth: 80,
-                        maxHeight: 100,
-                        objectFit: 'contain',
-                        imageRendering: 'pixelated',
-                        filter: 'drop-shadow(0 0 8px rgba(57, 255, 20, 0.3))',
+                        ...resizeHandleStyle,
+                        right: 0,
+                        bottom: 0,
+                        width: 14,
+                        height: 14,
+                        cursor: 'nwse-resize',
+                        '&::after': {
+                            content: '""',
+                            position: 'absolute',
+                            right: 3,
+                            bottom: 3,
+                            width: 6,
+                            height: 6,
+                            borderRight: `2px solid ${colors.primary}50`,
+                            borderBottom: `2px solid ${colors.primary}50`,
+                        }
                     }}
                 />
             </Box>
-
-            {/* チャット本体 */}
-            <Box sx={{ height: 'calc(100% - 120px)', overflow: 'hidden' }}>
-                <AIChatWidget />
-            </Box>
-
-            {/* リサイズハンドル（右・下・右下のみ） */}
-            <Box
-                onMouseDown={(e) => handleResizeStart(e, 'e')}
-                onTouchStart={(e) => handleResizeStart(e, 'e')}
-                sx={{ ...resizeHandleStyle, right: 0, top: 36, width: 6, height: 'calc(100% - 42px)', cursor: 'ew-resize' }}
-            />
-            <Box
-                onMouseDown={(e) => handleResizeStart(e, 's')}
-                onTouchStart={(e) => handleResizeStart(e, 's')}
-                sx={{ ...resizeHandleStyle, bottom: 0, left: 6, width: 'calc(100% - 12px)', height: 6, cursor: 'ns-resize' }}
-            />
-            <Box
-                onMouseDown={(e) => handleResizeStart(e, 'se')}
-                onTouchStart={(e) => handleResizeStart(e, 'se')}
-                sx={{
-                    ...resizeHandleStyle,
-                    right: 0,
-                    bottom: 0,
-                    width: 14,
-                    height: 14,
-                    cursor: 'nwse-resize',
-                    '&::after': {
-                        content: '""',
-                        position: 'absolute',
-                        right: 3,
-                        bottom: 3,
-                        width: 6,
-                        height: 6,
-                        borderRight: `2px solid ${colors.primary}50`,
-                        borderBottom: `2px solid ${colors.primary}50`,
-                    }
-                }}
-            />
-        </Box>
+        </>
     );
 };
 

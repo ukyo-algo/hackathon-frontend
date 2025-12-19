@@ -114,7 +114,7 @@ const CharacterDetailModal = ({ open, onClose, character, onSetPartner, level = 
                     {/* キャラ画像 */}
                     <Box
                         component="img"
-                        src={character.avatar_url || '/avatars/default.png'}
+                        src={character.avatar_url || '/avatars/model1.png'}
                         sx={{
                             width: 100,
                             height: 100,

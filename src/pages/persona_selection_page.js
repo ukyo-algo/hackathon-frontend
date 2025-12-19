@@ -356,7 +356,7 @@ const PersonaSelectionPage = () => {
                     >
                       <Box
                         component="img"
-                        src={persona.avatar_url || '/avatars/default.png'}
+                        src={persona.avatar_url || '/avatars/model1.png'}
                         alt={persona.name}
                         sx={{
                           width: '100%',
