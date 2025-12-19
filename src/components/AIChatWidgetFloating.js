@@ -41,8 +41,8 @@ const AIChatWidgetFloating = () => {
 
     // 現在のペルソナ情報
     const currentPersona = currentUser?.current_persona;
-    const avatarUrl = currentPersona?.avatar_url || '/avatars/default.png';
-    const personaName = currentPersona?.name || 'AIアシスタント';
+    const avatarUrl = currentPersona?.avatar_url || '/avatars/model1.png';
+    const personaName = currentPersona?.name || 'ドット絵の村人';
 
     // LLMからのメッセージを保持 + 10秒タイマー
     useEffect(() => {
