@@ -125,14 +125,17 @@ const PersonaSelectionPage = () => {
       handleCloseDetail();
 
       // ペルソナ選択をLLMに通知
-      setPageContext({
-        page_type: 'persona_selection',
-        additional_info: {
-          selected_persona_name: persona.name,
-          selected_persona_id: persona.id,
-          selected_rarity: persona.rarity_name,
-        }
-      });
+      // ペルソナ選択をLLMに通知（useEffectによる上書きを防ぐため少し遅延）
+      setTimeout(() => {
+        setPageContext({
+          page_type: 'persona_selection',
+          additional_info: {
+            selected_persona_name: persona.name,
+            selected_persona_id: persona.id,
+            selected_rarity: persona.rarity_name,
+          }
+        });
+      }, 500);
     } catch (err) {
       console.error('Error updating persona:', err);
       setError('ペルソナの変更に失敗しました。');
@@ -154,16 +157,18 @@ const PersonaSelectionPage = () => {
         }));
         await refreshUser();
 
-        // レベルアップをLLMに通知
+        // レベルアップをLLMに通知（useEffectによる上書きを防ぐため少し遅延）
         const leveledPersona = allPersonas.find(p => p.id === personaId);
-        setPageContext({
-          page_type: 'levelup',
-          additional_info: {
-            leveled_persona_name: leveledPersona?.name || '不明',
-            leveled_persona_id: personaId,
-            new_level: res.data.new_level,
-          }
-        });
+        setTimeout(() => {
+          setPageContext({
+            page_type: 'levelup',
+            additional_info: {
+              leveled_persona_name: leveledPersona?.name || '不明',
+              leveled_persona_id: personaId,
+              new_level: res.data.new_level,
+            }
+          });
+        }, 500);
       }
     } catch (err) {
       console.error('Error leveling up:', err);
