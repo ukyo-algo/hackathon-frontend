@@ -62,17 +62,34 @@ const CharacterDetailModal = ({ open, onClose, character, onSetPartner, level = 
         return Math.round(baseVal + (maxVal - baseVal) * (currentLevel - 1) / 9);
     };
 
-    // スキルテキストをレンダリング
+    // スキルテキストをレンダリング（レベルに応じて動的に生成）
     const renderSkillEffect = () => {
-        if (!character.skill_effect) return '???';
         const def = SKILL_DEFINITIONS[character.id];
-        if (!def) return character.skill_effect;
+        if (!def) return character.skill_effect || '???';
 
         const value = calculateSkillValue(character.id, level);
-        let text = character.skill_effect
-            .replace('{value}', value)
-            .replace('{discount}', def.discount_percent || '');
-        return text;
+        const skillType = def.skill_type;
+
+        // スキルタイプに応じたテキスト生成
+        switch (skillType) {
+            case 'gacha_duplicate_fragments':
+                return `ガチャ被り時に記憶のかけら+${value}個`;
+            case 'levelup_cost_reduction':
+                return `レベルアップ必要かけら-${value}%減少`;
+            case 'quest_reward_bonus':
+                return `クエスト報酬+${value}ボーナス`;
+            case 'quest_cooldown_reduction':
+                return `クエストクールダウン-${value}分短縮`;
+            case 'purchase_bonus_percent':
+                // カテゴリがある場合は表示
+                return `購入時+${value}%ポイント`;
+            case 'daily_shipping_coupon':
+                return `デイリー送料${def.discount_percent}%OFFクーポン発行(${value}時間有効)`;
+            case 'daily_gacha_discount':
+                return `デイリーガチャ${value}%OFFクーポン発行`;
+            default:
+                return character.skill_effect || '???';
+        }
     };
 
     // レアリティに応じた色

@@ -123,6 +123,16 @@ const PersonaSelectionPage = () => {
       await refreshUser();
       setCurrentPersonaId(persona.id);
       handleCloseDetail();
+
+      // ペルソナ選択をLLMに通知
+      setPageContext({
+        page_type: 'persona_selection',
+        additional_info: {
+          selected_persona_name: persona.name,
+          selected_persona_id: persona.id,
+          selected_rarity: persona.rarity_name,
+        }
+      });
     } catch (err) {
       console.error('Error updating persona:', err);
       setError('ペルソナの変更に失敗しました。');
@@ -143,6 +153,17 @@ const PersonaSelectionPage = () => {
           [personaId]: res.data.new_level,
         }));
         await refreshUser();
+
+        // レベルアップをLLMに通知
+        const leveledPersona = allPersonas.find(p => p.id === personaId);
+        setPageContext({
+          page_type: 'levelup',
+          additional_info: {
+            leveled_persona_name: leveledPersona?.name || '不明',
+            leveled_persona_id: personaId,
+            new_level: res.data.new_level,
+          }
+        });
       }
     } catch (err) {
       console.error('Error leveling up:', err);

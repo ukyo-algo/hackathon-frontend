@@ -1,9 +1,9 @@
 // src/pages/item_detail_page.js
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/auth_context';
-import { API_BASE_URL } from '../config';
+import { API_BASE_URL, SORT_OPTIONS } from '../config';
 import { commentStyles } from '../styles/commonStyles';
 import { usePageContext } from '../components/AIChatWidget';
 import { buildItemContext } from '../hooks/useLLMAgent';
@@ -12,7 +12,8 @@ import {
   Box, Container, Grid, Card, CardMedia, Button, Typography,
   TextField, IconButton, Paper, Avatar, Rating,
   Alert, CircularProgress, Dialog, DialogTitle, DialogContent, DialogActions,
-  List, ListItem, ListItemAvatar, ListItemText, Divider, CardContent
+  List, ListItem, ListItemAvatar, ListItemText, Divider, CardContent,
+  ToggleButtonGroup, ToggleButton
 } from '@mui/material';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import FavoriteIcon from '@mui/icons-material/Favorite';
@@ -30,6 +31,7 @@ const ItemDetailPage = () => {
   const [isLiked, setIsLiked] = useState(false);
   const [buyConfirmOpen, setBuyConfirmOpen] = useState(false);
   const [recommendations, setRecommendations] = useState([]);
+  const [recSortOrder, setRecSortOrder] = useState('newest');
 
 
   const { currentUser } = useAuth();
@@ -74,6 +76,20 @@ const ItemDetailPage = () => {
     // クリーンアップ時にコンテキストをクリア
     return () => setPageContext(null);
   }, [itemId, setPageContext]);
+
+  // おすすめのソート
+  const sortedRecommendations = useMemo(() => {
+    const items = [...recommendations];
+    switch (recSortOrder) {
+      case 'price_low':
+        return items.sort((a, b) => (a.price || 0) - (b.price || 0));
+      case 'price_high':
+        return items.sort((a, b) => (b.price || 0) - (a.price || 0));
+      case 'newest':
+      default:
+        return items; // APIから返された順序を維持
+    }
+  }, [recommendations, recSortOrder]);
 
 
   const handleLike = async () => {
@@ -311,10 +327,24 @@ const ItemDetailPage = () => {
       {/* ★エリア4: 類似商品おすすめ */}
       {recommendations.length > 0 && (
         <Box sx={{ mt: 4 }}>
-          <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
-            📦 関連商品
-          </Typography>
-          <ProductGrid items={recommendations} loading={false} />
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+            <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+              📦 関連商品
+            </Typography>
+            <ToggleButtonGroup
+              value={recSortOrder}
+              exclusive
+              onChange={(e, newValue) => newValue && setRecSortOrder(newValue)}
+              size="small"
+            >
+              {SORT_OPTIONS.map(opt => (
+                <ToggleButton key={opt.value} value={opt.value} sx={{ fontSize: '0.75rem', px: 1.5 }}>
+                  {opt.label}
+                </ToggleButton>
+              ))}
+            </ToggleButtonGroup>
+          </Box>
+          <ProductGrid items={sortedRecommendations} loading={false} />
         </Box>
       )}
 
