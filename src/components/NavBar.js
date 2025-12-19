@@ -2,11 +2,13 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
-  Box, TextField, InputAdornment, Badge, IconButton,
-  Popover, List, ListItem, ListItemText, Typography, Divider, Button
+  Box, TextField, InputAdornment, Badge, IconButton, Tooltip,
+  Popover, List, ListItem, ListItemText, Typography, Divider, Button,
+  Dialog, DialogTitle, DialogContent, DialogActions
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import NotificationsIcon from '@mui/icons-material/Notifications';
+import AddIcon from '@mui/icons-material/Add';
 import { useAuth } from '../contexts/auth_context';
 import { buttonStyles, navBarStyles } from '../styles/commonStyles';
 import { colors } from '../styles/theme';
@@ -21,6 +23,9 @@ const NavBar = () => {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [notificationAnchor, setNotificationAnchor] = useState(null);
+
+  // 課金ダイアログ
+  const [purchaseDialog, setPurchaseDialog] = useState({ open: false, type: null });
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -46,14 +51,13 @@ const NavBar = () => {
   useEffect(() => {
     if (currentUser) {
       fetchNotifications();
-      const interval = setInterval(fetchNotifications, 30000); // 30秒ごと
+      const interval = setInterval(fetchNotifications, 30000);
       return () => clearInterval(interval);
     }
   }, [currentUser]);
 
   // 通知クリック
   const handleNotificationClick = async (notification) => {
-    // 既読にする
     if (!notification.is_read) {
       try {
         await api.post(`/notifications/${notification.id}/read`);
@@ -65,7 +69,6 @@ const NavBar = () => {
         console.error('Failed to mark as read:', e);
       }
     }
-    // ページ遷移
     if (notification.link) {
       navigate(notification.link);
     }
@@ -83,25 +86,43 @@ const NavBar = () => {
     }
   };
 
+  // 課金ダイアログを開く
+  const openPurchaseDialog = (type) => {
+    setPurchaseDialog({ open: true, type });
+  };
+
+  // 課金ダイアログを閉じる
+  const closePurchaseDialog = () => {
+    setPurchaseDialog({ open: false, type: null });
+  };
+
+  // 課金処理（デモ用）
+  const handlePurchase = (amount) => {
+    alert(`${purchaseDialog.type === 'gacha' ? 'ガチャポイント' : '記憶のかけら'} ${amount}個の購入処理を開始します（準備中）`);
+    closePurchaseDialog();
+  };
+
   const notificationOpen = Boolean(notificationAnchor);
 
   return (
     <Box sx={navBarStyles.container}>
-      {/* 上部: ロゴ・検索 */}
+      {/* 上部: ロゴ・検索・ステータス */}
       <Box sx={navBarStyles.topSection}>
-        {/* ロゴ（ホームへ） */}
-        <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Box sx={{
-            ...navBarStyles.logo,
-            fontFamily: '"VT323", monospace',
-            fontSize: '2rem',
-            color: colors.primary,
-            textShadow: `0 0 10px ${colors.primary}`,
-            letterSpacing: '0.05em',
-          }}>
-            el<span style={{ color: colors.secondary }}>;</span>ma
-          </Box>
-        </Link>
+        {/* ロゴ */}
+        <Tooltip title="ホームに戻る" arrow>
+          <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Box sx={{
+              ...navBarStyles.logo,
+              fontFamily: '"VT323", monospace',
+              fontSize: '2rem',
+              color: colors.primary,
+              textShadow: `0 0 10px ${colors.primary}`,
+              letterSpacing: '0.05em',
+            }}>
+              el<span style={{ color: colors.secondary }}>;</span>ma
+            </Box>
+          </Link>
+        </Tooltip>
 
         {/* 検索バー */}
         <form onSubmit={handleSearch} style={navBarStyles.searchForm}>
@@ -133,14 +154,16 @@ const NavBar = () => {
 
         {/* 通知ベル */}
         {currentUser && (
-          <IconButton
-            onClick={(e) => setNotificationAnchor(e.currentTarget)}
-            sx={{ color: colors.textSecondary }}
-          >
-            <Badge badgeContent={unreadCount} color="error" max={99}>
-              <NotificationsIcon />
-            </Badge>
-          </IconButton>
+          <Tooltip title="通知" arrow>
+            <IconButton
+              onClick={(e) => setNotificationAnchor(e.currentTarget)}
+              sx={{ color: colors.textSecondary }}
+            >
+              <Badge badgeContent={unreadCount} color="error" max={99}>
+                <NotificationsIcon />
+              </Badge>
+            </IconButton>
+          </Tooltip>
         )}
 
         {/* 通知ドロップダウン */}
@@ -193,89 +216,111 @@ const NavBar = () => {
           </Box>
         </Popover>
 
-        {/* コイン残高表示 */}
+        {/* ステータス表示エリア */}
         {currentUser && (
-          <Box sx={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 1,
-            backgroundColor: colors.backgroundAlt,
-            border: `1px solid ${colors.border}`,
-            borderRadius: 1,
-            px: 1.5,
-            py: 0.5,
-          }}>
-            <Box sx={{ fontSize: '1.2rem' }}>🎫</Box>
-            <Box sx={{
-              fontFamily: '"VT323", monospace',
-              fontSize: '1.2rem',
-              color: colors.warning,
-              textShadow: `0 0 8px ${colors.warning}40`,
-            }}>
-              {(currentUser.gacha_points || 0).toLocaleString()}
-            </Box>
-          </Box>
-        )}
-        {currentUser && (
-          <Box sx={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 0.5,
-            padding: '4px 8px',
-            borderRadius: '8px',
-            background: 'rgba(128, 0, 255, 0.15)',
-            border: '1px solid rgba(128, 0, 255, 0.3)',
-          }}>
-            <Box sx={{ fontSize: '1rem' }}>💎</Box>
-            <Box sx={{
-              fontFamily: '"VT323", monospace',
-              fontSize: '1rem',
-              color: '#c080ff',
-              textShadow: `0 0 8px rgba(128, 0, 255, 0.4)`,
-            }}>
-              {(currentUser.memory_fragments || 0).toLocaleString()}
-            </Box>
-          </Box>
-        )}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            {/* ガチャポイント */}
+            <Tooltip title="ガチャを回すためのポイント。クリックして購入！" arrow>
+              <Box sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 0.5,
+                backgroundColor: colors.backgroundAlt,
+                border: `1px solid ${colors.border}`,
+                borderRadius: 1,
+                px: 1,
+                py: 0.5,
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                '&:hover': { borderColor: colors.warning, boxShadow: `0 0 8px ${colors.warning}40` },
+              }} onClick={() => openPurchaseDialog('gacha')}>
+                <Box sx={{ fontSize: '1rem' }}>🎫</Box>
+                <Box sx={{
+                  fontFamily: '"VT323", monospace',
+                  fontSize: '1rem',
+                  color: colors.warning,
+                }}>
+                  {(currentUser.gacha_points || 0).toLocaleString()}
+                </Box>
+                <AddIcon sx={{ fontSize: '0.8rem', color: colors.warning }} />
+              </Box>
+            </Tooltip>
 
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }} />
+            {/* 記憶のかけら */}
+            <Tooltip title="キャラのレベルアップに使用。クリックして購入！" arrow>
+              <Box sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 0.5,
+                padding: '4px 8px',
+                borderRadius: '8px',
+                background: 'rgba(128, 0, 255, 0.15)',
+                border: '1px solid rgba(128, 0, 255, 0.3)',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                '&:hover': { borderColor: '#c080ff', boxShadow: '0 0 8px rgba(128, 0, 255, 0.4)' },
+              }} onClick={() => openPurchaseDialog('fragments')}>
+                <Box sx={{ fontSize: '0.9rem' }}>💎</Box>
+                <Box sx={{
+                  fontFamily: '"VT323", monospace',
+                  fontSize: '0.9rem',
+                  color: '#c080ff',
+                }}>
+                  {(currentUser.memory_fragments || 0).toLocaleString()}
+                </Box>
+                <AddIcon sx={{ fontSize: '0.8rem', color: '#c080ff' }} />
+              </Box>
+            </Tooltip>
+          </Box>
+        )}
       </Box>
 
       {/* 下部: 主要ページ遷移ボタン群 */}
       {currentUser ? (
         <Box sx={navBarStyles.navButtons}>
-          {/* 基本ナビゲーション */}
-          <Link to="/" style={{ textDecoration: 'none' }}>
-            <Box component="button" sx={buttonStyles.primary}>ホーム</Box>
-          </Link>
-          <Link to="/mypage" style={{ textDecoration: 'none' }}>
-            <Box component="button" sx={buttonStyles.outlined}>マイページ</Box>
-          </Link>
-
-          {/* 出品・取引 */}
-          <Link to="/items/create" style={{ textDecoration: 'none' }}>
-            <Box component="button" sx={buttonStyles.success}>出品</Box>
-          </Link>
-          <Link to="/seller" style={{ textDecoration: 'none' }}>
-            <Box component="button" sx={buttonStyles.outlined}>売品の状況</Box>
-          </Link>
-          <Link to="/buyer" style={{ textDecoration: 'none' }}>
-            <Box component="button" sx={buttonStyles.outlined}>購入物の状況</Box>
-          </Link>
-
-          {/* エンタメ・キャラ */}
-          <Link to="/gacha" style={{ textDecoration: 'none' }}>
-            <Box component="button" sx={buttonStyles.secondary}>ガチャ</Box>
-          </Link>
-          <Link to="/mission" style={{ textDecoration: 'none' }}>
-            <Box component="button" sx={buttonStyles.outlined}>🎯ミッション</Box>
-          </Link>
-          <Link to="/persona-selection" style={{ textDecoration: 'none' }}>
-            <Box component="button" sx={buttonStyles.outlined}>キャラ変更</Box>
-          </Link>
-
-          {/* システム */}
-          <Box component="button" onClick={logout} sx={buttonStyles.neutral}>ログアウト</Box>
+          <Tooltip title="商品一覧・おすすめを見る" arrow>
+            <Link to="/" style={{ textDecoration: 'none' }}>
+              <Box component="button" sx={buttonStyles.primary}>🏠 ホーム</Box>
+            </Link>
+          </Tooltip>
+          <Tooltip title="プロフィール・所持キャラ確認" arrow>
+            <Link to="/mypage" style={{ textDecoration: 'none' }}>
+              <Box component="button" sx={buttonStyles.outlined}>👤 マイページ</Box>
+            </Link>
+          </Tooltip>
+          <Tooltip title="商品を出品する" arrow>
+            <Link to="/items/create" style={{ textDecoration: 'none' }}>
+              <Box component="button" sx={buttonStyles.success}>📦 出品</Box>
+            </Link>
+          </Tooltip>
+          <Tooltip title="出品した商品の状況確認" arrow>
+            <Link to="/seller" style={{ textDecoration: 'none' }}>
+              <Box component="button" sx={buttonStyles.outlined}>📤 売品状況</Box>
+            </Link>
+          </Tooltip>
+          <Tooltip title="購入した商品の状況確認" arrow>
+            <Link to="/buyer" style={{ textDecoration: 'none' }}>
+              <Box component="button" sx={buttonStyles.outlined}>📥 購入状況</Box>
+            </Link>
+          </Tooltip>
+          <Tooltip title="キャラクターを引こう！" arrow>
+            <Link to="/gacha" style={{ textDecoration: 'none' }}>
+              <Box component="button" sx={buttonStyles.secondary}>🎰 ガチャ</Box>
+            </Link>
+          </Tooltip>
+          <Tooltip title="デイリーミッションでポイント獲得" arrow>
+            <Link to="/mission" style={{ textDecoration: 'none' }}>
+              <Box component="button" sx={buttonStyles.outlined}>🎯 ミッション</Box>
+            </Link>
+          </Tooltip>
+          <Tooltip title="会話するキャラクターを変更" arrow>
+            <Link to="/persona-selection" style={{ textDecoration: 'none' }}>
+              <Box component="button" sx={buttonStyles.outlined}>🔄 キャラ変更</Box>
+            </Link>
+          </Tooltip>
+          <Tooltip title="ログアウトする" arrow>
+            <Box component="button" onClick={logout} sx={buttonStyles.neutral}>🚪 ログアウト</Box>
+          </Tooltip>
         </Box>
       ) : (
         <Box sx={navBarStyles.navButtons}>
@@ -287,9 +332,58 @@ const NavBar = () => {
           </Link>
         </Box>
       )}
+
+      {/* 課金ダイアログ */}
+      <Dialog open={purchaseDialog.open} onClose={closePurchaseDialog} maxWidth="xs" fullWidth>
+        <DialogTitle sx={{ fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: 1 }}>
+          {purchaseDialog.type === 'gacha' ? '🎫 ガチャポイント購入' : '💎 記憶のかけら購入'}
+        </DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" sx={{ mb: 2, color: colors.textSecondary }}>
+            {purchaseDialog.type === 'gacha'
+              ? 'ガチャを回してキャラクターをゲットしよう！'
+              : 'キャラクターをレベルアップさせよう！'}
+          </Typography>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+            {purchaseDialog.type === 'gacha' ? (
+              <>
+                <Button variant="outlined" onClick={() => handlePurchase(100)} sx={{ justifyContent: 'space-between' }}>
+                  <span>100ポイント</span><span style={{ color: '#ffc107' }}>¥120</span>
+                </Button>
+                <Button variant="outlined" onClick={() => handlePurchase(500)} sx={{ justifyContent: 'space-between' }}>
+                  <span>500ポイント</span><span style={{ color: '#ffc107' }}>¥550</span>
+                </Button>
+                <Button variant="outlined" onClick={() => handlePurchase(1000)} sx={{ justifyContent: 'space-between' }}>
+                  <span>1,000ポイント (+100)</span><span style={{ color: '#ffc107' }}>¥1,000</span>
+                </Button>
+                <Button variant="contained" color="warning" onClick={() => handlePurchase(5000)} sx={{ justifyContent: 'space-between' }}>
+                  <span>5,000ポイント (+1,000) 🔥</span><span>¥4,800</span>
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button variant="outlined" onClick={() => handlePurchase(10)} sx={{ justifyContent: 'space-between' }}>
+                  <span>10個</span><span style={{ color: '#c080ff' }}>¥120</span>
+                </Button>
+                <Button variant="outlined" onClick={() => handlePurchase(50)} sx={{ justifyContent: 'space-between' }}>
+                  <span>50個</span><span style={{ color: '#c080ff' }}>¥550</span>
+                </Button>
+                <Button variant="outlined" onClick={() => handlePurchase(100)} sx={{ justifyContent: 'space-between' }}>
+                  <span>100個 (+10)</span><span style={{ color: '#c080ff' }}>¥1,000</span>
+                </Button>
+                <Button variant="contained" sx={{ justifyContent: 'space-between', bgcolor: '#8000ff', '&:hover': { bgcolor: '#6000cc' } }} onClick={() => handlePurchase(500)}>
+                  <span>500個 (+100) 🔥</span><span>¥4,800</span>
+                </Button>
+              </>
+            )}
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closePurchaseDialog}>閉じる</Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
 
 export default NavBar;
-

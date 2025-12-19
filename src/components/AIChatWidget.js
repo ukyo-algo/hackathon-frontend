@@ -93,6 +93,9 @@ const AIChatWidget = () => {
     ]);
   }, [currentUser?.current_persona?.id]);
 
+  // 最後に追加したガイダンスメッセージを記憶（重複防止）
+  const lastGuidanceRef = useRef(null);
+
   // ページ遷移時にLLMからのガイダンスメッセージを自動追加
   useEffect(() => {
     if (llmAgent.isLoading) {
@@ -100,12 +103,19 @@ const AIChatWidget = () => {
     } else {
       setIsGuidanceLoading(false);
       if (llmAgent.message) {
+        // 同じメッセージなら追加しない（ページ戻り時の重複防止）
+        if (lastGuidanceRef.current === llmAgent.message) {
+          console.log('[AIChatWidget] 同じガイダンスのためスキップ');
+          return;
+        }
+
         const newAIMessage = {
           role: 'ai',
           content: llmAgent.message,
           type: 'guidance'
         };
         setMessages(prev => [...prev, newAIMessage]);
+        lastGuidanceRef.current = llmAgent.message;
 
         // AIメッセージをDBに保存
         saveMessageToAPI(newAIMessage);

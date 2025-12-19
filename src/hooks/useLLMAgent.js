@@ -2,7 +2,7 @@
 // ページ遷移ごとにLLMへコンテキスト送信し、気の利いたメッセージや提案を受け取るフック
 // 各ページでextraContextにページ固有情報を渡すことで、LLMがより具体的な応答を返せる
 
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { postLLMContext, callLLMFunction } from '../api/llm';
 import { useAuth } from '../contexts/auth_context';
 import { useLocation } from 'react-router-dom';
@@ -46,14 +46,14 @@ export function buildItemContext(item, likeCount = 0, comments = []) {
   };
 }
 
+// グローバルに最後に送信したコンテキストを記憶（コンポーネント再マウント時もリセットされない）
+let globalLastSentContext = null;
+
 export function useLLMAgent(extraContext = {}) {
   const { currentUser } = useAuth();
   const location = useLocation();
   const [message, setMessage] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
-
-  // 重複リクエスト防止: 最後に送信したコンテキストを記憶
-  const lastSentContextRef = useRef(null);
 
   // ページ遷移時にコンテキストを送信
   useEffect(() => {
@@ -66,7 +66,7 @@ export function useLLMAgent(extraContext = {}) {
     });
 
     // 同じコンテキストなら送信しない（重複防止）
-    if (lastSentContextRef.current === contextKey) {
+    if (globalLastSentContext === contextKey) {
       console.log('[useLLMAgent] 同じコンテキストのためスキップ');
       return;
     }
@@ -97,7 +97,7 @@ export function useLLMAgent(extraContext = {}) {
         if (!ignore) {
           setMessage(ctxResp?.message || null);
           // 送信成功したらコンテキストを記憶
-          lastSentContextRef.current = contextKey;
+          globalLastSentContext = contextKey;
         }
       } catch (e) {
         console.warn('LLM agent error:', e);
