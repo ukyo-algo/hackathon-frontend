@@ -85,7 +85,7 @@ const RegisterPage = () => {
               fontSize: '0.9rem',
             }}
           >
-            廃棄されたゲームキャラたちの市場
+            過去と未来をつなぐ、フリマアプリ
           </Typography>
         </Box>
 

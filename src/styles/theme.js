@@ -1,5 +1,5 @@
 // src/styles/theme.js
-// el;ma - 廃棄されたゲームキャラたちの市場
+// el;ma - 過去と未来をつなぐ、フリマアプリ
 import { createTheme } from '@mui/material/styles';
 
 // ===== el;ma カラーパレット (ダークモード + レトロゲーム) =====
