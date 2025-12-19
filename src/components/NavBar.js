@@ -1,16 +1,26 @@
 // src/components/NavBar.js
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Box, TextField, InputAdornment } from '@mui/material';
+import {
+  Box, TextField, InputAdornment, Badge, IconButton,
+  Popover, List, ListItem, ListItemText, Typography, Divider, Button
+} from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
+import NotificationsIcon from '@mui/icons-material/Notifications';
 import { useAuth } from '../contexts/auth_context';
 import { buttonStyles, navBarStyles } from '../styles/commonStyles';
 import { colors } from '../styles/theme';
+import api from '../api/axios';
 
 const NavBar = () => {
   const { currentUser, logout } = useAuth();
   const navigate = useNavigate();
-  const [searchQuery, setSearchQuery] = React.useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // 通知関連
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [notificationAnchor, setNotificationAnchor] = useState(null);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -19,6 +29,61 @@ const NavBar = () => {
       setSearchQuery('');
     }
   };
+
+  // 通知を取得
+  const fetchNotifications = async () => {
+    if (!currentUser) return;
+    try {
+      const res = await api.get('/notifications?include_read=true&limit=10');
+      setNotifications(res.data.notifications || []);
+      setUnreadCount(res.data.unread_count || 0);
+    } catch (e) {
+      console.error('Failed to fetch notifications:', e);
+    }
+  };
+
+  // 定期的に通知を取得
+  useEffect(() => {
+    if (currentUser) {
+      fetchNotifications();
+      const interval = setInterval(fetchNotifications, 30000); // 30秒ごと
+      return () => clearInterval(interval);
+    }
+  }, [currentUser]);
+
+  // 通知クリック
+  const handleNotificationClick = async (notification) => {
+    // 既読にする
+    if (!notification.is_read) {
+      try {
+        await api.post(`/notifications/${notification.id}/read`);
+        setUnreadCount(prev => Math.max(0, prev - 1));
+        setNotifications(prev =>
+          prev.map(n => n.id === notification.id ? { ...n, is_read: true } : n)
+        );
+      } catch (e) {
+        console.error('Failed to mark as read:', e);
+      }
+    }
+    // ページ遷移
+    if (notification.link) {
+      navigate(notification.link);
+    }
+    setNotificationAnchor(null);
+  };
+
+  // 全て既読
+  const handleMarkAllRead = async () => {
+    try {
+      await api.post('/notifications/read-all');
+      setUnreadCount(0);
+      setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
+    } catch (e) {
+      console.error('Failed to mark all as read:', e);
+    }
+  };
+
+  const notificationOpen = Boolean(notificationAnchor);
 
   return (
     <Box sx={navBarStyles.container}>
@@ -65,6 +130,68 @@ const NavBar = () => {
             sx={navBarStyles.searchInput}
           />
         </form>
+
+        {/* 通知ベル */}
+        {currentUser && (
+          <IconButton
+            onClick={(e) => setNotificationAnchor(e.currentTarget)}
+            sx={{ color: colors.textSecondary }}
+          >
+            <Badge badgeContent={unreadCount} color="error" max={99}>
+              <NotificationsIcon />
+            </Badge>
+          </IconButton>
+        )}
+
+        {/* 通知ドロップダウン */}
+        <Popover
+          open={notificationOpen}
+          anchorEl={notificationAnchor}
+          onClose={() => setNotificationAnchor(null)}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+          transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+        >
+          <Box sx={{ width: 320, maxHeight: 400, overflow: 'auto' }}>
+            <Box sx={{ p: 1.5, display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #333' }}>
+              <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>通知</Typography>
+              {unreadCount > 0 && (
+                <Button size="small" onClick={handleMarkAllRead}>全て既読</Button>
+              )}
+            </Box>
+            {notifications.length === 0 ? (
+              <Box sx={{ p: 3, textAlign: 'center', color: colors.textTertiary }}>
+                通知はありません
+              </Box>
+            ) : (
+              <List dense sx={{ p: 0 }}>
+                {notifications.map((n) => (
+                  <ListItem
+                    key={n.id}
+                    button
+                    onClick={() => handleNotificationClick(n)}
+                    sx={{
+                      backgroundColor: n.is_read ? 'transparent' : 'rgba(0, 255, 136, 0.1)',
+                      '&:hover': { backgroundColor: 'rgba(255,255,255,0.05)' },
+                    }}
+                  >
+                    <ListItemText
+                      primary={
+                        <Typography variant="body2" sx={{ fontWeight: n.is_read ? 'normal' : 'bold' }}>
+                          {n.title}
+                        </Typography>
+                      }
+                      secondary={
+                        <Typography variant="caption" sx={{ color: colors.textTertiary }}>
+                          {n.message}
+                        </Typography>
+                      }
+                    />
+                  </ListItem>
+                ))}
+              </List>
+            )}
+          </Box>
+        </Popover>
 
         {/* コイン残高表示 */}
         {currentUser && (
@@ -165,3 +292,4 @@ const NavBar = () => {
 };
 
 export default NavBar;
+

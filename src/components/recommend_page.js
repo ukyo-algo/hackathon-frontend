@@ -63,7 +63,8 @@ export default function RecommendPage({ onClose, onNavigateItem }) {
         setItems(data.items || []);
         setPersona(data.persona || null);
         setReasons(data.reasons || {});
-        setMessage('おすすめ商品をご紹介します！');
+        // LLMがペルソナの口調で生成した紹介文を使用
+        setMessage(data.intro_message || 'おすすめ商品をご紹介します！');
 
         // 2) 見た報酬（seeing_recommend）を申請
         try {

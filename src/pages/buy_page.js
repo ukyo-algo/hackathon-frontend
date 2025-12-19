@@ -5,7 +5,7 @@
  * - 送料クーポン適用可能
  */
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/auth_context';
 import {
@@ -17,7 +17,7 @@ import { usePageContext } from '../components/AIChatWidget';
 import api from '../api/axios';
 import CouponSelector from '../components/CouponSelector';
 
-const SHIPPING_FEES = { standard: 500, express: 900 };
+const SHIPPING_FEE = 500;  // 送料一律
 
 const BuyPage = () => {
   const { itemId } = useParams();
@@ -32,7 +32,6 @@ const BuyPage = () => {
 
   // フォーム状態
   const [paymentMethod, setPaymentMethod] = useState('credit_card');
-  const [deliveryOption, setDeliveryOption] = useState('standard');
   const [address, setAddress] = useState({
     name: '', postalCode: '', prefecture: '', city: '', addressLine: '', phone: ''
   });
@@ -44,18 +43,11 @@ const BuyPage = () => {
   const [selectedCouponId, setSelectedCouponId] = useState('');
 
   // 計算値
-  const baseShippingFee = SHIPPING_FEES[deliveryOption];
   const selectedCoupon = availableCoupons.find(c => c.id === selectedCouponId);
   const shippingDiscountPercent = selectedCoupon?.discount_percent || 0;
-  const shippingDiscount = Math.floor(baseShippingFee * shippingDiscountPercent / 100);
-  const finalShippingFee = baseShippingFee - shippingDiscount;
+  const shippingDiscount = Math.floor(SHIPPING_FEE * shippingDiscountPercent / 100);
+  const finalShippingFee = SHIPPING_FEE - shippingDiscount;
   const totalPrice = (Number(item?.price || 0) + finalShippingFee);
-
-  const estimatedDate = useMemo(() => {
-    const d = new Date();
-    d.setDate(d.getDate() + (deliveryOption === 'express' ? 1 : 3));
-    return d.toLocaleDateString();
-  }, [deliveryOption]);
 
   // ページコンテキスト
   useEffect(() => {
@@ -66,7 +58,6 @@ const BuyPage = () => {
         item_name: item.name,
         item_price: item.price,
         payment_method: paymentMethod,
-        delivery_option: deliveryOption,
         // クーポン情報
         available_coupons_count: availableCoupons.length,
         selected_coupon: selectedCoupon ? {
@@ -74,14 +65,14 @@ const BuyPage = () => {
           type: selectedCoupon.coupon_type,
         } : null,
         // 料金情報
-        base_shipping_fee: baseShippingFee,
+        shipping_fee: SHIPPING_FEE,
         shipping_discount: shippingDiscount,
         final_shipping_fee: finalShippingFee,
         total_price: totalPrice,
       });
     }
     return () => setPageContext(null);
-  }, [item, itemId, paymentMethod, deliveryOption, availableCoupons, selectedCoupon, baseShippingFee, shippingDiscount, finalShippingFee, totalPrice, setPageContext]);
+  }, [item, itemId, paymentMethod, availableCoupons, selectedCoupon, shippingDiscount, finalShippingFee, totalPrice, setPageContext]);
 
   // データ取得
   useEffect(() => {
@@ -140,7 +131,7 @@ const BuyPage = () => {
       const res = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-Firebase-Uid': currentUser.uid },
-        body: JSON.stringify({ paymentMethod, deliveryOption, address })
+        body: JSON.stringify({ paymentMethod, address })
       });
 
       if (!res.ok) {
@@ -178,7 +169,7 @@ const BuyPage = () => {
         </Box>
       </Paper>
 
-      {/* 決済・配送オプション */}
+      {/* 決済・配送 */}
       <Grid container spacing={2}>
         <Grid item xs={12} md={6}>
           <Paper sx={{ p: 2 }}>
@@ -192,11 +183,11 @@ const BuyPage = () => {
         </Grid>
         <Grid item xs={12} md={6}>
           <Paper sx={{ p: 2 }}>
-            <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 1 }}>配送オプション</Typography>
-            <RadioGroup value={deliveryOption} onChange={(e) => setDeliveryOption(e.target.value)}>
-              <FormControlLabel value="standard" control={<Radio />} label={`通常配送（¥500） 推定到着: ${estimatedDate}`} />
-              <FormControlLabel value="express" control={<Radio />} label={`速達（¥900） 推定到着: ${estimatedDate}`} />
-            </RadioGroup>
+            <Typography variant="subtitle1" sx={{ fontWeight: 'bold', mb: 1 }}>配送料</Typography>
+            <Typography variant="body1">¥{SHIPPING_FEE.toLocaleString()}</Typography>
+            <Typography variant="body2" color="text.secondary">
+              ※配送日数は出品者の発送手続き完了後、通常1〜3日程度です
+            </Typography>
           </Paper>
         </Grid>
       </Grid>
@@ -254,7 +245,7 @@ const BuyPage = () => {
           {shippingDiscountPercent > 0 ? (
             <Box sx={{ textAlign: 'right' }}>
               <Typography sx={{ textDecoration: 'line-through', color: 'text.secondary', fontSize: '0.9rem' }}>
-                ¥{baseShippingFee.toLocaleString()}
+                ¥{SHIPPING_FEE.toLocaleString()}
               </Typography>
               <Typography sx={{ color: '#4caf50', fontWeight: 'bold' }}>
                 ¥{finalShippingFee.toLocaleString()}

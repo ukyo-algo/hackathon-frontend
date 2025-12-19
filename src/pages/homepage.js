@@ -375,102 +375,12 @@ const Homepage = () => {
               <Alert severity="info">AIがおすすめを考えています...</Alert>
             </Box>
           ) : recommendedItems.length > 0 ? (
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-              {recommendedItems.map((item) => (
-                <Box
-                  key={item.item_id}
-                  sx={{
-                    display: 'flex',
-                    flexDirection: 'row',
-                    gap: 2,
-                    alignItems: 'flex-start',
-                    cursor: 'pointer',
-                    '&:hover': { transform: 'translateX(4px)', transition: 'transform 0.2s' }
-                  }}
-                  onClick={() => window.location.href = `/items/${item.item_id}`}
-                >
-                  {/* 商品カード（左側） */}
-                  <Box sx={{
-                    width: '180px',
-                    minWidth: '180px',
-                    border: '1px solid #ddd',
-                    borderRadius: 2,
-                    overflow: 'hidden',
-                    background: '#fff',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                    position: 'relative',
-                    opacity: item.status === 'sold' ? 0.7 : 1,
-                  }}>
-                    {/* SOLD バッジ */}
-                    {item.status === 'sold' && (
-                      <Box sx={{
-                        position: 'absolute',
-                        top: 8,
-                        right: 8,
-                        backgroundColor: '#e53e3e',
-                        color: '#fff',
-                        fontSize: '11px',
-                        fontWeight: 'bold',
-                        px: 1,
-                        py: 0.3,
-                        borderRadius: 1,
-                        zIndex: 10,
-                      }}>
-                        SOLD
-                      </Box>
-                    )}
-                    <Box sx={{ width: '180px', height: '180px', overflow: 'hidden' }}>
-                      <img
-                        src={item.image_url || '/placeholder.png'}
-                        alt={item.name}
-                        style={{
-                          width: '100%',
-                          height: '100%',
-                          objectFit: 'cover',
-                          filter: item.status === 'sold' ? 'grayscale(50%)' : 'none',
-                        }}
-                      />
-                    </Box>
-                    <Box sx={{ p: 1 }}>
-                      <Box sx={{ fontSize: '13px', fontWeight: 'bold', mb: 0.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name}</Box>
-                      <Box sx={{ fontSize: '14px', color: item.status === 'sold' ? '#999' : COLORS.PRIMARY, fontWeight: 'bold' }}>
-                        {item.status === 'sold' ? 'SOLD OUT' : `¥${item.price?.toLocaleString()}`}
-                      </Box>
-                    </Box>
-                  </Box>
-                  {/* 吹き出し（右側・横向き） */}
-                  {recommendReasons[item.item_id] && (
-                    <Box sx={{
-                      position: 'relative',
-                      flex: 1,
-                      maxWidth: '400px',
-                      p: 2,
-                      background: '#fff8e1',
-                      borderRadius: 2,
-                      fontSize: '13px',
-                      color: '#333',
-                      boxShadow: '0 1px 4px rgba(0,0,0,0.1)',
-                      alignSelf: 'center',
-                      // 左向きの三角形
-                      '&::before': {
-                        content: '""',
-                        position: 'absolute',
-                        left: '-8px',
-                        top: '50%',
-                        transform: 'translateY(-50%)',
-                        width: 0,
-                        height: 0,
-                        borderTop: '8px solid transparent',
-                        borderBottom: '8px solid transparent',
-                        borderRight: '8px solid #fff8e1',
-                      }
-                    }}>
-                      💬 {recommendReasons[item.item_id]}
-                    </Box>
-                  )}
-                </Box>
-              ))}
-            </Box>
+            <ProductGrid
+              items={recommendedItems}
+              loading={false}
+              skeletonCount={4}
+              reasons={recommendReasons}
+            />
           ) : (
             <ProductGrid
               items={sortItems(items, sortBy).slice(0, PAGINATION.ITEMS_PER_ROW)}

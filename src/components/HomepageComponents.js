@@ -58,10 +58,13 @@ export const SectionHeader = ({ title, onSeeAll, showSeeAll = true }) => {
  * @param {Array} items - 商品配列
  * @param {boolean} loading - ローディング状態
  * @param {number} skeletonCount - スケルトン表示数
+ * @param {Object} reasons - 商品IDをキーとするおすすめ理由オブジェクト（オプショナル）
  */
-export const ProductGrid = ({ items, loading, skeletonCount = 4 }) => {
+export const ProductGrid = ({ items, loading, skeletonCount = 4, reasons = {} }) => {
   const CARD_WIDTH = 400;
   const CARD_HEIGHT = 334;
+  const hasReasons = Object.keys(reasons).length > 0;
+
   return (
     <Box
       sx={{
@@ -86,14 +89,19 @@ export const ProductGrid = ({ items, loading, skeletonCount = 4 }) => {
               width: '400px',
               minWidth: '400px',
               maxWidth: '400px',
-              height: `${CARD_HEIGHT}px`,
+              height: hasReasons ? 'auto' : `${CARD_HEIGHT}px`,
               boxSizing: 'border-box',
               overflow: 'hidden',
               p: 0,
               m: 0,
             }}
           >
-            <ProductCard item={item} height={CARD_HEIGHT} width={CARD_WIDTH} />
+            <ProductCard
+              item={item}
+              height={CARD_HEIGHT}
+              width={CARD_WIDTH}
+              reason={reasons[item.item_id] || null}
+            />
           </Box>
         ))}
     </Box>
@@ -131,7 +139,7 @@ export const HeroBanner = ({ title, subtitle, gradient }) => {
 };
 
 // ProductCardの正しい定義
-export const ProductCard = ({ item, height = 334, width = 400 }) => {
+export const ProductCard = ({ item, height = 334, width = 400, reason = null }) => {
   const IMAGE_HEIGHT = Math.round(height * 0.55); // 334pxの55% ≒ 184px
   return (
     <Card
@@ -139,9 +147,9 @@ export const ProductCard = ({ item, height = 334, width = 400 }) => {
         width: `${width}px`,
         minWidth: `${width}px`,
         maxWidth: `${width}px`,
-        height: `${height}px`,
-        minHeight: `${height}px`,
-        maxHeight: `${height}px`,
+        height: reason ? 'auto' : `${height}px`,
+        minHeight: reason ? 'auto' : `${height}px`,
+        maxHeight: reason ? 'none' : `${height}px`,
         boxSizing: 'border-box',
         overflow: 'hidden',
         display: 'flex',
@@ -186,15 +194,45 @@ export const ProductCard = ({ item, height = 334, width = 400 }) => {
           {item.name}
         </Typography>
         {/* 価格 */}
-        <Typography variant="h6" sx={{ fontWeight: 'bold', color: COLORS.PRIMARY, mb: 1 }}>
+        <Typography variant="h6" sx={{ fontWeight: 'bold', color: COLORS.PRIMARY, mb: 0.5 }}>
           ¥{item.price?.toLocaleString() || '0'}
         </Typography>
-        {/* 出品者 */}
-        <Typography variant="caption" sx={{ color: COLORS.TEXT_TERTIARY, display: 'block', mb: 1 }}>
-          {item.seller?.username || '不明'}
-        </Typography>
+        {/* 出品者＋いいね・コメント */}
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Typography variant="caption" sx={{ color: COLORS.TEXT_TERTIARY }}>
+            {item.seller?.username || '不明'}
+          </Typography>
+          <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+            {(item.like_count > 0 || item.comment_count > 0) && (
+              <>
+                {item.like_count > 0 && (
+                  <Typography variant="caption" sx={{ color: '#ff6b6b', display: 'flex', alignItems: 'center', gap: 0.3 }}>
+                    ❤ {item.like_count}
+                  </Typography>
+                )}
+                {item.comment_count > 0 && (
+                  <Typography variant="caption" sx={{ color: '#6bcfff', display: 'flex', alignItems: 'center', gap: 0.3 }}>
+                    💬 {item.comment_count}
+                  </Typography>
+                )}
+              </>
+            )}
+          </Box>
+        </Box>
+        {/* おすすめ理由（吹き出し風） */}
+        {reason && (
+          <Box sx={{
+            mt: 1,
+            p: 1,
+            background: '#fff8e1',
+            borderRadius: 1,
+            fontSize: '12px',
+            color: '#333',
+          }}>
+            💬 {reason}
+          </Box>
+        )}
       </CardContent>
-      {/* 余計なアクションは削除して高さ揃え */}
     </Card>
   );
 };
