@@ -26,7 +26,7 @@ const SearchResults = () => {
 
     useEffect(() => {
         setPageContext({
-            page: 'search_results',
+            page_type: 'search_results',
             query: query,
             result_count: results.length,
             has_results: results.length > 0,

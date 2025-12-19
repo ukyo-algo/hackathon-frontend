@@ -182,3 +182,113 @@ export const PROGRESS_STEPS = {
   DOT_SIZE_COMPACT: 10,
   BAR_INACTIVE: '#ddd',
 };
+
+// ========== ペルソナ/ゲームシステム設定 ==========
+
+// レアリティの色定義
+export const RARITY_COLORS = {
+  1: '#9E9E9E',  // ノーマル - Grey
+  2: '#2196F3',  // レア - Blue
+  3: '#FF5722',  // スーパーレア - Orange
+  4: '#9C27B0',  // ウルトラレア - Purple
+  5: '#FFD700',  // チャンピョン - Gold
+};
+
+// レアリティ名定義
+export const RARITY_NAMES = {
+  1: 'ノーマル',
+  2: 'レア',
+  3: 'スーパーレア',
+  4: 'ウルトラレア',
+  5: 'チャンピョン',
+};
+
+// レベルアップコスト（レアリティ別、Lv1→2から Lv9→10まで）
+export const LEVEL_UP_COSTS = {
+  1: [5, 10, 15, 20, 30, 40, 50, 60, 70],      // ノーマル
+  2: [10, 20, 30, 40, 60, 80, 100, 120, 140],  // レア
+  3: [15, 30, 45, 60, 90, 120, 150, 180, 210], // スーパーレア
+  4: [20, 40, 60, 80, 120, 160, 200, 240, 280],// ウルトラレア
+  5: [30, 60, 90, 120, 180, 240, 300, 360, 420],// チャンピョン
+};
+
+// スキル定義（バックエンドと同期）
+export const SKILL_DEFINITIONS = {
+  1: { skill_type: "gacha_duplicate_fragments", base_value: 1, max_value: 5 },
+  2: { skill_type: "gacha_duplicate_fragments", base_value: 2, max_value: 8 },
+  3: { skill_type: "purchase_bonus_percent", base_value: 1, max_value: 5 },
+  4: { skill_type: "gacha_duplicate_fragments", base_value: 3, max_value: 12 },
+  5: { skill_type: "daily_shipping_coupon", discount_percent: 5, base_hours: 3, max_hours: 12 },
+  6: { skill_type: "purchase_bonus_percent", base_value: 3, max_value: 10 },
+  7: { skill_type: "quest_reward_bonus", base_value: 10, max_value: 50 },
+  8: { skill_type: "levelup_cost_reduction", base_value: 2, max_value: 10 },
+  9: { skill_type: "levelup_cost_reduction", base_value: 5, max_value: 20 },
+  10: { skill_type: "quest_cooldown_reduction", base_value: 5, max_value: 25 },
+  11: { skill_type: "levelup_cost_reduction", base_value: 3, max_value: 15 },
+  12: { skill_type: "daily_gacha_discount", base_value: 10, max_value: 30 },
+  13: { skill_type: "quest_reward_bonus", base_value: 5, max_value: 30 },
+  14: { skill_type: "purchase_bonus_percent", base_value: 1, max_value: 5 },
+  15: { skill_type: "quest_cooldown_reduction", base_value: 3, max_value: 15 },
+  16: { skill_type: "daily_shipping_coupon", discount_percent: 10, base_hours: 6, max_hours: 24 },
+  17: { skill_type: "purchase_bonus_percent", base_value: 5, max_value: 15 },
+  18: { skill_type: "daily_shipping_coupon", discount_percent: 15, base_hours: 6, max_hours: 24 },
+  19: { skill_type: "gacha_duplicate_fragments", base_value: 2, max_value: 8 },
+  20: { skill_type: "gacha_duplicate_fragments", base_value: 5, max_value: 20 },
+};
+
+// スキル値計算ヘルパー関数
+export const calculateSkillValue = (personaId, currentLevel) => {
+  const def = SKILL_DEFINITIONS[personaId];
+  if (!def) return 0;
+
+  if (def.discount_percent !== undefined) {
+    // クーポン系：時間が変動
+    const baseHours = def.base_hours || 0;
+    const maxHours = def.max_hours || 0;
+    if (currentLevel <= 1) return baseHours;
+    if (currentLevel >= 10) return maxHours;
+    return Math.round(baseHours + (maxHours - baseHours) * (currentLevel - 1) / 9);
+  }
+
+  const baseVal = def.base_value || 0;
+  const maxVal = def.max_value || 0;
+  if (currentLevel <= 1) return baseVal;
+  if (currentLevel >= 10) return maxVal;
+  return Math.round(baseVal + (maxVal - baseVal) * (currentLevel - 1) / 9);
+};
+
+// スキルテキスト生成ヘルパー
+export const getSkillEffectText = (personaId, level) => {
+  const def = SKILL_DEFINITIONS[personaId];
+  if (!def) return '???';
+
+  const value = calculateSkillValue(personaId, level);
+  const skillType = def.skill_type;
+
+  switch (skillType) {
+    case 'gacha_duplicate_fragments':
+      return `ガチャ被り時に記憶のかけら+${value}個`;
+    case 'levelup_cost_reduction':
+      return `レベルアップ必要かけら-${value}%減少`;
+    case 'quest_reward_bonus':
+      return `クエスト報酬+${value}ボーナス`;
+    case 'quest_cooldown_reduction':
+      return `クエストクールダウン-${value}分短縮`;
+    case 'purchase_bonus_percent':
+      return `購入時+${value}%ポイント`;
+    case 'daily_shipping_coupon':
+      return `デイリー送料${def.discount_percent}%OFFクーポン発行(${value}時間有効)`;
+    case 'daily_gacha_discount':
+      return `デイリーガチャ${value}%OFFクーポン発行`;
+    default:
+      return '???';
+  }
+};
+
+// レベルアップコスト取得ヘルパー
+export const getLevelUpCost = (rarity, currentLevel) => {
+  if (currentLevel >= 10) return 0;
+  const costs = LEVEL_UP_COSTS[rarity] || LEVEL_UP_COSTS[1];
+  return costs[currentLevel - 1] || 0;
+};
+

@@ -53,7 +53,7 @@ const BuyPage = () => {
   useEffect(() => {
     if (item) {
       setPageContext({
-        page: 'buy_confirmation',
+        page_type: 'buy_confirmation',
         item_id: itemId,
         item_name: item.name,
         item_price: item.price,

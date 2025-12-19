@@ -51,7 +51,7 @@ const PersonaSelectionPage = () => {
   // ページコンテキストを設定（詳細なキャラ情報）
   useEffect(() => {
     setPageContext({
-      page: 'persona_selection',
+      page_type: 'persona_selection',
       total_personas: allPersonas.length,
       owned_personas_count: ownedPersonas.length,
       locked_personas_count: allPersonas.length - ownedPersonas.length,

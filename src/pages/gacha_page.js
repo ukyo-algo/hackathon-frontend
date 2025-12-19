@@ -83,7 +83,7 @@ const GachaPage = () => {
     }));
 
     setPageContext({
-      page: 'gacha',
+      page_type: 'gacha',
       user_gacha_points: userGachaPoints,
       gacha_cost: finalCost,
       can_afford: canAfford,

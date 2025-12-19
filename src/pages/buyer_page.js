@@ -28,7 +28,7 @@ const BuyerPage = () => {
     const pendingItems = list.filter(t => t.status === 'pending_shipment');
     const inTransitItems = list.filter(t => t.status === 'in_transit');
     setPageContext({
-      page: 'buyer_deliveries',
+      page_type: 'buyer_deliveries',
       pending_shipment_count: pendingItems.length,
       in_transit_count: inTransitItems.length,
       total_count: list.length,

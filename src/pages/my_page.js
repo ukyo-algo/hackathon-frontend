@@ -23,7 +23,7 @@ const MyPage = () => {
   // ページコンテキストを設定（詳細なアクティビティ情報）
   useEffect(() => {
     setPageContext({
-      page: 'my_page',
+      page_type: 'my_page',
       active_tab: activeTab,
       // 各タブの件数
       selling_count: sellingItems.length,
