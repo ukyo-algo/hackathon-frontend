@@ -93,8 +93,8 @@ const AIChatWidget = () => {
     ]);
   }, [currentUser?.current_persona?.id]);
 
-  // 最後に追加したガイダンスメッセージを記憶（重複防止）
-  const lastGuidanceRef = useRef(null);
+  // 最後に追加したガイダンスメッセージを記憶（重複防止 - sessionStorageで永続化）
+  const getLastGuidanceKey = () => `llm_last_guidance_${window.location.pathname}`;
 
   // ページ遷移時にLLMからのガイダンスメッセージを自動追加
   useEffect(() => {
@@ -103,22 +103,35 @@ const AIChatWidget = () => {
     } else {
       setIsGuidanceLoading(false);
       if (llmAgent.message) {
-        // 同じメッセージなら追加しない（ページ戻り時の重複防止）
-        if (lastGuidanceRef.current === llmAgent.message) {
-          console.log('[AIChatWidget] 同じガイダンスのためスキップ');
+        // sessionStorageで永続的に重複チェック（ウィジェット開閉でも保持）
+        const lastGuidance = sessionStorage.getItem(getLastGuidanceKey());
+        if (lastGuidance === llmAgent.message) {
+          console.log('[AIChatWidget] 同じガイダンスのためスキップ (sessionStorage)');
           return;
         }
 
-        const newAIMessage = {
-          role: 'ai',
-          content: llmAgent.message,
-          type: 'guidance'
-        };
-        setMessages(prev => [...prev, newAIMessage]);
-        lastGuidanceRef.current = llmAgent.message;
+        // メッセージ配列内に既に同じ内容があるかチェック
+        setMessages(prev => {
+          const alreadyExists = prev.some(m => m.type === 'guidance' && m.content === llmAgent.message);
+          if (alreadyExists) {
+            console.log('[AIChatWidget] 同じガイダンスが履歴にあるためスキップ');
+            return prev;
+          }
 
-        // AIメッセージをDBに保存
-        saveMessageToAPI(newAIMessage);
+          const newAIMessage = {
+            role: 'ai',
+            content: llmAgent.message,
+            type: 'guidance'
+          };
+
+          // sessionStorageに保存
+          sessionStorage.setItem(getLastGuidanceKey(), llmAgent.message);
+
+          // AIメッセージをDBに保存
+          saveMessageToAPI(newAIMessage);
+
+          return [...prev, newAIMessage];
+        });
       }
     }
   }, [llmAgent.message, llmAgent.isLoading]);

@@ -46,8 +46,26 @@ export function buildItemContext(item, likeCount = 0, comments = []) {
   };
 }
 
-// グローバルに最後に送信したコンテキストを記憶（コンポーネント再マウント時もリセットされない）
-let globalLastSentContext = null;
+// sessionStorageのキー
+const SESSION_KEY = 'llm_last_sent_context';
+
+// sessionStorageから最後に送信したコンテキストを取得
+const getLastSentContext = () => {
+  try {
+    return sessionStorage.getItem(SESSION_KEY);
+  } catch {
+    return null;
+  }
+};
+
+// sessionStorageに最後に送信したコンテキストを保存
+const setLastSentContext = (contextKey) => {
+  try {
+    sessionStorage.setItem(SESSION_KEY, contextKey);
+  } catch {
+    // sessionStorage利用不可の場合は無視
+  }
+};
 
 export function useLLMAgent(extraContext = {}) {
   const { currentUser } = useAuth();
@@ -65,9 +83,9 @@ export function useLLMAgent(extraContext = {}) {
       page_context: extraContext?.page_context,
     });
 
-    // 同じコンテキストなら送信しない（重複防止）
-    if (globalLastSentContext === contextKey) {
-      console.log('[useLLMAgent] 同じコンテキストのためスキップ');
+    // sessionStorageで重複チェック（ウィジェット開閉でも保持）
+    if (getLastSentContext() === contextKey) {
+      console.log('[useLLMAgent] 同じコンテキストのためスキップ (sessionStorage)');
       return;
     }
 
@@ -96,8 +114,8 @@ export function useLLMAgent(extraContext = {}) {
 
         if (!ignore) {
           setMessage(ctxResp?.message || null);
-          // 送信成功したらコンテキストを記憶
-          globalLastSentContext = contextKey;
+          // 送信成功したらsessionStorageに記憶
+          setLastSentContext(contextKey);
         }
       } catch (e) {
         console.warn('LLM agent error:', e);
