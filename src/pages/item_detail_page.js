@@ -7,6 +7,7 @@ import { API_BASE_URL } from '../config';
 import { commentStyles } from '../styles/commonStyles';
 import { usePageContext } from '../components/AIChatWidget';
 import { buildItemContext } from '../hooks/useLLMAgent';
+import { ProductGrid } from '../components/HomepageComponents';
 import {
   Box, Container, Grid, Card, CardMedia, Button, Typography,
   TextField, IconButton, Paper, Avatar, Rating,
@@ -313,67 +314,7 @@ const ItemDetailPage = () => {
           <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
             📦 関連商品
           </Typography>
-          <Box sx={{
-            display: 'flex',
-            gap: 2,
-            overflowX: 'auto',
-            pb: 1,
-            '&::-webkit-scrollbar': { height: 6 },
-            '&::-webkit-scrollbar-thumb': { bgcolor: '#555', borderRadius: 3 }
-          }}>
-            {recommendations.map((rec) => (
-              <Card
-                key={rec.item_id}
-                component={Link}
-                to={`/items/${rec.item_id}`}
-                sx={{
-                  minWidth: 200,
-                  maxWidth: 200,
-                  flexShrink: 0,
-                  textDecoration: 'none',
-                  color: 'inherit',
-                  bgcolor: '#1a1a2e',
-                  border: '1px solid #333',
-                  '&:hover': { borderColor: '#00ff88' }
-                }}
-              >
-                <Box sx={{
-                  height: 150,
-                  bgcolor: '#0d1117',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}>
-                  <CardMedia
-                    component="img"
-                    image={rec.image_url || "/placeholder.png"}
-                    alt={rec.name}
-                    sx={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
-                  />
-                </Box>
-                <CardContent sx={{ p: 1.5 }}>
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      fontWeight: 'bold',
-                      mb: 0.5,
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      display: '-webkit-box',
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: 'vertical',
-                      minHeight: '2.5em'
-                    }}
-                  >
-                    {rec.name}
-                  </Typography>
-                  <Typography variant="body2" sx={{ color: '#00ff88', fontWeight: 'bold' }}>
-                    ¥{rec.price?.toLocaleString() || '0'}
-                  </Typography>
-                </CardContent>
-              </Card>
-            ))}
-          </Box>
+          <ProductGrid items={recommendations} loading={false} />
         </Box>
       )}
 
