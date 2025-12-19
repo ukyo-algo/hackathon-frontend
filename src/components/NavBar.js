@@ -394,7 +394,7 @@ const NavBar = () => {
       {/* 課金ダイアログ */}
       <Dialog open={purchaseDialog.open} onClose={closePurchaseDialog} maxWidth="xs" fullWidth>
         <DialogTitle sx={{ fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: 1 }}>
-          {purchaseDialog.type === 'gacha' ? '🎫 ガチャポイント購入' : '💎 記憶のかけら購入'}
+          {purchaseDialog.type === 'gacha' ? '🎫 ガチャポイント購入' : purchaseDialog.type === 'subscription' ? '👑 月額パス購入' : '💎 記憶のかけら購入'}
         </DialogTitle>
         <DialogContent>
           {purchaseDialog.step === 'select' ? (
@@ -467,10 +467,10 @@ const NavBar = () => {
               }}>
                 <Typography variant="h4" sx={{
                   fontWeight: 'bold',
-                  color: purchaseDialog.type === 'gacha' ? '#ffc107' : '#c080ff',
+                  color: purchaseDialog.type === 'gacha' ? '#ffc107' : purchaseDialog.type === 'subscription' ? '#ffd700' : '#c080ff',
                   mb: 1
                 }}>
-                  {purchaseDialog.type === 'gacha' ? '🎫' : '💎'} {purchaseDialog.selectedAmount?.toLocaleString()}{purchaseDialog.type === 'gacha' ? 'ポイント' : '個'}
+                  {purchaseDialog.type === 'gacha' ? '🎫' : purchaseDialog.type === 'subscription' ? '👑' : '💎'} {purchaseDialog.selectedAmount?.toLocaleString()}{purchaseDialog.type === 'gacha' ? 'ポイント' : purchaseDialog.type === 'subscription' ? 'ヶ月' : '個'}
                 </Typography>
                 <Divider sx={{ my: 2 }} />
                 <Typography variant="h5" sx={{ fontWeight: 'bold', color: '#00ff88' }}>
