@@ -141,6 +141,12 @@ export const HeroBanner = ({ title, subtitle, gradient }) => {
 // ProductCardの正しい定義
 export const ProductCard = ({ item, height = 334, width = 400, reason = null }) => {
   const IMAGE_HEIGHT = Math.round(height * 0.55); // 334pxの55% ≒ 184px
+
+  // reasonがオブジェクト形式の場合は分解、文字列の場合はそのまま使用
+  const reasonText = typeof reason === 'object' ? reason?.text : reason;
+  const personaName = typeof reason === 'object' ? reason?.persona_name : null;
+  const personaAvatarUrl = typeof reason === 'object' ? reason?.persona_avatar_url : null;
+
   return (
     <Card
       sx={{
@@ -220,19 +226,44 @@ export const ProductCard = ({ item, height = 334, width = 400, reason = null }) 
           </Box>
         </Box>
         {/* おすすめ理由（吹き出し風） */}
-        {reason && (
+        {reasonText && (
           <Box sx={{
             mt: 1,
             p: 1,
-            background: '#fff8e1',
+            background: 'linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%)',
             borderRadius: 1,
             fontSize: '12px',
             color: '#333',
           }}>
-            💬 {reason}
+            {/* ペルソナ情報（アバター + 名前） */}
+            {(personaName || personaAvatarUrl) && (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.5 }}>
+                {personaAvatarUrl && (
+                  <Box
+                    component="img"
+                    src={personaAvatarUrl}
+                    alt={personaName || 'AI'}
+                    sx={{
+                      width: 20,
+                      height: 20,
+                      borderRadius: '50%',
+                      objectFit: 'cover',
+                      border: '1px solid #ccc',
+                    }}
+                  />
+                )}
+                {personaName && (
+                  <Typography sx={{ fontSize: '10px', color: '#666', fontWeight: 'bold' }}>
+                    {personaName}
+                  </Typography>
+                )}
+              </Box>
+            )}
+            💬 {reasonText}
           </Box>
         )}
       </CardContent>
     </Card>
   );
 };
+

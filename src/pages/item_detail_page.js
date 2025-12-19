@@ -1,7 +1,7 @@
 // src/pages/item_detail_page.js
 
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/auth_context';
 import { API_BASE_URL } from '../config';
 import { commentStyles } from '../styles/commonStyles';
@@ -11,7 +11,7 @@ import {
   Box, Container, Grid, Card, CardMedia, Button, Typography,
   TextField, IconButton, Paper, Avatar, Rating,
   Alert, CircularProgress, Dialog, DialogTitle, DialogContent, DialogActions,
-  List, ListItem, ListItemAvatar, ListItemText, Divider
+  List, ListItem, ListItemAvatar, ListItemText, Divider, CardContent
 } from '@mui/material';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import FavoriteIcon from '@mui/icons-material/Favorite';
@@ -28,6 +28,7 @@ const ItemDetailPage = () => {
   const [likeCount, setLikeCount] = useState(0);
   const [isLiked, setIsLiked] = useState(false);
   const [buyConfirmOpen, setBuyConfirmOpen] = useState(false);
+  const [recommendations, setRecommendations] = useState([]);
 
 
   const { currentUser } = useAuth();
@@ -49,6 +50,17 @@ const ItemDetailPage = () => {
           page_type: 'item_detail',
           current_item: buildItemContext(data, data.like_count || 0, data.comments || [])
         });
+
+        // 類似商品を取得
+        try {
+          const recResponse = await fetch(`${API_BASE_URL}/api/v1/items/${itemId}/recommend`);
+          if (recResponse.ok) {
+            const recData = await recResponse.json();
+            setRecommendations(recData || []);
+          }
+        } catch (recErr) {
+          console.error('Failed to fetch recommendations:', recErr);
+        }
       } catch (err) {
         console.error(err);
         setError(err.message);
@@ -130,85 +142,87 @@ const ItemDetailPage = () => {
   const isMyItem = currentUser && item.seller?.firebase_uid === currentUser.uid;
 
   return (
-    <Container maxWidth="lg" sx={{ py: 3 }}>
+    <Container maxWidth="md" sx={{ py: 3 }}>
 
-      {/* ★エリア1: 商品情報（Gridシステム）
-        ここは「左に画像、右に文字」という配置にするためにGridを使います。
-      */}
-      <Grid container spacing={4} sx={{ mb: 6 }}>
-        {/* 左側: 商品画像 (12分割中の6を使う = 半分) */}
-        <Grid item xs={12} md={6}>
-          <Box sx={{ position: 'relative', width: '100%', maxHeight: '400px', bgcolor: '#1c2128', borderRadius: 2, overflow: 'hidden' }}>
-            <CardMedia
-              component="img"
-              image={item.image_url || "/placeholder.png"}
-              alt={item.name}
-              sx={{ width: '100%', maxHeight: '400px', objectFit: 'contain', opacity: isSold ? 0.5 : 1 }}
-            />
-            {isSold && (
-              <Box sx={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.3)' }}>
-                <Typography variant="h2" sx={{ color: 'white', fontWeight: 'bold', transform: 'rotate(-15deg)' }}>SOLD</Typography>
-              </Box>
-            )}
+      {/* ★エリア1: 商品画像（固定サイズ、縦配置） */}
+      <Box sx={{
+        position: 'relative',
+        width: '100%',
+        height: '400px',  // 固定高さ
+        bgcolor: '#1c2128',
+        borderRadius: 2,
+        overflow: 'hidden',
+        mb: 3,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}>
+        <CardMedia
+          component="img"
+          image={item.image_url || "/placeholder.png"}
+          alt={item.name}
+          sx={{
+            maxWidth: '100%',
+            maxHeight: '100%',
+            objectFit: 'contain',
+            opacity: isSold ? 0.5 : 1
+          }}
+        />
+        {isSold && (
+          <Box sx={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.3)' }}>
+            <Typography variant="h2" sx={{ color: 'white', fontWeight: 'bold', transform: 'rotate(-15deg)' }}>SOLD</Typography>
           </Box>
-        </Grid>
+        )}
+      </Box>
 
-        {/* 右側: 商品情報 (12分割中の6を使う = 半分) */}
-        <Grid item xs={12} md={6}>
-          {/* minWidth: 0 で文字のはみ出し防止 */}
-          <Box sx={{ minWidth: 0 }}>
-            <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 2, overflowWrap: 'anywhere' }}>{item.name}</Typography>
+      {/* ★エリア2: 商品情報（画像の下） */}
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 2, overflowWrap: 'anywhere' }}>{item.name}</Typography>
 
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-              <Avatar alt={item.seller?.username} sx={{ width: 40, height: 40 }} />
-              <Box>
-                <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>{item.seller?.username || '不明なユーザー'}</Typography>
-                <Rating value={item.seller?.rating || 0} readOnly size="small" />
-              </Box>
-            </Box>
-
-            <Divider sx={{ my: 2 }} />
-
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-              <Typography variant="h4" sx={{ fontWeight: 'bold', color: '#00ff88' }}>¥{item.price?.toLocaleString() || '0'}</Typography>
-              <Button startIcon={isLiked ? <FavoriteIcon /> : <FavoriteBorderIcon />} onClick={handleLike} color={isLiked ? "error" : "inherit"} size="large">{likeCount}</Button>
-            </Box>
-
-            <Paper sx={{ p: 2, mb: 3, backgroundColor: '#1a1a2e', borderRadius: 2, border: '1px solid #333' }} variant="outlined">
-              <Grid container spacing={2}>
-                <Grid item xs={4}><Typography variant="caption" sx={{ color: '#9ca3af' }}>カテゴリ</Typography></Grid>
-                <Grid item xs={8}><Typography variant="body2" sx={{ color: '#fff' }}>{item.category}</Typography></Grid>
-                <Grid item xs={4}><Typography variant="caption" sx={{ color: '#9ca3af' }}>状態</Typography></Grid>
-                <Grid item xs={8}><Typography variant="body2" sx={{ color: '#fff' }}>{item.condition}</Typography></Grid>
-                <Grid item xs={4}><Typography variant="caption" sx={{ color: '#9ca3af' }}>発送予定</Typography></Grid>
-                <Grid item xs={8}><Typography variant="body2" sx={{ color: '#fff' }}>{item.shipping_days || '1-2日'}</Typography></Grid>
-              </Grid>
-            </Paper>
-
-            {isSold ? (
-              <Button fullWidth disabled variant="contained" size="large" sx={{ mb: 2, py: 1.5, bgcolor: '#ccc' }}>売り切れました</Button>
-            ) : isMyItem ? (
-              <Button fullWidth disabled variant="contained" size="large" sx={{ mb: 2, py: 1.5 }}>自分で出品した商品です</Button>
-            ) : (
-              <Button fullWidth variant="contained" color="primary" startIcon={<ShoppingCartIcon />} onClick={handleBuy} disabled={buying} sx={{ mb: 2, py: 1.5, fontWeight: 'bold', fontSize: '1.1rem' }}>{buying ? '処理中...' : '購入手続きへ'}</Button>
-            )}
-
-            <Box sx={{ mb: 3 }}>
-              <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 1, color: '#fff' }}>商品説明</Typography>
-              <Paper variant="outlined" sx={{ p: 2, minHeight: '100px', bgcolor: '#1a1a2e', border: '1px solid #333' }}>
-                <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', color: '#e5e7eb', lineHeight: 1.6, overflowWrap: 'anywhere' }}>{item.description}</Typography>
-              </Paper>
-            </Box>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+          <Avatar alt={item.seller?.username} sx={{ width: 40, height: 40 }} />
+          <Box>
+            <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>{item.seller?.username || '不明なユーザー'}</Typography>
+            <Rating value={item.seller?.rating || 0} readOnly size="small" />
           </Box>
-        </Grid>
-      </Grid>
-      {/* ★ここでGrid終了！ここからはGridの影響を受けません */}
+        </Box>
+
+        <Divider sx={{ my: 2 }} />
+
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+          <Typography variant="h4" sx={{ fontWeight: 'bold', color: '#00ff88' }}>¥{item.price?.toLocaleString() || '0'}</Typography>
+          <Button startIcon={isLiked ? <FavoriteIcon /> : <FavoriteBorderIcon />} onClick={handleLike} color={isLiked ? "error" : "inherit"} size="large">{likeCount}</Button>
+        </Box>
+
+        <Paper sx={{ p: 2, mb: 3, backgroundColor: '#1a1a2e', borderRadius: 2, border: '1px solid #333' }} variant="outlined">
+          <Grid container spacing={2}>
+            <Grid item xs={4}><Typography variant="caption" sx={{ color: '#9ca3af' }}>カテゴリ</Typography></Grid>
+            <Grid item xs={8}><Typography variant="body2" sx={{ color: '#fff' }}>{item.category}</Typography></Grid>
+            <Grid item xs={4}><Typography variant="caption" sx={{ color: '#9ca3af' }}>状態</Typography></Grid>
+            <Grid item xs={8}><Typography variant="body2" sx={{ color: '#fff' }}>{item.condition}</Typography></Grid>
+            <Grid item xs={4}><Typography variant="caption" sx={{ color: '#9ca3af' }}>発送予定</Typography></Grid>
+            <Grid item xs={8}><Typography variant="body2" sx={{ color: '#fff' }}>{item.shipping_days || '1-2日'}</Typography></Grid>
+          </Grid>
+        </Paper>
+
+        {isSold ? (
+          <Button fullWidth disabled variant="contained" size="large" sx={{ mb: 2, py: 1.5, bgcolor: '#ccc' }}>売り切れました</Button>
+        ) : isMyItem ? (
+          <Button fullWidth disabled variant="contained" size="large" sx={{ mb: 2, py: 1.5 }}>自分で出品した商品です</Button>
+        ) : (
+          <Button fullWidth variant="contained" color="primary" startIcon={<ShoppingCartIcon />} onClick={handleBuy} disabled={buying} sx={{ mb: 2, py: 1.5, fontWeight: 'bold', fontSize: '1.1rem' }}>{buying ? '処理中...' : '購入手続きへ'}</Button>
+        )}
+
+        <Box sx={{ mb: 3 }}>
+          <Typography variant="subtitle2" sx={{ fontWeight: 'bold', mb: 1, color: '#fff' }}>商品説明</Typography>
+          <Paper variant="outlined" sx={{ p: 2, minHeight: '100px', bgcolor: '#1a1a2e', border: '1px solid #333' }}>
+            <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap', color: '#e5e7eb', lineHeight: 1.6, overflowWrap: 'anywhere' }}>{item.description}</Typography>
+          </Paper>
+        </Box>
+      </Box>
 
 
-      {/* ★エリア2: コメントセクション（黒板エリア）
-        Gridの外に出したので、親のContainerの幅（最大幅）いっぱいに固定されます。
-        これで文字数によるレイアウト崩れは100%起きません。
-      */}
+      {/* ★エリア3: コメントセクション */}
       <Paper
         elevation={3}
         sx={commentStyles.container}
@@ -251,7 +265,6 @@ const ItemDetailPage = () => {
                           sx={{
                             color: '#e6edf3',
                             whiteSpace: 'pre-wrap',
-                            // ★黒板からはみ出さないための鉄壁設定
                             overflowWrap: 'anywhere',
                             wordBreak: 'break-all',
                             width: '100%'
@@ -293,6 +306,76 @@ const ItemDetailPage = () => {
         </Box>
       </Paper>
 
+
+      {/* ★エリア4: 類似商品おすすめ */}
+      {recommendations.length > 0 && (
+        <Box sx={{ mt: 4 }}>
+          <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2 }}>
+            📦 関連商品
+          </Typography>
+          <Box sx={{
+            display: 'flex',
+            gap: 2,
+            overflowX: 'auto',
+            pb: 1,
+            '&::-webkit-scrollbar': { height: 6 },
+            '&::-webkit-scrollbar-thumb': { bgcolor: '#555', borderRadius: 3 }
+          }}>
+            {recommendations.map((rec) => (
+              <Card
+                key={rec.item_id}
+                component={Link}
+                to={`/items/${rec.item_id}`}
+                sx={{
+                  minWidth: 200,
+                  maxWidth: 200,
+                  flexShrink: 0,
+                  textDecoration: 'none',
+                  color: 'inherit',
+                  bgcolor: '#1a1a2e',
+                  border: '1px solid #333',
+                  '&:hover': { borderColor: '#00ff88' }
+                }}
+              >
+                <Box sx={{
+                  height: 150,
+                  bgcolor: '#0d1117',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  <CardMedia
+                    component="img"
+                    image={rec.image_url || "/placeholder.png"}
+                    alt={rec.name}
+                    sx={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
+                  />
+                </Box>
+                <CardContent sx={{ p: 1.5 }}>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      fontWeight: 'bold',
+                      mb: 0.5,
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical',
+                      minHeight: '2.5em'
+                    }}
+                  >
+                    {rec.name}
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: '#00ff88', fontWeight: 'bold' }}>
+                    ¥{rec.price?.toLocaleString() || '0'}
+                  </Typography>
+                </CardContent>
+              </Card>
+            ))}
+          </Box>
+        </Box>
+      )}
 
 
       {/* ダイアログ */}

@@ -188,11 +188,15 @@ const Homepage = () => {
             image_url: rec.image_url,
             status: rec.status || 'on_sale',
           }));
-          // 理由マップを作成
+          // 理由マップを作成（ペルソナ名も含む）
           const reasons = {};
           data.slice(0, 4).forEach(rec => {
             if (rec.reason) {
-              reasons[rec.item_id] = rec.reason;
+              reasons[rec.item_id] = {
+                text: rec.reason,
+                persona_name: rec.persona_name || null,
+                persona_avatar_url: rec.persona_avatar_url || null
+              };
             }
           });
           setRecommendedItems(items);

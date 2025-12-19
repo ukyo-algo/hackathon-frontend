@@ -1,7 +1,7 @@
 // src/components/AIChatWidget.js
 // LLMチャットをする部分（ページコンテキスト対応版）
 
-import React, { useState, useEffect, useRef, useContext, createContext } from 'react';
+import React, { useState, useEffect, useRef, useContext, createContext, useCallback } from 'react';
 import { useLLMAgent } from '../hooks/useLLMAgent';
 import {
   Box, Paper, TextField, IconButton, Typography
@@ -11,6 +11,7 @@ import { useAuth } from '../contexts/auth_context';
 import apiClient from '../api/axios';
 import { COLORS } from '../config';
 import CharacterDetailModal from './CharacterDetailModal';
+import { createFunctionCallHandlers, processFunctionCalls } from '../utils/functionCallHandlers';
 
 // ページコンテキストを共有するためのContext
 export const PageContextContext = createContext(null);
@@ -200,94 +201,10 @@ const AIChatWidget = () => {
   };
 
   // Function Callの結果をUIに反映
-  const handleFunctionCalls = (functionCalls) => {
-    for (const fc of functionCalls) {
-      const { name, result } = fc;
-      console.log(`[Function Call] ${name}:`, result);
-
-      switch (result?.action) {
-        case 'navigate':
-          // ページ遷移
-          if (result.path) {
-            setTimeout(() => {
-              window.location.href = result.path;
-            }, 500);
-          }
-          break;
-
-        case 'search_items':
-          // 検索結果ページに遷移
-          if (result.query) {
-            setTimeout(() => {
-              window.location.href = `/search?q=${encodeURIComponent(result.query)}`;
-            }, 500);
-          }
-          break;
-
-        case 'get_item_details':
-          // 商品詳細ページに遷移
-          if (result.item?.item_id) {
-            setTimeout(() => {
-              window.location.href = `/items/${result.item.item_id}`;
-            }, 500);
-          }
-          break;
-
-        case 'draw_gacha':
-          // ガチャ結果をメッセージに追加表示
-          if (result.result) {
-            const gachaResult = result.result;
-            setMessages(prev => [...prev, {
-              role: 'ai',
-              content: `🎉 ${gachaResult.is_new ? '【NEW】' : ''}${gachaResult.name} (★${gachaResult.rarity}) をゲット！`,
-              type: 'gacha_result',
-              gachaData: gachaResult // 画像表示用データ
-            }]);
-
-            // コイン残高が変わったので更新
-            if (refreshUser) refreshUser();
-          }
-          break;
-
-        case 'check_balance':
-          // 残高表示はAIの返答に含まれるが、念のためユーザー情報も更新しておく
-          if (refreshUser) refreshUser();
-          break;
-
-        case 'like_item':
-          // いいね完了メッセージ
-          if (result.status === 'liked') {
-            setMessages(prev => [...prev, {
-              role: 'ai',
-              content: '❤️ いいねしました！',
-              type: 'action_result'
-            }]);
-          }
-          break;
-
-        case 'start_listing':
-          // 出品ページに遷移（フォームにプリフィル）
-          if (result.prefill) {
-            const params = new URLSearchParams();
-            if (result.prefill.name) params.set('name', result.prefill.name);
-            if (result.prefill.price) params.set('price', result.prefill.price);
-            if (result.prefill.category) params.set('category', result.prefill.category);
-            if (result.prefill.description) params.set('description', result.prefill.description);
-            setTimeout(() => {
-              window.location.href = `/items/create?${params.toString()}`;
-            }, 500);
-          }
-          break;
-
-        case 'suggest_price':
-          // 価格提案はAIの返答に含まれるので特別な処理不要
-          break;
-
-        default:
-          console.log('Unknown function action:', result?.action);
-      }
-    }
-  };
+  const handleFunctionCalls = useCallback((functionCalls) => {
+    const handlers = createFunctionCallHandlers({ setMessages, refreshUser });
+    processFunctionCalls(functionCalls, handlers);
+  }, [refreshUser]);
 
   const handleKeyPress = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {

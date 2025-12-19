@@ -1,23 +1,26 @@
 // src/pages/item_create_page.js
 /**
  * 出品ページ
- * el;ma テーマ - レトロゲーム風UI
+ * el;ma テーマ - レトロゲーム風UI + AI出品サポート
  */
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { storage } from '../firebase_config';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useAuth } from '../contexts/auth_context';
+import { usePageContext } from '../components/AIChatWidget';
 import {
   Box, Container, Typography, TextField, Button, Paper,
   Alert, CircularProgress, FormControl, InputLabel, Select,
-  MenuItem, FormControlLabel, Checkbox
+  MenuItem, FormControlLabel, Checkbox, Avatar
 } from '@mui/material';
-import { AddPhotoAlternate, Sell } from '@mui/icons-material';
+import { AddPhotoAlternate, Sell, AutoAwesome } from '@mui/icons-material';
 import { colors } from '../styles/theme';
 
-const CATEGORIES = ["ファッション", "家電・スマホ・カメラ", "靴", "PC周辺機器", "その他"];
+const API_URL = process.env.REACT_APP_API_URL;
+
+const CATEGORIES = ["ファッション", "家電・スマホ・カメラ", "靴", "PC周辺機器", "ホビー・楽器", "本", "その他"];
 const CONDITIONS = ["新品、未使用", "未使用に近い", "目立った傷や汚れなし", "やや傷や汚れあり", "傷や汚れあり", "全体的に状態が悪い"];
 
 const ItemCreatePage = () => {
@@ -25,25 +28,132 @@ const ItemCreatePage = () => {
   const [error, setError] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [imageFile, setImageFile] = useState(null);
+  const [imageBase64, setImageBase64] = useState(null);
   const [category, setCategory] = useState('');
   const [condition, setCondition] = useState('');
   const [instantBuy, setInstantBuy] = useState(true);
 
+  // フォームの値をstateで管理
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
+  const [price, setPrice] = useState('');
+  const [brand, setBrand] = useState('');
+
+  // AI関連
+  const [aiAnalyzing, setAiAnalyzing] = useState(false);
+  const [aiComment, setAiComment] = useState(null);
+  const [aiData, setAiData] = useState(null);
+  const [showAiButton, setShowAiButton] = useState(false);
+
   const navigate = useNavigate();
   const { currentUser } = useAuth();
+  const { setPageContext } = usePageContext();
 
-  const nameRef = useRef();
-  const descriptionRef = useRef();
-  const priceRef = useRef();
-  const brandRef = useRef();
+  // ページコンテキストを設定
+  useEffect(() => {
+    setPageContext({
+      page_type: 'item_create',
+      has_image: !!imagePreview,
+      form_data: {
+        name: name || null,
+        category: category || null,
+        condition: condition || null,
+        price: price ? parseInt(price, 10) : null,
+      }
+    });
+    return () => setPageContext(null);
+  }, [setPageContext, imagePreview, name, category, condition, price]);
 
-  const API_URL = process.env.REACT_APP_API_URL;
+  // AIからの説明文更新イベントを受け取る
+  useEffect(() => {
+    const handleAiDescription = (event) => {
+      if (event.detail?.description) {
+        setDescription(event.detail.description);
+      }
+      if (event.detail?.name) {
+        setName(event.detail.name);
+      }
+      if (event.detail?.category) {
+        const matchedCategory = CATEGORIES.find(c =>
+          c.includes(event.detail.category) || event.detail.category.includes(c)
+        );
+        if (matchedCategory) setCategory(matchedCategory);
+      }
+    };
+    window.addEventListener('ai-update-listing', handleAiDescription);
+    return () => window.removeEventListener('ai-update-listing', handleAiDescription);
+  }, []);
 
-  const handleImageChange = (e) => {
+  const handleImageChange = async (e) => {
     const file = e.target.files[0];
     if (file) {
       setImageFile(file);
       setImagePreview(URL.createObjectURL(file));
+      setShowAiButton(true);
+      setAiComment(null);
+      setAiData(null);
+
+      // Base64に変換
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImageBase64(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // AIに画像を解析してもらう
+  const handleAiAnalyze = async () => {
+    if (!imageBase64 || !currentUser) return;
+
+    try {
+      setAiAnalyzing(true);
+      setError(null);
+
+      const response = await fetch(`${API_URL}/api/v1/chat/analyze-image`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Firebase-Uid': currentUser.uid,
+        },
+        body: JSON.stringify({
+          image_base64: imageBase64,
+          prompt: 'この商品を出品したいです。商品情報を教えてください。',
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('AI解析に失敗しました');
+      }
+
+      const data = await response.json();
+      setAiData(data);
+      setAiComment(data.message);
+
+      // フォームに自動入力
+      if (data.name) setName(data.name);
+      if (data.description) setDescription(data.description);
+      if (data.suggested_price) setPrice(String(data.suggested_price));
+      if (data.category) {
+        // カテゴリをマッチング
+        const matchedCategory = CATEGORIES.find(c =>
+          c.includes(data.category) || data.category.includes(c)
+        );
+        if (matchedCategory) setCategory(matchedCategory);
+      }
+      if (data.condition) {
+        // 状態をマッチング
+        const matchedCondition = CONDITIONS.find(c =>
+          c.includes(data.condition) || data.condition.includes(c)
+        );
+        if (matchedCondition) setCondition(matchedCondition);
+      }
+
+    } catch (err) {
+      console.error('AI analysis error:', err);
+      setError(err.message);
+    } finally {
+      setAiAnalyzing(false);
     }
   };
 
@@ -67,13 +177,13 @@ const ItemCreatePage = () => {
       const downloadURL = await getDownloadURL(storageRef);
 
       const itemData = {
-        name: nameRef.current.value,
-        description: descriptionRef.current.value || null,
-        price: parseInt(priceRef.current.value, 10),
+        name: name,
+        description: description || null,
+        price: parseInt(price, 10),
         image_url: downloadURL,
         is_instant_buy_ok: instantBuy,
         category: category,
-        brand: brandRef.current.value || null,
+        brand: brand || null,
         condition: condition,
       };
 
@@ -178,9 +288,62 @@ const ItemCreatePage = () => {
           </Box>
         </Box>
 
+        {/* AIアシスタント */}
+        {showAiButton && (
+          <Box sx={{ mb: 3 }}>
+            {aiComment && (
+              <Box sx={{
+                p: 2,
+                mb: 2,
+                background: 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)',
+                borderRadius: 2,
+                border: `1px solid ${colors.primary}`,
+              }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                  <Avatar sx={{ width: 24, height: 24, bgcolor: colors.primary }}>
+                    <AutoAwesome sx={{ fontSize: 14 }} />
+                  </Avatar>
+                  <Typography variant="caption" sx={{ color: colors.primary, fontWeight: 'bold' }}>
+                    AIアシスタント
+                  </Typography>
+                </Box>
+                <Typography variant="body2" sx={{ color: colors.textPrimary }}>
+                  {aiComment}
+                </Typography>
+              </Box>
+            )}
+
+            {!aiData && (
+              <Button
+                variant="outlined"
+                fullWidth
+                onClick={handleAiAnalyze}
+                disabled={aiAnalyzing}
+                startIcon={aiAnalyzing ? <CircularProgress size={16} /> : <AutoAwesome />}
+                sx={{
+                  borderColor: colors.primary,
+                  color: colors.primary,
+                  fontFamily: '"VT323", monospace',
+                  fontSize: '1.1rem',
+                  '&:hover': { borderColor: colors.primaryDark, backgroundColor: 'rgba(0,255,136,0.1)' },
+                }}
+              >
+                {aiAnalyzing ? 'AIが解析中...' : '✨ AIに出品情報をお願いする'}
+              </Button>
+            )}
+
+            {aiData && (
+              <Alert severity="success" sx={{ backgroundColor: 'rgba(0,255,136,0.1)', border: `1px solid ${colors.primary}` }}>
+                AIが商品情報を入力しました！内容を確認して必要に応じて修正してください。
+              </Alert>
+            )}
+          </Box>
+        )}
+
         {/* 商品名 */}
         <TextField
-          inputRef={nameRef}
+          value={name}
+          onChange={(e) => setName(e.target.value)}
           label="商品名"
           placeholder="商品名を入力"
           required
@@ -206,7 +369,8 @@ const ItemCreatePage = () => {
 
         {/* ブランド */}
         <TextField
-          inputRef={brandRef}
+          value={brand}
+          onChange={(e) => setBrand(e.target.value)}
           label="ブランド名（任意）"
           placeholder="ブランド名"
           fullWidth
@@ -231,7 +395,8 @@ const ItemCreatePage = () => {
 
         {/* 価格 */}
         <TextField
-          inputRef={priceRef}
+          value={price}
+          onChange={(e) => setPrice(e.target.value)}
           type="number"
           label="価格（円）"
           placeholder="例: 3000"
@@ -245,7 +410,8 @@ const ItemCreatePage = () => {
 
         {/* 説明 */}
         <TextField
-          inputRef={descriptionRef}
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
           label="商品の説明（任意）"
           placeholder="商品の状態や特徴など"
           multiline
