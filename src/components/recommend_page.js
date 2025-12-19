@@ -188,7 +188,25 @@ export default function RecommendPage({ onClose, onNavigateItem }) {
                       {typeof it.price !== 'undefined' && (
                         <Typography sx={{ ...styles.itemPrice, pointerEvents: 'none' }}>¥{it.price?.toLocaleString()}</Typography>
                       )}
-                      {/* 理由はポップアップでは非表示 - おすすめタブで表示 */}
+
+                      {/* 出品者表示 */}
+                      <Typography variant="caption" sx={{ color: '#aaa', fontSize: '0.7rem', display: 'block' }}>
+                        {it.seller?.username || '不明'}
+                      </Typography>
+
+                      {/* おすすめ理由 */}
+                      {reasons[itemId] && (
+                        <Box sx={{
+                          mt: 1,
+                          p: 1,
+                          bgcolor: 'rgba(255,255,255,0.1)',
+                          borderRadius: 1,
+                          fontSize: '0.75rem',
+                          color: '#e6edf3'
+                        }}>
+                          💬 {reasons[itemId]}
+                        </Box>
+                      )}
                     </Box>
                   );
                 })}
