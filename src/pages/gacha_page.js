@@ -41,6 +41,9 @@ const GachaPage = () => {
   const finalCost = BASE_GACHA_COST - Math.floor(BASE_GACHA_COST * discountPercent / 100);
   const canAfford = userGachaPoints >= finalCost;
 
+  // ペルソナ一覧（ガチャで引けるキャラ）
+  const [allPersonas, setAllPersonas] = useState([]);
+
   // クーポン一覧を取得
   useEffect(() => {
     if (!currentUser) return;
@@ -56,18 +59,41 @@ const GachaPage = () => {
     fetchCoupons();
   }, [currentUser]);
 
+  // ペルソナ一覧を取得
+  useEffect(() => {
+    const fetchPersonas = async () => {
+      try {
+        const res = await api.get('/personas');
+        setAllPersonas(res.data || []);
+      } catch (err) {
+        console.error('Failed to fetch personas:', err);
+      }
+    };
+    fetchPersonas();
+  }, []);
+
   // ページコンテキスト: 初回ロード時のみ
   useEffect(() => {
+    // ペルソナ情報をサマリ化（LLM向け）
+    const personaSummary = allPersonas.slice(0, 10).map(p => ({
+      name: p.name,
+      rarity: p.rarity,
+      rarity_name: p.rarity_name,
+      description: p.description,
+    }));
+
     setPageContext({
       page: 'gacha',
       user_gacha_points: userGachaPoints,
       gacha_cost: finalCost,
       can_afford: canAfford,
       has_result: false,
+      available_personas: personaSummary,
+      total_persona_count: allPersonas.length,
     });
     return () => setPageContext(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [allPersonas]);
 
   // ページコンテキスト: ガチャ結果確定時のみLLMにガイダンスを依頼
   // 初回ロードでは汎用メッセージを避けるため、結果が出るまでコンテキストを送信しない
@@ -78,9 +104,15 @@ const GachaPage = () => {
         page: 'gacha_result',  // ←ページタイプを変更して結果時であることを明示
         user_gacha_points: userGachaPoints,
         gacha_cost: finalCost,
-        result_persona_name: result.persona?.name || null,
-        result_rarity: result.persona?.rarity || null,
-        result_rarity_name: result.persona?.rarity_name || null,
+        // 引いたキャラの詳細情報
+        result_persona: {
+          name: result.persona?.name,
+          rarity: result.persona?.rarity,
+          rarity_name: result.persona?.rarity_name,
+          description: result.persona?.description,
+          skill_name: result.persona?.skill_name,
+          skill_effect: result.persona?.skill_effect,
+        },
         result_is_new: result.is_new || false,
         result_stack_count: result.stack_count || 1,
         fragments_earned: result.fragments_earned || 0,

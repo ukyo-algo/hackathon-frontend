@@ -2,7 +2,7 @@
 // ページ遷移ごとにLLMへコンテキスト送信し、気の利いたメッセージや提案を受け取るフック
 // 各ページでextraContextにページ固有情報を渡すことで、LLMがより具体的な応答を返せる
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { postLLMContext, callLLMFunction } from '../api/llm';
 import { useAuth } from '../contexts/auth_context';
 import { useLocation } from 'react-router-dom';
@@ -52,9 +52,24 @@ export function useLLMAgent(extraContext = {}) {
   const [message, setMessage] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
+  // 重複リクエスト防止: 最後に送信したコンテキストを記憶
+  const lastSentContextRef = useRef(null);
+
   // ページ遷移時にコンテキストを送信
   useEffect(() => {
     let ignore = false;
+
+    const contextKey = JSON.stringify({
+      path: location.pathname,
+      query: location.search,
+      page_context: extraContext?.page_context,
+    });
+
+    // 同じコンテキストなら送信しない（重複防止）
+    if (lastSentContextRef.current === contextKey) {
+      console.log('[useLLMAgent] 同じコンテキストのためスキップ');
+      return;
+    }
 
     console.log('[useLLMAgent] ページ遷移検知:', {
       uid: currentUser?.uid,
@@ -81,6 +96,8 @@ export function useLLMAgent(extraContext = {}) {
 
         if (!ignore) {
           setMessage(ctxResp?.message || null);
+          // 送信成功したらコンテキストを記憶
+          lastSentContextRef.current = contextKey;
         }
       } catch (e) {
         console.warn('LLM agent error:', e);
