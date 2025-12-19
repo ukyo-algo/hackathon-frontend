@@ -113,6 +113,24 @@ export const createFunctionCallHandlers = ({ setMessages, refreshUser }) => ({
             }]);
         }
     },
+
+    analyze_listing_image: (result) => {
+        // 出品ページで画像解析をトリガー
+        if (window.location.pathname === '/items/create') {
+            window.dispatchEvent(new CustomEvent('ai-analyze-image'));
+            setMessages(prev => [...prev, {
+                role: 'ai',
+                content: '📸 画像を解析中です...',
+                type: 'action_result'
+            }]);
+        } else {
+            setMessages(prev => [...prev, {
+                role: 'ai',
+                content: '📸 出品ページに移動して画像をアップロードしてください。',
+                type: 'action_result'
+            }]);
+        }
+    },
 });
 
 /**

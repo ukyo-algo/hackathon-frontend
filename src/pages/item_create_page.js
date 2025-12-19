@@ -84,6 +84,71 @@ const ItemCreatePage = () => {
     return () => window.removeEventListener('ai-update-listing', handleAiDescription);
   }, []);
 
+  // チャットからの画像解析リクエストを受け取る
+  useEffect(() => {
+    const handleAnalyzeRequest = () => {
+      // handleAiAnalyzeを呼び出す（画像がある場合のみ）
+      if (imageBase64 && !aiAnalyzing && currentUser) {
+        console.log('[ItemCreate] チャットからの画像解析リクエストを受信');
+        // handleAiAnalyzeを非同期で実行
+        (async () => {
+          try {
+            setAiAnalyzing(true);
+            setError(null);
+
+            const response = await fetch(`${API_URL}/api/v1/chat/analyze-image`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'X-Firebase-Uid': currentUser.uid,
+              },
+              body: JSON.stringify({
+                image_base64: imageBase64,
+                prompt: 'この商品を出品したいです。商品情報を教えてください。',
+              }),
+            });
+
+            if (!response.ok) {
+              throw new Error('AI解析に失敗しました');
+            }
+
+            const data = await response.json();
+            setAiData(data);
+            setAiComment(data.message);
+
+            // フォームに自動入力
+            if (data.name) setName(data.name);
+            if (data.description) setDescription(data.description);
+            if (data.suggested_price) setPrice(String(data.suggested_price));
+            if (data.category) {
+              const matchedCategory = CATEGORIES.find(c =>
+                c.includes(data.category) || data.category.includes(c)
+              );
+              if (matchedCategory) setCategory(matchedCategory);
+            }
+            if (data.condition) {
+              const matchedCondition = CONDITIONS.find(c =>
+                c.includes(data.condition) || data.condition.includes(c)
+              );
+              if (matchedCondition) setCondition(matchedCondition);
+            }
+          } catch (err) {
+            console.error('AI analysis error:', err);
+            setError(err.message);
+          } finally {
+            setAiAnalyzing(false);
+          }
+        })();
+      } else if (!imageBase64) {
+        console.log('[ItemCreate] 画像がアップロードされていません');
+      }
+    };
+
+    window.addEventListener('ai-analyze-image', handleAnalyzeRequest);
+    return () => window.removeEventListener('ai-analyze-image', handleAnalyzeRequest);
+  }, [imageBase64, aiAnalyzing, currentUser]);
+
+
   const handleImageChange = async (e) => {
     const file = e.target.files[0];
     if (file) {

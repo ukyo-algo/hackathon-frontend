@@ -106,9 +106,22 @@ const NavBar = () => {
     setPurchaseDialog(prev => ({ ...prev, step: 'select', selectedAmount: null, selectedPrice: null }));
   };
 
-  // 課金処理（デモ用）
-  const handlePurchase = () => {
-    alert(`${purchaseDialog.type === 'gacha' ? 'ガチャポイント' : '記憶のかけら'} ${purchaseDialog.selectedAmount}${purchaseDialog.type === 'gacha' ? 'ポイント' : '個'}の購入処理を開始します（準備中）`);
+  // 課金処理
+  const handlePurchase = async () => {
+    try {
+      if (purchaseDialog.type === 'gacha') {
+        // ガチャポイントチャージ
+        await api.post('/gacha/charge', { amount: purchaseDialog.selectedAmount });
+      } else {
+        // 記憶のかけらチャージ
+        await api.post('/users/me/add-fragments', { amount: purchaseDialog.selectedAmount });
+      }
+      // ユーザー情報を更新してポイント残高を反映
+      window.location.reload();
+    } catch (err) {
+      console.error('Purchase failed:', err);
+      alert('購入処理に失敗しました。もう一度お試しください。');
+    }
     closePurchaseDialog();
   };
 

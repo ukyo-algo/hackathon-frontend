@@ -48,7 +48,7 @@ const AIChatWidget = () => {
 
 
   const defaultPersona = {
-    name: "キャラクター",
+    name: "ドット絵の村人",
     avatar_url: "/avatars/model1.png",
     theme_color: "#1976d2"
   };
@@ -76,6 +76,34 @@ const AIChatWidget = () => {
     handleCloseDetail();
   };
 
+  // 重複メッセージ防止用: 表示済みメッセージのハッシュをセットで管理
+  const getDisplayedMessagesKey = () => 'llm_displayed_messages';
+
+  const getDisplayedMessages = () => {
+    try {
+      const stored = sessionStorage.getItem(getDisplayedMessagesKey());
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  };
+
+  const addDisplayedMessage = (content) => {
+    try {
+      const displayed = getDisplayedMessages();
+      // 最新50件のみ保持（メモリ節約）
+      const updated = [...displayed, content].slice(-50);
+      sessionStorage.setItem(getDisplayedMessagesKey(), JSON.stringify(updated));
+    } catch {
+      // ignore
+    }
+  };
+
+  const isMessageDisplayed = (content) => {
+    const displayed = getDisplayedMessages();
+    return displayed.includes(content);
+  };
+
   // ペルソナが変更されたらUIを即反映し、初期メッセージをセット
   useEffect(() => {
     if (currentUser?.current_persona) {
@@ -88,9 +116,12 @@ const AIChatWidget = () => {
     setMessages([
       {
         role: 'ai',
-        content: `<${currentUser?.current_persona?.name || 'キャラクター'}がお買い物を手伝ってくれるようです>`
+        content: `<${currentUser?.current_persona?.name || 'ドット絵の村人'}がお買い物を手伝ってくれるようです>`
       }
     ]);
+
+    // ペルソナ変更時に表示済みメッセージをクリア
+    sessionStorage.removeItem(getDisplayedMessagesKey());
   }, [currentUser?.current_persona?.id]);
 
   // 最後に追加したガイダンスメッセージを記憶（重複防止 - sessionStorageで永続化）
@@ -103,6 +134,12 @@ const AIChatWidget = () => {
     } else {
       setIsGuidanceLoading(false);
       if (llmAgent.message) {
+        // グローバル重複チェック（全ページ共通）
+        if (isMessageDisplayed(llmAgent.message)) {
+          console.log('[AIChatWidget] 既に表示済みのメッセージのためスキップ (global)');
+          return;
+        }
+
         // sessionStorageで永続的に重複チェック（ウィジェット開閉でも保持）
         const lastGuidance = sessionStorage.getItem(getLastGuidanceKey());
         if (lastGuidance === llmAgent.message) {
@@ -112,7 +149,7 @@ const AIChatWidget = () => {
 
         // メッセージ配列内に既に同じ内容があるかチェック
         setMessages(prev => {
-          const alreadyExists = prev.some(m => m.type === 'guidance' && m.content === llmAgent.message);
+          const alreadyExists = prev.some(m => m.content === llmAgent.message);
           if (alreadyExists) {
             console.log('[AIChatWidget] 同じガイダンスが履歴にあるためスキップ');
             return prev;
@@ -123,6 +160,9 @@ const AIChatWidget = () => {
             content: llmAgent.message,
             type: 'guidance'
           };
+
+          // グローバル重複チェック用に記録
+          addDisplayedMessage(llmAgent.message);
 
           // sessionStorageに保存
           sessionStorage.setItem(getLastGuidanceKey(), llmAgent.message);
@@ -142,15 +182,31 @@ const AIChatWidget = () => {
       try {
         const res = await apiClient.get('/chat/messages?limit=10');
         if (res.data && res.data.length > 0) {
-          const historyMessages = res.data.map(msg => ({
-            role: msg.role,
-            content: msg.content,
-            type: msg.type || 'chat'
-          }));
+          // 重複を除外しながらメッセージを作成
+          const seenContents = new Set();
+          const historyMessages = [];
+
+          for (const msg of res.data) {
+            // 同じ内容のメッセージは1回だけ追加
+            if (!seenContents.has(msg.content)) {
+              seenContents.add(msg.content);
+              historyMessages.push({
+                role: msg.role,
+                content: msg.content,
+                type: msg.type || 'chat'
+              });
+              // グローバル重複チェック用に登録
+              addDisplayedMessage(msg.content);
+            }
+          }
+
           setMessages(prev => {
             // 重複を避ける: 初期メッセージの後に履歴を追加
             if (prev.length <= 1) {
-              return [...prev, ...historyMessages];
+              // 履歴とprevの間の重複も除外
+              const existingContents = new Set(prev.map(m => m.content));
+              const filteredHistory = historyMessages.filter(m => !existingContents.has(m.content));
+              return [...prev, ...filteredHistory];
             }
             return prev;
           });
