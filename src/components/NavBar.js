@@ -109,18 +109,23 @@ const NavBar = () => {
   // 課金処理
   const handlePurchase = async () => {
     try {
+      const amount = Number(purchaseDialog.selectedAmount);
+      console.log('[Purchase] Type:', purchaseDialog.type, 'Amount:', amount);
+
       if (purchaseDialog.type === 'gacha') {
         // ガチャポイントチャージ
-        await api.post('/gacha/charge', { amount: purchaseDialog.selectedAmount });
+        const res = await api.post('/gacha/charge', { amount });
+        console.log('[Purchase] Gacha charge response:', res.data);
       } else {
         // 記憶のかけらチャージ
-        await api.post('/users/me/add-fragments', { amount: purchaseDialog.selectedAmount });
+        const res = await api.post('/users/me/add-fragments', { amount });
+        console.log('[Purchase] Fragments add response:', res.data);
       }
       // ユーザー情報を更新してポイント残高を反映
       window.location.reload();
     } catch (err) {
-      console.error('Purchase failed:', err);
-      alert('購入処理に失敗しました。もう一度お試しください。');
+      console.error('Purchase failed:', err.response?.data || err.message || err);
+      alert(`購入処理に失敗しました: ${err.response?.data?.detail || err.message || 'もう一度お試しください'}`);
     }
     closePurchaseDialog();
   };
@@ -426,6 +431,9 @@ const NavBar = () => {
                 <Divider sx={{ my: 2 }} />
                 <Typography variant="h5" sx={{ fontWeight: 'bold', color: '#00ff88' }}>
                   ¥{purchaseDialog.selectedPrice?.toLocaleString()}
+                </Typography>
+                <Typography variant="caption" sx={{ display: 'block', mt: 1, color: '#888' }}>
+                  💳 クレジットカード決済のみ対応
                 </Typography>
               </Box>
               <Button
