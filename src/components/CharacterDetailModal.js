@@ -17,6 +17,64 @@ import { colors } from '../styles/theme';
 const CharacterDetailModal = ({ open, onClose, character, onSetPartner, level = 1, onLevelUp, memoryFragments = 0 }) => {
     if (!character) return null;
 
+    // スキル定義（バックエンドと同期）
+    const SKILL_DEFINITIONS = {
+        1: { skill_type: "gacha_duplicate_fragments", base_value: 1, max_value: 5 },
+        2: { skill_type: "gacha_duplicate_fragments", base_value: 2, max_value: 8 },
+        3: { skill_type: "purchase_bonus_percent", base_value: 1, max_value: 5 },
+        4: { skill_type: "gacha_duplicate_fragments", base_value: 3, max_value: 12 },
+        5: { skill_type: "daily_shipping_coupon", discount_percent: 5, base_hours: 3, max_hours: 12 },
+        6: { skill_type: "purchase_bonus_percent", base_value: 3, max_value: 10 },
+        7: { skill_type: "quest_reward_bonus", base_value: 10, max_value: 50 },
+        8: { skill_type: "levelup_cost_reduction", base_value: 2, max_value: 10 },
+        9: { skill_type: "levelup_cost_reduction", base_value: 5, max_value: 20 },
+        10: { skill_type: "quest_cooldown_reduction", base_value: 5, max_value: 25 },
+        11: { skill_type: "levelup_cost_reduction", base_value: 3, max_value: 15 },
+        12: { skill_type: "daily_gacha_discount", base_value: 10, max_value: 30 },
+        13: { skill_type: "quest_reward_bonus", base_value: 5, max_value: 30 },
+        14: { skill_type: "purchase_bonus_percent", base_value: 1, max_value: 5 },
+        15: { skill_type: "quest_cooldown_reduction", base_value: 3, max_value: 15 },
+        16: { skill_type: "daily_shipping_coupon", discount_percent: 10, base_hours: 6, max_hours: 24 },
+        17: { skill_type: "purchase_bonus_percent", base_value: 5, max_value: 15 },
+        18: { skill_type: "daily_shipping_coupon", discount_percent: 15, base_hours: 6, max_hours: 24 },
+        19: { skill_type: "gacha_duplicate_fragments", base_value: 2, max_value: 8 },
+        20: { skill_type: "gacha_duplicate_fragments", base_value: 5, max_value: 20 },
+    };
+
+    // レベルに応じたスキル値を計算
+    const calculateSkillValue = (personaId, currentLevel) => {
+        const def = SKILL_DEFINITIONS[personaId];
+        if (!def) return 0;
+
+        if (def.discount_percent !== undefined) {
+            // クーポン系：時間が変動
+            const baseHours = def.base_hours || 0;
+            const maxHours = def.max_hours || 0;
+            if (currentLevel <= 1) return baseHours;
+            if (currentLevel >= 10) return maxHours;
+            return Math.round(baseHours + (maxHours - baseHours) * (currentLevel - 1) / 9);
+        }
+
+        const baseVal = def.base_value || 0;
+        const maxVal = def.max_value || 0;
+        if (currentLevel <= 1) return baseVal;
+        if (currentLevel >= 10) return maxVal;
+        return Math.round(baseVal + (maxVal - baseVal) * (currentLevel - 1) / 9);
+    };
+
+    // スキルテキストをレンダリング
+    const renderSkillEffect = () => {
+        if (!character.skill_effect) return '???';
+        const def = SKILL_DEFINITIONS[character.id];
+        if (!def) return character.skill_effect;
+
+        const value = calculateSkillValue(character.id, level);
+        let text = character.skill_effect
+            .replace('{value}', value)
+            .replace('{discount}', def.discount_percent || '');
+        return text;
+    };
+
     // レアリティに応じた色
     const getRarityColor = (rarity) => {
         switch (rarity) {
@@ -221,7 +279,7 @@ const CharacterDetailModal = ({ open, onClose, character, onSetPartner, level = 
                                 <StatItem icon="⚡" label="Skill" value={character.skill_name} />
                             </Grid>
                             <Grid item xs={6}>
-                                <StatItem icon="✨" label="Effect" value={character.skill_effect} />
+                                <StatItem icon="✨" label="Effect" value={renderSkillEffect()} />
                             </Grid>
                         </>
                     )}
