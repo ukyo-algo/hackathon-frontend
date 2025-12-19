@@ -5,7 +5,7 @@
  */
 
 import React, { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { storage } from '../firebase_config';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useAuth } from '../contexts/auth_context';
@@ -63,6 +63,25 @@ const ItemCreatePage = () => {
     });
     return () => setPageContext(null);
   }, [setPageContext, imagePreview, name, category, condition, price]);
+
+  const location = useLocation();
+
+  // URLクエリパラメータから初期値を設定
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const n = params.get('name');
+    const d = params.get('description');
+    const p = params.get('price');
+    const c = params.get('category');
+
+    if (n) setName(n);
+    if (d) setDescription(d);
+    if (p) setPrice(p);
+    if (c) {
+      const matchedCategory = CATEGORIES.find(cat => cat.includes(c) || c.includes(cat));
+      if (matchedCategory) setCategory(matchedCategory);
+    }
+  }, [location.search]);
 
   // AIからの説明文更新イベントを受け取る
   useEffect(() => {
