@@ -290,16 +290,10 @@ const GachaPage = () => {
             </Box>
 
             <Typography variant="subtitle2" gutterBottom>決済方法</Typography>
-            <FormControl component="fieldset">
-              <RadioGroup
-                value={paymentMethod}
-                onChange={(e) => setPaymentMethod(e.target.value)}
-              >
-                <FormControlLabel value="credit_card" control={<Radio />} label="クレジットカード" />
-                <FormControlLabel value="bank_transfer" control={<Radio />} label="銀行振込" />
-                <FormControlLabel value="cod" control={<Radio />} label="代金引換" />
-              </RadioGroup>
-            </FormControl>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+              <Radio checked={true} sx={{ color: '#00ff88 !important' }} />
+              <Typography sx={{ fontFamily: '"VT323", monospace' }}>クレジットカード</Typography>
+            </Box>
           </Box>
         </DialogContent>
         <DialogActions sx={{ p: 2, justifyContent: 'center' }}>

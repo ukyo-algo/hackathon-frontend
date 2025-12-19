@@ -61,7 +61,7 @@ const SellerPage = () => {
       if (resMyItems.ok) {
         const items = await resMyItems.json();
         const tradingItemIds = new Set(combined.map(t => t.item?.item_id || t.item_id || t.id));
-        const unsold = (items || []).filter(item => !tradingItemIds.has(item.item_id || item.id));
+        const unsold = (items || []).filter(item => !tradingItemIds.has(item.item_id || item.id) && item.status === 'on_sale');
         setUnsoldItems(unsold);
       }
       setLastUpdated(new Date());
