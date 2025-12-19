@@ -78,7 +78,16 @@ const PersonaSelectionPage = () => {
       } : null,
       modal_open: detailOpen,
     });
-    return () => setPageContext(null);
+
+    return () => {
+      // イベント処理中以外のみコンテキストをクリア（画面遷移時はクリアされるべきだが、再描画時は維持したい）
+      // ただしページ遷移時は別途コンポーネントがアンマウントされるので、その際にも正しい挙動が必要
+      // アンマウント時は常にクリアしたいが、判別が難しい。
+      // 今回のケースでは、イベント中はコンテキストを維持したいのでskipチェックを入れる
+      if (!skipDefaultContextRef.current) {
+        setPageContext(null);
+      }
+    };
   }, [allPersonas.length, ownedPersonas, currentPersonaId, currentPersonaName, selectedDetailPersona, detailOpen, currentUser, ownedPersonaLevels, setPageContext]);
 
   useEffect(() => {
