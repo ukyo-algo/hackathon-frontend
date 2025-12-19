@@ -47,7 +47,8 @@ const RegisterPage = () => {
       navigate('/');
     } catch (err) {
       console.error(err);
-      setError('アカウント登録に失敗しました: ' + err.message);
+      const { getFirebaseErrorMessage } = await import('../utils/firebaseErrors');
+      setError(getFirebaseErrorMessage(err));
     } finally {
       setLoading(false);
     }

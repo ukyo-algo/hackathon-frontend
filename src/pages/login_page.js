@@ -29,7 +29,8 @@ const LoginPage = () => {
       navigate('/');
     } catch (err) {
       console.error(err);
-      setError('ログインに失敗しました: ' + err.message);
+      const { getFirebaseErrorMessage } = await import('../utils/firebaseErrors');
+      setError(getFirebaseErrorMessage(err));
     } finally {
       setLoading(false);
     }
