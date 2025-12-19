@@ -239,6 +239,22 @@ const AIChatWidget = () => {
     scrollToBottom();
   }, [messages]);
 
+  // 画像解析のレスポンスイベントをリッスン（画像がない場合のエラーメッセージ表示用）
+  useEffect(() => {
+    const handleAnalyzeResponse = (event) => {
+      if (event.detail?.error && event.detail?.message) {
+        setMessages(prev => [...prev, {
+          role: 'ai',
+          content: event.detail.message,
+          type: 'action_result'
+        }]);
+      }
+    };
+    window.addEventListener('ai-analyze-image-response', handleAnalyzeResponse);
+    return () => window.removeEventListener('ai-analyze-image-response', handleAnalyzeResponse);
+  }, []);
+
+
   const handleSend = async () => {
     if (!input.trim()) return;
 

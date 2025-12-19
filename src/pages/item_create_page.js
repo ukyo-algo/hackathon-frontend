@@ -141,6 +141,10 @@ const ItemCreatePage = () => {
         })();
       } else if (!imageBase64) {
         console.log('[ItemCreate] 画像がアップロードされていません');
+        // チャットに画像が必要というメッセージを表示
+        window.dispatchEvent(new CustomEvent('ai-analyze-image-response', {
+          detail: { error: true, message: '📷 まず商品の画像をアップロードしてください！画像エリアをクリックして写真を選択できます。' }
+        }));
       }
     };
 
