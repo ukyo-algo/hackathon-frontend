@@ -195,7 +195,7 @@ const ItemCard = ({ item, isSold }) => {
             <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: CARD.OVERLAY_BG, color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>SOLD</div>
           )}
         </div>
-        <h3 style={{ fontSize: '16px', margin: '10px 0 5px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.name}</h3>
+        <h3 style={{ fontSize: '16px', margin: '10px 0 5px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: '#e6edf3' }}>{item.name}</h3>
         <p style={{ margin: 0, color: COLORS.PRIMARY, fontWeight: 'bold' }}>¥{item.price.toLocaleString()}</p>
       </Link>
     </div>

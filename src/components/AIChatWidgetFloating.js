@@ -376,17 +376,32 @@ const AIChatWidgetFloating = () => {
                     <AIChatWidget />
                 </Box>
 
-                {/* リサイズハンドル（右・下・右下のみ） */}
+                {/* リサイズハンドル（8方向） */}
+                {/* 右 */}
                 <Box
                     onMouseDown={(e) => handleResizeStart(e, 'e')}
                     onTouchStart={(e) => handleResizeStart(e, 'e')}
                     sx={{ ...resizeHandleStyle, right: 0, top: 36, width: 6, height: 'calc(100% - 42px)', cursor: 'ew-resize' }}
                 />
+                {/* 左 */}
+                <Box
+                    onMouseDown={(e) => handleResizeStart(e, 'w')}
+                    onTouchStart={(e) => handleResizeStart(e, 'w')}
+                    sx={{ ...resizeHandleStyle, left: 0, top: 36, width: 6, height: 'calc(100% - 42px)', cursor: 'ew-resize' }}
+                />
+                {/* 下 */}
                 <Box
                     onMouseDown={(e) => handleResizeStart(e, 's')}
                     onTouchStart={(e) => handleResizeStart(e, 's')}
                     sx={{ ...resizeHandleStyle, bottom: 0, left: 6, width: 'calc(100% - 12px)', height: 6, cursor: 'ns-resize' }}
                 />
+                {/* 上 */}
+                <Box
+                    onMouseDown={(e) => handleResizeStart(e, 'n')}
+                    onTouchStart={(e) => handleResizeStart(e, 'n')}
+                    sx={{ ...resizeHandleStyle, top: 0, left: 6, width: 'calc(100% - 12px)', height: 6, cursor: 'ns-resize' }}
+                />
+                {/* 右下 */}
                 <Box
                     onMouseDown={(e) => handleResizeStart(e, 'se')}
                     onTouchStart={(e) => handleResizeStart(e, 'se')}
@@ -408,6 +423,24 @@ const AIChatWidgetFloating = () => {
                             borderBottom: `2px solid ${colors.primary}50`,
                         }
                     }}
+                />
+                {/* 左下 */}
+                <Box
+                    onMouseDown={(e) => handleResizeStart(e, 'sw')}
+                    onTouchStart={(e) => handleResizeStart(e, 'sw')}
+                    sx={{ ...resizeHandleStyle, left: 0, bottom: 0, width: 14, height: 14, cursor: 'nesw-resize' }}
+                />
+                {/* 右上 */}
+                <Box
+                    onMouseDown={(e) => handleResizeStart(e, 'ne')}
+                    onTouchStart={(e) => handleResizeStart(e, 'ne')}
+                    sx={{ ...resizeHandleStyle, right: 0, top: 0, width: 14, height: 14, cursor: 'nesw-resize' }}
+                />
+                {/* 左上 */}
+                <Box
+                    onMouseDown={(e) => handleResizeStart(e, 'nw')}
+                    onTouchStart={(e) => handleResizeStart(e, 'nw')}
+                    sx={{ ...resizeHandleStyle, left: 0, top: 0, width: 14, height: 14, cursor: 'nwse-resize' }}
                 />
             </Box>
         </>

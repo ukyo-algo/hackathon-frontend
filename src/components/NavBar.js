@@ -116,6 +116,11 @@ const NavBar = () => {
         // ガチャポイントチャージ
         const res = await api.post('/gacha/charge', { amount });
         console.log('[Purchase] Gacha charge response:', res.data);
+      } else if (purchaseDialog.type === 'subscription') {
+        // 月額パス購入
+        const res = await api.post('/users/me/subscribe', { months: amount || 1 });
+        console.log('[Purchase] Subscription response:', res.data);
+        alert(res.data.message || '月額パスを購入しました！');
       } else {
         // 記憶のかけらチャージ
         const res = await api.post('/users/me/add-fragments', { amount });
@@ -299,6 +304,31 @@ const NavBar = () => {
                 <AddIcon sx={{ fontSize: '0.8rem', color: '#c080ff' }} />
               </Box>
             </Tooltip>
+
+            {/* 月額パス */}
+            <Tooltip title={currentUser.subscription_tier === 'monthly' ? 'デュアルペルソナ有効！' : '月額パスを購入してデュアルペルソナを解放！'} arrow>
+              <Box sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 0.5,
+                padding: '4px 8px',
+                borderRadius: '8px',
+                background: currentUser.subscription_tier === 'monthly' ? 'rgba(255, 215, 0, 0.2)' : 'rgba(100, 100, 100, 0.15)',
+                border: currentUser.subscription_tier === 'monthly' ? '1px solid rgba(255, 215, 0, 0.5)' : '1px solid rgba(100, 100, 100, 0.3)',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                '&:hover': { borderColor: '#ffd700', boxShadow: '0 0 8px rgba(255, 215, 0, 0.4)' },
+              }} onClick={() => openPurchaseDialog('subscription')}>
+                <Box sx={{ fontSize: '0.9rem' }}>{currentUser.subscription_tier === 'monthly' ? '👑' : '🔒'}</Box>
+                <Box sx={{
+                  fontFamily: '"VT323", monospace',
+                  fontSize: '0.8rem',
+                  color: currentUser.subscription_tier === 'monthly' ? '#ffd700' : '#888',
+                }}>
+                  {currentUser.subscription_tier === 'monthly' ? 'PREMIUM' : 'PASS'}
+                </Box>
+              </Box>
+            </Tooltip>
           </Box>
         )}
       </Box>
@@ -372,7 +402,9 @@ const NavBar = () => {
               <Typography variant="body2" sx={{ mb: 2, color: colors.textSecondary }}>
                 {purchaseDialog.type === 'gacha'
                   ? 'ガチャを回してキャラクターをゲットしよう！'
-                  : 'キャラクターをレベルアップさせよう！'}
+                  : purchaseDialog.type === 'subscription'
+                    ? 'デュアルペルソナ機能を解放！2体のキャラと会話できます。'
+                    : 'キャラクターをレベルアップさせよう！'}
               </Typography>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
                 {purchaseDialog.type === 'gacha' ? (
@@ -388,6 +420,18 @@ const NavBar = () => {
                     </Button>
                     <Button variant="contained" color="warning" onClick={() => selectAmount(5000, 4800)} sx={{ justifyContent: 'space-between' }}>
                       <span>5,000ポイント</span><span>¥4,800</span>
+                    </Button>
+                  </>
+                ) : purchaseDialog.type === 'subscription' ? (
+                  <>
+                    <Button variant="outlined" onClick={() => selectAmount(1, 500)} sx={{ justifyContent: 'space-between' }}>
+                      <span>1ヶ月</span><span style={{ color: '#ffd700' }}>¥500</span>
+                    </Button>
+                    <Button variant="outlined" onClick={() => selectAmount(3, 1400)} sx={{ justifyContent: 'space-between' }}>
+                      <span>3ヶ月</span><span style={{ color: '#ffd700' }}>¥1,400（お得！）</span>
+                    </Button>
+                    <Button variant="contained" sx={{ justifyContent: 'space-between', bgcolor: '#ffd700', color: '#000', '&:hover': { bgcolor: '#e6c200' } }} onClick={() => selectAmount(12, 5000)}>
+                      <span>12ヶ月</span><span>¥5,000（超お得！）</span>
                     </Button>
                   </>
                 ) : (

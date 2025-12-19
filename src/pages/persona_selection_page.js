@@ -33,6 +33,7 @@ const PersonaSelectionPage = () => {
   const [allPersonas, setAllPersonas] = useState([]);
   const [ownedPersonas, setOwnedPersonas] = useState([]);
   const [currentPersonaId, setCurrentPersonaId] = useState(null);
+  const [subPersonaId, setSubPersonaId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [updating, setUpdating] = useState(false);
@@ -66,6 +67,12 @@ const PersonaSelectionPage = () => {
       locked_personas_count: allPersonas.length - ownedPersonas.length,
       current_persona_id: currentPersonaId,
       current_persona_name: currentPersonaName,
+      // サブペルソナ情報
+      sub_persona_id: subPersonaId,
+      sub_persona_name: allPersonas.find(p => p.id === subPersonaId)?.name || null,
+      // サブスク情報
+      subscription_tier: currentUser?.subscription_tier || 'free',
+      has_subscription: currentUser?.subscription_tier === 'monthly',
       // メモリーフラグメント（レベルアップに使用）
       memory_fragments: currentUser?.memory_fragments || 0,
       // 詳細モーダル表示中のキャラ
@@ -74,6 +81,7 @@ const PersonaSelectionPage = () => {
         rarity: selectedDetailPersona.rarity,
         is_owned: ownedPersonas.some(p => p.id === selectedDetailPersona.id),
         is_current: selectedDetailPersona.id === currentPersonaId,
+        is_sub: selectedDetailPersona.id === subPersonaId,
         level: ownedPersonaLevels[selectedDetailPersona.id] || 1,
       } : null,
       modal_open: detailOpen,
@@ -96,6 +104,7 @@ const PersonaSelectionPage = () => {
         setLoading(true);
         const userRes = await api.get('/users/me');
         setCurrentPersonaId(userRes.data.current_persona_id);
+        setSubPersonaId(userRes.data.sub_persona_id);
 
         const allRes = await api.get('/users/personas');
         setAllPersonas(allRes.data);
@@ -163,6 +172,53 @@ const PersonaSelectionPage = () => {
       console.error('Error updating persona:', err);
       setError('ペルソナの変更に失敗しました。');
       skipDefaultContextRef.current = false; // エラー時は即解除
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  // サブペルソナ設定ハンドラ（月額パス加入者のみ）
+  const handleSetSubPartner = async (persona) => {
+    // 既にサブに設定中の場合は解除
+    if (persona.id === subPersonaId) {
+      await handleRemoveSubPartner();
+      return;
+    }
+    // メインと同じキャラは設定不可
+    if (persona.id === currentPersonaId) {
+      alert('メインペルソナと同じキャラクターはサブに設定できません');
+      return;
+    }
+    // サブスク未加入の場合
+    if (currentUser?.subscription_tier !== 'monthly') {
+      alert('サブペルソナを設定するには月額パスが必要です');
+      return;
+    }
+
+    try {
+      setUpdating(true);
+      await api.post('/users/me/sub-persona', { persona_id: persona.id });
+      await refreshUser();
+      setSubPersonaId(persona.id);
+      handleCloseDetail();
+    } catch (err) {
+      console.error('Error setting sub persona:', err);
+      alert(err.response?.data?.detail || 'サブペルソナの設定に失敗しました');
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  // サブペルソナ解除ハンドラ
+  const handleRemoveSubPartner = async () => {
+    try {
+      setUpdating(true);
+      await api.delete('/users/me/sub-persona');
+      await refreshUser();
+      setSubPersonaId(null);
+      handleCloseDetail();
+    } catch (err) {
+      console.error('Error removing sub persona:', err);
     } finally {
       setUpdating(false);
     }
@@ -425,6 +481,9 @@ const PersonaSelectionPage = () => {
         onClose={handleCloseDetail}
         character={selectedDetailPersona}
         onSetPartner={handleSetPartner}
+        onSetSubPartner={handleSetSubPartner}
+        isSubPersona={selectedDetailPersona?.id === subPersonaId}
+        hasSubscription={currentUser?.subscription_tier === 'monthly'}
         level={selectedDetailPersona ? ownedPersonaLevels[selectedDetailPersona.id] || 1 : 1}
         onLevelUp={handleLevelUp}
         memoryFragments={currentUser?.memory_fragments || 0}

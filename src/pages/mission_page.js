@@ -48,13 +48,26 @@ const MissionPage = () => {
             total_missions: missions.length,
             claimable_count: claimableCount,
             completed_count: completedCount,
-            // クーポン情報
+            // クーポン詳細情報
             owned_coupons_count: coupons.length,
+            coupons_summary: coupons.slice(0, 5).map(c => ({
+                type: c.coupon_type,
+                discount_percent: c.discount_percent,
+                expires_at: c.expires_at,
+                issued_by: c.issued_by_persona?.name || null,
+            })),
+            shipping_coupons: coupons.filter(c => c.coupon_type === 'shipping_discount').length,
+            gacha_coupons: coupons.filter(c => c.coupon_type === 'gacha_discount').length,
             // ユーザー情報
             user_gacha_points: currentUser?.gacha_points || 0,
             login_streak: stats.loginStreak,
             total_login_days: stats.totalLoginDays,
+            // ペルソナ情報
             equipped_persona: equippedPersona?.name || null,
+            sub_persona: currentUser?.sub_persona?.name || null,
+            // サブスク情報
+            subscription_tier: currentUser?.subscription_tier || 'free',
+            has_subscription: currentUser?.subscription_tier === 'monthly',
         });
         return () => setPageContext(null);
     }, [missions, coupons, currentUser, stats, equippedPersona, setPageContext]);

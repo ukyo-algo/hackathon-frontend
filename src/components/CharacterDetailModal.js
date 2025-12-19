@@ -21,7 +21,7 @@ import {
     getLevelUpCost as getLevelUpCostFromConfig
 } from '../config';
 
-const CharacterDetailModal = ({ open, onClose, character, onSetPartner, level = 1, onLevelUp, memoryFragments = 0 }) => {
+const CharacterDetailModal = ({ open, onClose, character, onSetPartner, onSetSubPartner, isSubPersona = false, hasSubscription = false, level = 1, onLevelUp, memoryFragments = 0 }) => {
     if (!character) return null;
 
     // スキルテキストをレンダリング（configのヘルパー関数を使用）
@@ -249,6 +249,28 @@ const CharacterDetailModal = ({ open, onClose, character, onSetPartner, level = 
                 >
                     パートナーにする
                 </Button>
+                {onSetSubPartner && (
+                    <Button
+                        variant="contained"
+                        onClick={() => onSetSubPartner(character)}
+                        sx={{
+                            backgroundColor: isSubPersona ? '#ffd700' : (hasSubscription ? '#ffa500' : '#666'),
+                            color: isSubPersona ? '#000' : '#fff',
+                            fontWeight: 'bold',
+                            py: 1.5,
+                            px: 2,
+                            borderRadius: 1,
+                            fontFamily: '"VT323", monospace',
+                            fontSize: '1rem',
+                            textTransform: 'none',
+                            '&:hover': {
+                                backgroundColor: isSubPersona ? '#e6c200' : (hasSubscription ? '#ff8c00' : '#666'),
+                            }
+                        }}
+                    >
+                        {isSubPersona ? '👑 SUB解除' : (hasSubscription ? '👑 SUBにする' : '🔒 SUB')}
+                    </Button>
+                )}
                 {level < 10 && onLevelUp && (
                     <Button
                         variant="contained"

@@ -292,3 +292,44 @@ export const getLevelUpCost = (rarity, currentLevel) => {
   return costs[currentLevel - 1] || 0;
 };
 
+
+// ========== サブスクリプション設定 ==========
+export const SUBSCRIPTION = {
+  PRICE_PER_MONTH: 500,
+  OPTIONS: [
+    { months: 1, price: 500, label: '1ヶ月' },
+    { months: 3, price: 1400, label: '3ヶ月', badge: 'お得！' },
+    { months: 12, price: 5000, label: '12ヶ月', badge: '超お得！' },
+  ],
+  COLORS: {
+    ACTIVE: '#ffd700',
+    INACTIVE: '#888',
+    BUTTON_BG: '#ffa500',
+    BUTTON_HOVER: '#ff8c00',
+  },
+};
+
+// ========== 購入オプション設定 ==========
+export const PURCHASE_OPTIONS = {
+  GACHA: [
+    { amount: 100, price: 120 },
+    { amount: 500, price: 550 },
+    { amount: 1000, price: 1000 },
+    { amount: 5000, price: 4800, featured: true },
+  ],
+  FRAGMENTS: [
+    { amount: 10, price: 120 },
+    { amount: 50, price: 550 },
+    { amount: 100, price: 1000 },
+    { amount: 500, price: 4800, featured: true },
+  ],
+};
+
+// ========== チャットウィジェット設定 ==========
+export const CHAT_WIDGET = {
+  MIN_WIDTH: 280,
+  MIN_HEIGHT: 300,
+  DEFAULT_WIDTH: 360,
+  DEFAULT_HEIGHT: 500,
+  HEADER_HEIGHT: 120,
+};
