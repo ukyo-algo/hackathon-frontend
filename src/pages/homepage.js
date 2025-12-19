@@ -59,9 +59,17 @@ const Homepage = () => {
   const [cooldownProgress, setCooldownProgress] = useState(0);
   const [cooldownRemaining, setCooldownRemaining] = useState('');
 
-  // クールダウンゲージを更新するタイマー
+  // クールダウンゲージを更新するタイマー（ログインユーザー専用）
   useEffect(() => {
-    const STORAGE_KEY = 'lastRecommendAt';
+    // ログインしていない場合はタイマーを動かさない
+    if (!currentUser) {
+      setCooldownProgress(0);
+      setCooldownRemaining('');
+      return;
+    }
+
+    // ユーザー固有のストレージキー
+    const STORAGE_KEY = `lastRecommendAt_${currentUser.uid}`;
 
     const updateCooldown = () => {
       const lastAt = localStorage.getItem(STORAGE_KEY);
@@ -93,7 +101,7 @@ const Homepage = () => {
     // 1秒ごとに更新
     const timer = setInterval(updateCooldown, 1000);
     return () => clearInterval(timer);
-  }, []);
+  }, [currentUser]);
 
   const { setPageContext } = usePageContext();
 
@@ -330,45 +338,47 @@ const Homepage = () => {
         <Box>
           <SectionHeader title="✨ おすすめ" showSeeAll={false} />
 
-          {/* クールダウンゲージ（次回AIおすすめまで） */}
-          <Box sx={{
-            mb: 3,
-            p: 2,
-            backgroundColor: '#1a1a2e',
-            borderRadius: 2,
-            border: `1px solid ${cooldownProgress >= 100 ? COLORS.PRIMARY : '#444'}`
-          }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-              <Typography sx={{
-                fontSize: '0.85rem',
-                color: cooldownProgress >= 100 ? COLORS.PRIMARY : '#aaa',
-                fontFamily: '"VT323", monospace'
-              }}>
-                🤖 次のAIおすすめまで
-              </Typography>
-              <Typography sx={{
-                fontSize: '0.9rem',
-                fontWeight: 'bold',
-                color: cooldownProgress >= 100 ? COLORS.PRIMARY : '#fff',
-                fontFamily: '"VT323", monospace'
-              }}>
-                {cooldownRemaining}
-              </Typography>
+          {/* クールダウンゲージ（次回AIおすすめまで）- ログイン時のみ表示 */}
+          {currentUser && (
+            <Box sx={{
+              mb: 3,
+              p: 2,
+              backgroundColor: '#1a1a2e',
+              borderRadius: 2,
+              border: `1px solid ${cooldownProgress >= 100 ? COLORS.PRIMARY : '#444'}`
+            }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                <Typography sx={{
+                  fontSize: '0.85rem',
+                  color: cooldownProgress >= 100 ? COLORS.PRIMARY : '#aaa',
+                  fontFamily: '"VT323", monospace'
+                }}>
+                  🤖 次のAIおすすめまで
+                </Typography>
+                <Typography sx={{
+                  fontSize: '0.9rem',
+                  fontWeight: 'bold',
+                  color: cooldownProgress >= 100 ? COLORS.PRIMARY : '#fff',
+                  fontFamily: '"VT323", monospace'
+                }}>
+                  {cooldownRemaining}
+                </Typography>
+              </Box>
+              <LinearProgress
+                variant="determinate"
+                value={cooldownProgress}
+                sx={{
+                  height: 8,
+                  borderRadius: 1,
+                  backgroundColor: '#333',
+                  '& .MuiLinearProgress-bar': {
+                    backgroundColor: cooldownProgress >= 100 ? COLORS.PRIMARY : '#4ade80',
+                    transition: 'transform 0.5s ease',
+                  }
+                }}
+              />
             </Box>
-            <LinearProgress
-              variant="determinate"
-              value={cooldownProgress}
-              sx={{
-                height: 8,
-                borderRadius: 1,
-                backgroundColor: '#333',
-                '& .MuiLinearProgress-bar': {
-                  backgroundColor: cooldownProgress >= 100 ? COLORS.PRIMARY : '#4ade80',
-                  transition: 'transform 0.5s ease',
-                }
-              }}
-            />
-          </Box>
+          )}
 
           {recommendLoading ? (
             <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>

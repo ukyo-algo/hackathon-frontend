@@ -6,7 +6,7 @@ import { useAuth } from '../contexts/auth_context';
 import { API_BASE_URL, API_ENDPOINTS, RECOMMEND_COOLDOWN_MINUTES } from '../config';
 
 const STORAGE_KEYS = {
-  LAST_RECOMMEND_AT: 'lastRecommendAt',
+  LAST_RECOMMEND_AT: (uid) => `lastRecommendAt_${uid}`,
   LAST_LOGIN_UID: 'lastLoginUid',
 };
 
@@ -33,7 +33,7 @@ export default function RecommendPage({ onClose, onNavigateItem }) {
   const canShow = useMemo(() => {
     if (!currentUser) return false;
     // 条件: (直近レコメンドから1時間経過) or (ログインが新規)
-    const lastAt = localStorage.getItem(STORAGE_KEYS.LAST_RECOMMEND_AT);
+    const lastAt = localStorage.getItem(STORAGE_KEYS.LAST_RECOMMEND_AT(currentUser.uid));
     const lastUid = localStorage.getItem(STORAGE_KEYS.LAST_LOGIN_UID);
     const isNewLogin = currentUser?.uid && currentUser.uid !== lastUid;
     const elapsed = minutesSince(lastAt);
@@ -81,8 +81,8 @@ export default function RecommendPage({ onClose, onNavigateItem }) {
           console.warn('reward claim skipped:', e);
         }
 
-        // 3) 表示タイムスタンプ更新
-        localStorage.setItem(STORAGE_KEYS.LAST_RECOMMEND_AT, new Date().toISOString());
+        // 3) 表示タイムスタンプ更新（ユーザー固有）
+        localStorage.setItem(STORAGE_KEYS.LAST_RECOMMEND_AT(currentUser.uid), new Date().toISOString());
         localStorage.setItem(STORAGE_KEYS.LAST_LOGIN_UID, currentUser.uid);
       } catch (e) {
         console.error(e);
