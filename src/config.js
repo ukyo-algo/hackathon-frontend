@@ -234,6 +234,7 @@ export const SKILL_DEFINITIONS = {
   18: { skill_type: "daily_shipping_coupon", discount_percent: 15, base_hours: 6, max_hours: 24 },
   19: { skill_type: "gacha_duplicate_fragments", base_value: 2, max_value: 8 },
   20: { skill_type: "gacha_duplicate_fragments", base_value: 5, max_value: 20 },
+  21: { skill_type: "daily_shipping_coupon", discount_percent: 3, base_hours: 1, max_hours: 6 },
 };
 
 // スキル値計算ヘルパー関数
