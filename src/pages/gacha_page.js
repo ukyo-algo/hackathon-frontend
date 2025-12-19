@@ -11,8 +11,12 @@ import api from '../api/axios';
 import {
   Container, Box, Typography, Button, Card, CardContent,
   CircularProgress, Alert, Fade,
+  Dialog, DialogTitle, DialogContent, DialogActions,
+  Radio, RadioGroup, FormControlLabel, FormControl, FormLabel,
+  Snackbar,
 } from '@mui/material';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
+import AddCircleIcon from '@mui/icons-material/AddCircle';
 import { useAuth } from '../contexts/auth_context';
 import { colors } from '../styles/theme';
 import { usePageContext } from '../components/AIChatWidget';
@@ -29,6 +33,13 @@ const GachaPage = () => {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
+
+  // ポイントチャージ関連
+  const [chargeModalOpen, setChargeModalOpen] = useState(false);
+  const [chargeAmount, setChargeAmount] = useState(1000);
+  const [paymentMethod, setPaymentMethod] = useState('credit_card');
+  const [chargeLoading, setChargeLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState(null);
 
   // クーポン関連
   const [availableCoupons, setAvailableCoupons] = useState([]);
@@ -124,7 +135,8 @@ const GachaPage = () => {
 
   const handleDrawGacha = async () => {
     if (!canAfford) {
-      setError(`ガチャポイントが足りません（必要: ${finalCost}pt、所持: ${userGachaPoints}pt）`);
+      // ポイント不足時はチャージモーダルを開く
+      setChargeModalOpen(true);
       return;
     }
 
@@ -156,6 +168,31 @@ const GachaPage = () => {
     }
   };
 
+  // チャージ処理
+  const handleCharge = async () => {
+    try {
+      setChargeLoading(true);
+      setError(null);
+
+      await api.post('/gacha/charge', {
+        amount: chargeAmount,
+        payment_method: paymentMethod
+      });
+
+      await refreshUser();
+      setSuccessMessage(`${chargeAmount}ptをチャージしました！`);
+      setChargeModalOpen(false);
+
+      // 成功メッセージを3秒後に消す
+      setTimeout(() => setSuccessMessage(null), 3000);
+    } catch (err) {
+      console.error('Charge failed:', err);
+      setError('チャージに失敗しました。');
+    } finally {
+      setChargeLoading(false);
+    }
+  };
+
   return (
     <Container maxWidth="sm" sx={{ mt: 4, textAlign: 'center' }}>
       <Typography variant="h4" component="h1" gutterBottom sx={{
@@ -166,12 +203,34 @@ const GachaPage = () => {
       </Typography>
 
       {/* ポイント情報 */}
-      <PointDisplay
-        points={userGachaPoints}
-        baseCost={BASE_GACHA_COST}
-        finalCost={finalCost}
-        discountPercent={discountPercent}
-      />
+      {/* ポイント情報エリア */}
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 2, mb: 1 }}>
+        <PointDisplay
+          points={userGachaPoints}
+          baseCost={BASE_GACHA_COST}
+          finalCost={finalCost}
+          discountPercent={discountPercent}
+        />
+        <Button
+          variant="outlined"
+          startIcon={<AddCircleIcon />}
+          onClick={() => setChargeModalOpen(true)}
+          sx={{ fontFamily: '"VT323", monospace', fontWeight: 'bold' }}
+        >
+          チャージ
+        </Button>
+      </Box>
+      <Snackbar
+        open={!!successMessage}
+        autoHideDuration={3000}
+        onClose={() => setSuccessMessage(null)}
+        message={successMessage}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert severity="success" sx={{ width: '100%' }}>
+          {successMessage}
+        </Alert>
+      </Snackbar>
 
       {/* クーポン選択 */}
       {availableCoupons.length > 0 && !result && (
@@ -207,7 +266,55 @@ const GachaPage = () => {
           />
         )}
       </Box>
-    </Container>
+
+
+      {/* チャージモーダル */}
+      <Dialog open={chargeModalOpen} onClose={() => setChargeModalOpen(false)} maxWidth="xs" fullWidth>
+        <DialogTitle sx={{ fontFamily: '"VT323", monospace', textAlign: 'center' }}>
+          ポイントチャージ
+        </DialogTitle>
+        <DialogContent>
+          <Box sx={{ mt: 1 }}>
+            <Typography variant="subtitle2" gutterBottom>チャージ金額</Typography>
+            <Box sx={{ display: 'flex', gap: 1, mb: 3 }}>
+              {[1000, 3000, 5000].map((amount) => (
+                <Button
+                  key={amount}
+                  variant={chargeAmount === amount ? "contained" : "outlined"}
+                  onClick={() => setChargeAmount(amount)}
+                  sx={{ flex: 1, fontFamily: '"VT323", monospace' }}
+                >
+                  {amount}pt
+                </Button>
+              ))}
+            </Box>
+
+            <Typography variant="subtitle2" gutterBottom>決済方法</Typography>
+            <FormControl component="fieldset">
+              <RadioGroup
+                value={paymentMethod}
+                onChange={(e) => setPaymentMethod(e.target.value)}
+              >
+                <FormControlLabel value="credit_card" control={<Radio />} label="クレジットカード" />
+                <FormControlLabel value="bank_transfer" control={<Radio />} label="銀行振込" />
+                <FormControlLabel value="cod" control={<Radio />} label="代金引換" />
+              </RadioGroup>
+            </FormControl>
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ p: 2, justifyContent: 'center' }}>
+          <Button onClick={() => setChargeModalOpen(false)} disabled={chargeLoading}>キャンセル</Button>
+          <Button
+            onClick={handleCharge}
+            variant="contained"
+            disabled={chargeLoading}
+            sx={{ fontFamily: '"VT323", monospace', fontWeight: 'bold' }}
+          >
+            {chargeLoading ? '処理中...' : `購入する (¥${chargeAmount.toLocaleString()})`}
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Container >
   );
 };
 
@@ -276,7 +383,7 @@ const GachaButton = ({ onClick, canAfford, cost }) => (
       },
     }}
   >
-    {canAfford ? `ガチャを回す (${cost}pt)` : 'コインが足りません'}
+    {canAfford ? `ガチャを回す (${cost}pt)` : 'ポイント不足 (チャージ)'}
   </Button>
 );
 
