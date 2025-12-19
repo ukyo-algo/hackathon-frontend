@@ -325,6 +325,7 @@ const AIChatWidgetFloating = () => {
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
+                        gap: 2,
                         py: 1.5,
                         backgroundColor: '#0a0a0a',
                         borderBottom: `1px solid ${colors.border}`,
@@ -356,7 +357,7 @@ const AIChatWidgetFloating = () => {
                         <CloseIcon sx={{ fontSize: 18 }} />
                     </IconButton>
 
-                    {/* キャラドット絵 */}
+                    {/* メインキャラドット絵 */}
                     <Box
                         component="img"
                         src={avatarUrl}
@@ -367,8 +368,27 @@ const AIChatWidgetFloating = () => {
                             objectFit: 'contain',
                             imageRendering: 'pixelated',
                             filter: 'drop-shadow(0 0 8px rgba(57, 255, 20, 0.3))',
+                            zIndex: 2,
                         }}
                     />
+
+                    {/* サブキャラドット絵（存在する場合） */}
+                    {currentUser?.sub_persona && (
+                        <Box
+                            component="img"
+                            src={currentUser.sub_persona.avatar_url}
+                            alt={currentUser.sub_persona.name}
+                            sx={{
+                                maxWidth: 60,
+                                maxHeight: 80,
+                                objectFit: 'contain',
+                                imageRendering: 'pixelated',
+                                filter: 'drop-shadow(0 0 8px rgba(255, 215, 0, 0.3))',
+                                opacity: 0.9,
+                                transform: 'scaleX(-1)', // 向かい合わせるために反転
+                            }}
+                        />
+                    )}
                 </Box>
 
                 {/* チャット本体 */}

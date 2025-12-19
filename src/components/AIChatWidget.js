@@ -334,61 +334,86 @@ const AIChatWidget = () => {
         gap: 1.5,
         backgroundColor: '#1a1a1a'
       }}>
-        {messages.map((msg, index) => (
-          <Box
-            key={index}
-            sx={{
-              display: 'flex',
-              justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start'
-            }}
-          >
-            <Paper
-              sx={{
-                maxWidth: '85%',
-                p: 1.5,
-                backgroundColor: msg.type === 'guidance'
-                  ? '#1a3a1a'
-                  : (msg.role === 'user' ? '#00ff00' : '#333'),
-                color: msg.type === 'guidance'
-                  ? '#00ff88'
-                  : (msg.role === 'user' ? '#000' : '#00ff00'),
-                borderRadius: 1,
-                wordBreak: 'break-word',
-                boxShadow: 'none',
-                border: msg.type === 'guidance'
-                  ? '1px solid #00ff88'
-                  : ('1px solid ' + (msg.role === 'user' ? '#00ff00' : '#444')),
-                fontFamily: '"Courier New", monospace',
-                fontSize: '0.9rem'
-              }}
-            >
-              <Typography variant="body2" sx={{ lineHeight: 1.6, color: 'inherit', fontFamily: 'inherit' }}>
-                {msg.type === 'guidance' && '💡 '}
-                {msg.role === 'user' ? `> ${msg.content}` : msg.content}
-              </Typography>
+        {messages.map((msg, index) => {
+          // サブペルソナのメッセージが含まれているかチェックして分割
+          let parts = [];
+          if (msg.role === 'ai' && msg.type !== 'guidance' && typeof msg.content === 'string' && msg.content.includes('\n\n💬')) {
+            const splitParts = msg.content.split(/\n\n(?=💬)/);
+            parts = splitParts.map((content, i) => ({
+              ...msg,
+              content: content.trim(),
+              isSub: content.trim().startsWith('💬')
+            }));
+          } else {
+            parts = [{ ...msg, isSub: false }];
+          }
 
-              {/* ガチャ結果画像の表示 */}
-              {msg.type === 'gacha_result' && msg.gachaData && (
-                <Box sx={{ mt: 1, textAlign: 'center' }}>
-                  <img
-                    src={msg.gachaData.avatar_url || "/default_avatar.png"}
-                    alt={msg.gachaData.name}
-                    style={{
-                      width: '120px',
-                      height: '120px',
-                      borderRadius: '8px',
-                      border: '2px solid #00ff00',
-                      objectFit: 'cover'
+          return (
+            <React.Fragment key={index}>
+              {parts.map((part, partIndex) => (
+                <Box
+                  key={`${index}-${partIndex}`}
+                  sx={{
+                    display: 'flex',
+                    justifyContent: part.role === 'user' ? 'flex-end' : 'flex-start'
+                  }}
+                >
+                  <Paper
+                    sx={{
+                      maxWidth: '85%',
+                      p: 1.5,
+                      backgroundColor: part.type === 'guidance'
+                        ? '#1a3a1a'
+                        : part.isSub
+                          ? '#3a2a00' // サブペルソナは暗い金/オレンジ背景
+                          : (part.role === 'user' ? '#00ff00' : '#333'),
+                      color: part.type === 'guidance'
+                        ? '#00ff88'
+                        : part.isSub
+                          ? '#ffd700' // サブペルソナは金色文字
+                          : (part.role === 'user' ? '#000' : '#00ff00'),
+                      borderRadius: 1,
+                      wordBreak: 'break-word',
+                      boxShadow: 'none',
+                      border: part.type === 'guidance'
+                        ? '1px solid #00ff88'
+                        : part.isSub
+                          ? '1px solid #ffd700'
+                          : ('1px solid ' + (part.role === 'user' ? '#00ff00' : '#444')),
+                      fontFamily: '"Courier New", monospace',
+                      fontSize: '0.9rem'
                     }}
-                  />
-                  <Typography variant="caption" display="block" sx={{ color: '#00ff00', mt: 0.5 }}>
-                    ★{msg.gachaData.rarity} {msg.gachaData.name}
-                  </Typography>
+                  >
+                    <Typography variant="body2" sx={{ lineHeight: 1.6, color: 'inherit', fontFamily: 'inherit' }}>
+                      {part.type === 'guidance' && '💡 '}
+                      {part.role === 'user' ? `> ${part.content}` : part.content}
+                    </Typography>
+
+                    {/* ガチャ結果画像の表示（メインメッセージのみに表示） */}
+                    {!part.isSub && part.type === 'gacha_result' && part.gachaData && (
+                      <Box sx={{ mt: 1, textAlign: 'center' }}>
+                        <img
+                          src={part.gachaData.avatar_url || "/default_avatar.png"}
+                          alt={part.gachaData.name}
+                          style={{
+                            width: '120px',
+                            height: '120px',
+                            borderRadius: '8px',
+                            border: '2px solid #00ff00',
+                            objectFit: 'cover'
+                          }}
+                        />
+                        <Typography variant="caption" display="block" sx={{ color: '#00ff00', mt: 0.5 }}>
+                          ★{part.gachaData.rarity} {part.gachaData.name}
+                        </Typography>
+                      </Box>
+                    )}
+                  </Paper>
                 </Box>
-              )}
-            </Paper>
-          </Box>
-        ))}
+              ))}
+            </React.Fragment>
+          );
+        })}
         {/* guidance生成中インジケータ */}
         {isGuidanceLoading && (
           <Box sx={{ display: 'flex', justifyContent: 'flex-start' }}>
