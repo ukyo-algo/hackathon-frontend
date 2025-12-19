@@ -88,17 +88,27 @@ const NavBar = () => {
 
   // 課金ダイアログを開く
   const openPurchaseDialog = (type) => {
-    setPurchaseDialog({ open: true, type });
+    setPurchaseDialog({ open: true, type, step: 'select', selectedAmount: null, selectedPrice: null });
   };
 
   // 課金ダイアログを閉じる
   const closePurchaseDialog = () => {
-    setPurchaseDialog({ open: false, type: null });
+    setPurchaseDialog({ open: false, type: null, step: 'select', selectedAmount: null, selectedPrice: null });
+  };
+
+  // 金額を選択
+  const selectAmount = (amount, price) => {
+    setPurchaseDialog(prev => ({ ...prev, step: 'confirm', selectedAmount: amount, selectedPrice: price }));
+  };
+
+  // 選択画面に戻る
+  const goBackToSelect = () => {
+    setPurchaseDialog(prev => ({ ...prev, step: 'select', selectedAmount: null, selectedPrice: null }));
   };
 
   // 課金処理（デモ用）
-  const handlePurchase = (amount) => {
-    alert(`${purchaseDialog.type === 'gacha' ? 'ガチャポイント' : '記憶のかけら'} ${amount}個の購入処理を開始します（準備中）`);
+  const handlePurchase = () => {
+    alert(`${purchaseDialog.type === 'gacha' ? 'ガチャポイント' : '記憶のかけら'} ${purchaseDialog.selectedAmount}${purchaseDialog.type === 'gacha' ? 'ポイント' : '個'}の購入処理を開始します（準備中）`);
     closePurchaseDialog();
   };
 
@@ -339,51 +349,106 @@ const NavBar = () => {
           {purchaseDialog.type === 'gacha' ? '🎫 ガチャポイント購入' : '💎 記憶のかけら購入'}
         </DialogTitle>
         <DialogContent>
-          <Typography variant="body2" sx={{ mb: 2, color: colors.textSecondary }}>
-            {purchaseDialog.type === 'gacha'
-              ? 'ガチャを回してキャラクターをゲットしよう！'
-              : 'キャラクターをレベルアップさせよう！'}
-          </Typography>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-            {purchaseDialog.type === 'gacha' ? (
-              <>
-                <Button variant="outlined" onClick={() => handlePurchase(100)} sx={{ justifyContent: 'space-between' }}>
-                  <span>100ポイント</span><span style={{ color: '#ffc107' }}>¥120</span>
-                </Button>
-                <Button variant="outlined" onClick={() => handlePurchase(500)} sx={{ justifyContent: 'space-between' }}>
-                  <span>500ポイント</span><span style={{ color: '#ffc107' }}>¥550</span>
-                </Button>
-                <Button variant="outlined" onClick={() => handlePurchase(1000)} sx={{ justifyContent: 'space-between' }}>
-                  <span>1,000ポイント (+100)</span><span style={{ color: '#ffc107' }}>¥1,000</span>
-                </Button>
-                <Button variant="contained" color="warning" onClick={() => handlePurchase(5000)} sx={{ justifyContent: 'space-between' }}>
-                  <span>5,000ポイント (+1,000) 🔥</span><span>¥4,800</span>
-                </Button>
-              </>
-            ) : (
-              <>
-                <Button variant="outlined" onClick={() => handlePurchase(10)} sx={{ justifyContent: 'space-between' }}>
-                  <span>10個</span><span style={{ color: '#c080ff' }}>¥120</span>
-                </Button>
-                <Button variant="outlined" onClick={() => handlePurchase(50)} sx={{ justifyContent: 'space-between' }}>
-                  <span>50個</span><span style={{ color: '#c080ff' }}>¥550</span>
-                </Button>
-                <Button variant="outlined" onClick={() => handlePurchase(100)} sx={{ justifyContent: 'space-between' }}>
-                  <span>100個 (+10)</span><span style={{ color: '#c080ff' }}>¥1,000</span>
-                </Button>
-                <Button variant="contained" sx={{ justifyContent: 'space-between', bgcolor: '#8000ff', '&:hover': { bgcolor: '#6000cc' } }} onClick={() => handlePurchase(500)}>
-                  <span>500個 (+100) 🔥</span><span>¥4,800</span>
-                </Button>
-              </>
-            )}
-          </Box>
+          {purchaseDialog.step === 'select' ? (
+            <>
+              <Typography variant="body2" sx={{ mb: 2, color: colors.textSecondary }}>
+                {purchaseDialog.type === 'gacha'
+                  ? 'ガチャを回してキャラクターをゲットしよう！'
+                  : 'キャラクターをレベルアップさせよう！'}
+              </Typography>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                {purchaseDialog.type === 'gacha' ? (
+                  <>
+                    <Button variant="outlined" onClick={() => selectAmount(100, 120)} sx={{ justifyContent: 'space-between' }}>
+                      <span>100ポイント</span><span style={{ color: '#ffc107' }}>¥120</span>
+                    </Button>
+                    <Button variant="outlined" onClick={() => selectAmount(500, 550)} sx={{ justifyContent: 'space-between' }}>
+                      <span>500ポイント</span><span style={{ color: '#ffc107' }}>¥550</span>
+                    </Button>
+                    <Button variant="outlined" onClick={() => selectAmount(1000, 1000)} sx={{ justifyContent: 'space-between' }}>
+                      <span>1,000ポイント</span><span style={{ color: '#ffc107' }}>¥1,000</span>
+                    </Button>
+                    <Button variant="contained" color="warning" onClick={() => selectAmount(5000, 4800)} sx={{ justifyContent: 'space-between' }}>
+                      <span>5,000ポイント</span><span>¥4,800</span>
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button variant="outlined" onClick={() => selectAmount(10, 120)} sx={{ justifyContent: 'space-between' }}>
+                      <span>10個</span><span style={{ color: '#c080ff' }}>¥120</span>
+                    </Button>
+                    <Button variant="outlined" onClick={() => selectAmount(50, 550)} sx={{ justifyContent: 'space-between' }}>
+                      <span>50個</span><span style={{ color: '#c080ff' }}>¥550</span>
+                    </Button>
+                    <Button variant="outlined" onClick={() => selectAmount(100, 1000)} sx={{ justifyContent: 'space-between' }}>
+                      <span>100個</span><span style={{ color: '#c080ff' }}>¥1,000</span>
+                    </Button>
+                    <Button variant="contained" sx={{ justifyContent: 'space-between', bgcolor: '#8000ff', '&:hover': { bgcolor: '#6000cc' } }} onClick={() => selectAmount(500, 4800)}>
+                      <span>500個</span><span>¥4,800</span>
+                    </Button>
+                  </>
+                )}
+              </Box>
+            </>
+          ) : (
+            /* 確認画面 */
+            <Box sx={{ textAlign: 'center', py: 2 }}>
+              <Typography variant="h6" sx={{ mb: 2, fontWeight: 'bold' }}>
+                購入内容の確認
+              </Typography>
+              <Box sx={{
+                bgcolor: colors.backgroundAlt,
+                borderRadius: 2,
+                p: 3,
+                mb: 3,
+                border: `1px solid ${colors.border}`
+              }}>
+                <Typography variant="h4" sx={{
+                  fontWeight: 'bold',
+                  color: purchaseDialog.type === 'gacha' ? '#ffc107' : '#c080ff',
+                  mb: 1
+                }}>
+                  {purchaseDialog.type === 'gacha' ? '🎫' : '💎'} {purchaseDialog.selectedAmount?.toLocaleString()}{purchaseDialog.type === 'gacha' ? 'ポイント' : '個'}
+                </Typography>
+                <Divider sx={{ my: 2 }} />
+                <Typography variant="h5" sx={{ fontWeight: 'bold', color: '#00ff88' }}>
+                  ¥{purchaseDialog.selectedPrice?.toLocaleString()}
+                </Typography>
+              </Box>
+              <Button
+                variant="contained"
+                color="success"
+                size="large"
+                fullWidth
+                onClick={handlePurchase}
+                sx={{
+                  py: 1.5,
+                  fontSize: '1.1rem',
+                  fontWeight: 'bold',
+                  mb: 1
+                }}
+              >
+                支払いを確定する
+              </Button>
+              <Button
+                variant="text"
+                onClick={goBackToSelect}
+                sx={{ color: colors.textSecondary }}
+              >
+                ← 金額を選び直す
+              </Button>
+            </Box>
+          )}
         </DialogContent>
-        <DialogActions>
-          <Button onClick={closePurchaseDialog}>閉じる</Button>
-        </DialogActions>
+        {purchaseDialog.step === 'select' && (
+          <DialogActions>
+            <Button onClick={closePurchaseDialog}>閉じる</Button>
+          </DialogActions>
+        )}
       </Dialog>
     </Box>
   );
 };
 
 export default NavBar;
+

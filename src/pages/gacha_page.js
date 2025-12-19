@@ -100,22 +100,23 @@ const GachaPage = () => {
   useEffect(() => {
     if (result) {
       // ガチャ結果が出た時だけコンテキストを送信
+      // バックエンドのPageContextスキーマに合わせたフラット形式で送信
       setPageContext({
-        page: 'gacha_result',  // ←ページタイプを変更して結果時であることを明示
+        page_type: 'gacha_result',
         user_gacha_points: userGachaPoints,
-        gacha_cost: finalCost,
-        // 引いたキャラの詳細情報
-        result_persona: {
-          name: result.persona?.name,
-          rarity: result.persona?.rarity,
-          rarity_name: result.persona?.rarity_name,
-          description: result.persona?.description,
-          skill_name: result.persona?.skill_name,
-          skill_effect: result.persona?.skill_effect,
-        },
+        // 引いたキャラの情報（フラット形式）
+        result_persona_name: result.persona?.name,
+        result_rarity: result.persona?.rarity,
+        result_rarity_name: result.persona?.rarity_name,
         result_is_new: result.is_new || false,
         result_stack_count: result.stack_count || 1,
         fragments_earned: result.fragments_earned || 0,
+        // 追加情報はadditional_infoに
+        additional_info: {
+          '引いたキャラの説明': result.persona?.description,
+          'スキル名': result.persona?.skill_name,
+          'スキル効果': result.persona?.skill_effect,
+        }
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
