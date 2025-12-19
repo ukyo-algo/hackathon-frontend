@@ -14,6 +14,7 @@ import {
 } from '@mui/material';
 import { useAuth } from '../contexts/auth_context';
 import { colors } from '../styles/theme';
+import { usePageContext } from '../components/AIChatWidget';
 import {
     getMissionIcon,
     getResetBadge,
@@ -24,7 +25,8 @@ import {
 
 const MissionPage = () => {
     const navigate = useNavigate();
-    const { refreshUser } = useAuth();
+    const { refreshUser, currentUser } = useAuth();
+    const { setPageContext } = usePageContext();
 
     // 状態
     const [loading, setLoading] = useState(true);
@@ -34,6 +36,28 @@ const MissionPage = () => {
     const [claiming, setClaiming] = useState(null);
     const [message, setMessage] = useState(null);
     const [stats, setStats] = useState({ loginStreak: 0, totalLoginDays: 0 });
+
+    // ページコンテキストを設定
+    useEffect(() => {
+        const claimableCount = missions.filter(m => m.claimable && !m.completed).length;
+        const completedCount = missions.filter(m => m.completed).length;
+
+        setPageContext({
+            page_type: 'mission',
+            // ミッション状況
+            total_missions: missions.length,
+            claimable_count: claimableCount,
+            completed_count: completedCount,
+            // クーポン情報
+            owned_coupons_count: coupons.length,
+            // ユーザー情報
+            user_gacha_points: currentUser?.gacha_points || 0,
+            login_streak: stats.loginStreak,
+            total_login_days: stats.totalLoginDays,
+            equipped_persona: equippedPersona?.name || null,
+        });
+        return () => setPageContext(null);
+    }, [missions, coupons, currentUser, stats, equippedPersona, setPageContext]);
 
     useEffect(() => { fetchData(); }, []);
 
@@ -66,15 +90,16 @@ const MissionPage = () => {
                 type: res.data.success ? 'success' : 'info',
                 text: res.data.message,
             });
-            if (res.data.success) {
-                await Promise.all([fetchData(), refreshUser()]);
-            }
+            // 成功・失敗に関わらずデータを再取得（ボタン状態を更新）
+            await Promise.all([fetchData(), refreshUser()]);
         } catch (err) {
             console.error('Error claiming mission:', err);
             setMessage({
                 type: 'error',
                 text: err.response?.data?.detail || 'ミッション報酬の取得に失敗しました',
             });
+            // エラー時もデータを再取得
+            await fetchData();
         } finally {
             setClaiming(null);
             setTimeout(() => setMessage(null), 3000);
