@@ -17,7 +17,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import SendIcon from '@mui/icons-material/Send';
 import DoneAllIcon from '@mui/icons-material/DoneAll';
 import { useAuth } from '../contexts/auth_context';
-import apiClient from '../api/apiClient';
+import apiClient from '../api/axios';
 import { colors } from '../styles/theme';
 import { useWebSocket } from '../hooks/useWebSocket';
 

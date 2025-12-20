@@ -19,7 +19,7 @@ import {
 } from '@mui/material';
 import MailIcon from '@mui/icons-material/Mail';
 import { useAuth } from '../contexts/auth_context';
-import apiClient from '../api/apiClient';
+import apiClient from '../api/axios';
 import { colors } from '../styles/theme';
 import { useWebSocket } from '../hooks/useWebSocket';
 
