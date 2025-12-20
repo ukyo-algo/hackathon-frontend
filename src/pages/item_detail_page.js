@@ -10,7 +10,7 @@ import { buildItemContext } from '../hooks/useLLMAgent';
 import { ProductGrid } from '../components/HomepageComponents';
 import {
   Box, Container, Grid, Card, CardMedia, Button, Typography,
-  TextField, IconButton, Paper, Avatar, Rating,
+  TextField, IconButton, Paper, Avatar, Rating, Tooltip,
   Alert, CircularProgress, Dialog, DialogTitle, DialogContent, DialogActions,
   List, ListItem, ListItemAvatar, ListItemText, Divider, CardContent,
   ToggleButtonGroup, ToggleButton
