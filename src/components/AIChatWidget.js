@@ -336,8 +336,9 @@ const AIChatWidget = () => {
       }}>
         {messages.map((msg, index) => {
           // サブペルソナのメッセージが含まれているかチェックして分割
+          // type='guidance' の場合でも分割できるように修正
           let parts = [];
-          if (msg.role === 'ai' && msg.type !== 'guidance' && typeof msg.content === 'string' && msg.content.includes('\n\n💬')) {
+          if (msg.role === 'ai' && typeof msg.content === 'string' && msg.content.includes('\n\n💬')) {
             const splitParts = msg.content.split(/\n\n(?=💬)/);
             parts = splitParts.map((content, i) => ({
               ...msg,
@@ -362,30 +363,32 @@ const AIChatWidget = () => {
                     sx={{
                       maxWidth: '85%',
                       p: 1.5,
-                      backgroundColor: part.type === 'guidance'
-                        ? '#1a3a1a'
-                        : part.isSub
-                          ? '#3a2a00' // サブペルソナは暗い金/オレンジ背景
+                      // スタイル優先順位: サブペルソナ > ガイダンス > ユーザー/AI
+                      backgroundColor: part.isSub
+                        ? '#3a2a00' // サブペルソナは暗い金/オレンジ背景
+                        : part.type === 'guidance'
+                          ? '#1a3a1a'
                           : (part.role === 'user' ? '#00ff00' : '#333'),
-                      color: part.type === 'guidance'
-                        ? '#00ff88'
-                        : part.isSub
-                          ? '#ffd700' // サブペルソナは金色文字
+                      color: part.isSub
+                        ? '#ffd700' // サブペルソナは金色文字
+                        : part.type === 'guidance'
+                          ? '#00ff88'
                           : (part.role === 'user' ? '#000' : '#00ff00'),
                       borderRadius: 1,
                       wordBreak: 'break-word',
                       boxShadow: 'none',
-                      border: part.type === 'guidance'
-                        ? '1px solid #00ff88'
-                        : part.isSub
-                          ? '1px solid #ffd700'
+                      border: part.isSub
+                        ? '1px solid #ffd700'
+                        : part.type === 'guidance'
+                          ? '1px solid #00ff88'
                           : ('1px solid ' + (part.role === 'user' ? '#00ff00' : '#444')),
                       fontFamily: '"Courier New", monospace',
                       fontSize: '0.9rem'
                     }}
                   >
                     <Typography variant="body2" sx={{ lineHeight: 1.6, color: 'inherit', fontFamily: 'inherit' }}>
-                      {part.type === 'guidance' && '💡 '}
+                      {/* ガイダンスアイコンはメインメッセージのみ */}
+                      {!part.isSub && part.type === 'guidance' && '💡 '}
                       {part.role === 'user' ? `> ${part.content}` : part.content}
                     </Typography>
 
