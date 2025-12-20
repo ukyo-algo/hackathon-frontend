@@ -9,6 +9,7 @@ const statusLabel = (s) => {
     case 'completed': return '取引完了';
     default: return s || '不明';
   }
+  // hogehoge
 };
 
 const HeaderShipmentPanel = () => {
