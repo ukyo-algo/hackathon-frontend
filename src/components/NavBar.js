@@ -367,7 +367,7 @@ const NavBar = () => {
               <Box component="button" sx={buttonStyles.primary}>🏠 ホーム</Box>
             </Link>
           </Tooltip>
-          <Tooltip title="プロフィール・所持キャラ確認" arrow>
+          <Tooltip title="プロフィール確認" arrow>
             <Link to="/mypage" style={{ textDecoration: 'none' }}>
               <Box component="button" sx={buttonStyles.outlined}>👤 マイページ</Box>
             </Link>

@@ -198,24 +198,38 @@ const ItemDetailPage = () => {
         <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 2, overflowWrap: 'anywhere' }}>{item.name}</Typography>
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-          <Avatar
-            alt={item.seller?.username}
-            src={item.seller?.icon_url}
-            sx={{
-              width: 40,
-              height: 40,
-              cursor: !isMyItem ? 'pointer' : 'default',
-              '&:hover': !isMyItem ? { boxShadow: '0 0 0 2px #00ff88' } : {},
-            }}
-            onClick={() => {
-              if (!isMyItem && item.seller?.id) {
-                navigate(`/messages?userId=${item.seller.id}&itemId=${itemId}`);
-              }
-            }}
-          />
+          <Tooltip
+            title={
+              item.seller?.rating_count > 0
+                ? `★${(item.seller?.average_rating || 0).toFixed(1)} (${item.seller?.rating_count || 0}件の評価)`
+                : '評価はまだありません'
+            }
+            arrow
+          >
+            <Avatar
+              alt={item.seller?.username}
+              src={item.seller?.icon_url}
+              sx={{
+                width: 40,
+                height: 40,
+                cursor: !isMyItem ? 'pointer' : 'default',
+                '&:hover': !isMyItem ? { boxShadow: '0 0 0 2px #00ff88' } : {},
+              }}
+              onClick={() => {
+                if (!isMyItem && item.seller?.id) {
+                  navigate(`/messages?userId=${item.seller.id}&itemId=${itemId}`);
+                }
+              }}
+            />
+          </Tooltip>
           <Box sx={{ flex: 1 }}>
             <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>{item.seller?.username || '不明なユーザー'}</Typography>
-            <Rating value={item.seller?.rating || 0} readOnly size="small" />
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              <Rating value={item.seller?.average_rating || 0} readOnly size="small" precision={0.1} />
+              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                ({item.seller?.rating_count || 0})
+              </Typography>
+            </Box>
           </Box>
           {/* 出品者にメッセージボタン（自分の商品でない場合のみ） */}
           {!isMyItem && item.seller?.id && (

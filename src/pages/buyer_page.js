@@ -12,9 +12,10 @@ import ProgressSteps from '../components/ProgressSteps';
 import { usePageContext } from '../components/AIChatWidget';
 import {
   Box, Container, Typography, Button, Card, CardContent,
-  CircularProgress, Chip, Avatar
+  CircularProgress, Chip, Avatar, Dialog, DialogTitle, DialogContent,
+  DialogActions, Rating as MuiRating, TextField
 } from '@mui/material';
-import { ShoppingBag } from '@mui/icons-material';
+import { ShoppingBag, Star } from '@mui/icons-material';
 import { colors } from '../styles/theme';
 
 const BuyerPage = () => {
@@ -23,6 +24,11 @@ const BuyerPage = () => {
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState(null);
+
+  // 評価ダイアログ用
+  const [ratingDialog, setRatingDialog] = useState({ open: false, transactionId: null, itemName: '' });
+  const [selectedRating, setSelectedRating] = useState(5);
+  const [ratingComment, setRatingComment] = useState('');
 
   useEffect(() => {
     const pendingItems = list.filter(t => t.status === 'pending_shipment');
@@ -68,13 +74,35 @@ const BuyerPage = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser]);
 
-  const handleComplete = async (transactionId) => {
+  const openRatingDialog = (transactionId, itemName) => {
+    setRatingDialog({ open: true, transactionId, itemName });
+    setSelectedRating(5);
+    setRatingComment('');
+  };
+
+  const closeRatingDialog = () => {
+    setRatingDialog({ open: false, transactionId: null, itemName: '' });
+  };
+
+  const handleComplete = async () => {
     try {
-      const res = await fetch(`${API_BASE_URL}/api/v1/transactions/${transactionId}/complete`, {
-        method: 'POST',
-        headers: { 'X-Firebase-Uid': currentUser.uid }
-      });
-      if (res.ok) fetchData();
+      const { transactionId } = ratingDialog;
+      const params = new URLSearchParams();
+      params.set('rating', selectedRating);
+      if (ratingComment.trim()) {
+        params.set('comment', ratingComment.trim());
+      }
+      const res = await fetch(
+        `${API_BASE_URL}/api/v1/transactions/${transactionId}/complete?${params.toString()}`,
+        {
+          method: 'POST',
+          headers: { 'X-Firebase-Uid': currentUser.uid }
+        }
+      );
+      if (res.ok) {
+        fetchData();
+        closeRatingDialog();
+      }
     } catch (e) {
       console.error('Complete action error:', e);
     }
@@ -125,11 +153,79 @@ const BuyerPage = () => {
             <TransactionCard
               key={t.transaction_id}
               transaction={t}
-              onComplete={() => handleComplete(t.transaction_id)}
+              onComplete={() => openRatingDialog(t.transaction_id, t.item?.name || '商品')}
             />
           ))}
         </Box>
       )}
+
+      {/* 評価ダイアログ */}
+      <Dialog open={ratingDialog.open} onClose={closeRatingDialog} maxWidth="sm" fullWidth>
+        <DialogTitle sx={{
+          fontFamily: '"VT323", monospace',
+          fontSize: '1.5rem',
+          color: colors.textPrimary,
+          background: colors.backgroundAlt
+        }}>
+          <Star sx={{ color: '#ffd700', mr: 1, verticalAlign: 'bottom' }} />
+          出品者を評価
+        </DialogTitle>
+        <DialogContent sx={{ background: colors.background, pt: 3 }}>
+          <Typography variant="body2" sx={{ color: colors.textSecondary, mb: 2 }}>
+            「{ratingDialog.itemName}」のお取引はいかがでしたか？
+          </Typography>
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
+            <MuiRating
+              value={selectedRating}
+              onChange={(e, value) => setSelectedRating(value || 5)}
+              size="large"
+              sx={{
+                '& .MuiRating-iconFilled': { color: '#ffd700' },
+                '& .MuiRating-iconEmpty': { color: colors.border },
+              }}
+            />
+          </Box>
+          <Typography variant="body2" sx={{ textAlign: 'center', color: colors.textTertiary, mb: 2 }}>
+            {selectedRating === 1 && '残念でした 😞'}
+            {selectedRating === 2 && 'あまり良くなかった'}
+            {selectedRating === 3 && '普通でした'}
+            {selectedRating === 4 && '良かった！'}
+            {selectedRating === 5 && 'とても良かった！ 🎉'}
+          </Typography>
+          <TextField
+            fullWidth
+            multiline
+            rows={2}
+            placeholder="コメントを入力（任意）"
+            value={ratingComment}
+            onChange={(e) => setRatingComment(e.target.value)}
+            inputProps={{ maxLength: 200 }}
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                color: colors.textPrimary,
+                '& fieldset': { borderColor: colors.border },
+                '&:hover fieldset': { borderColor: colors.secondary },
+              },
+              '& .MuiInputBase-input::placeholder': { color: colors.textTertiary },
+            }}
+          />
+        </DialogContent>
+        <DialogActions sx={{ background: colors.backgroundAlt, p: 2 }}>
+          <Button onClick={closeRatingDialog} sx={{ color: colors.textSecondary }}>
+            キャンセル
+          </Button>
+          <Button
+            onClick={handleComplete}
+            variant="contained"
+            sx={{
+              backgroundColor: colors.secondary,
+              '&:hover': { backgroundColor: colors.secondaryDark || '#d84315' }
+            }}
+          >
+            受け取り完了
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 };
