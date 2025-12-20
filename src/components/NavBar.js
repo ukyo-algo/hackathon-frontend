@@ -8,6 +8,7 @@ import {
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import NotificationsIcon from '@mui/icons-material/Notifications';
+import MailIcon from '@mui/icons-material/Mail';
 import AddIcon from '@mui/icons-material/Add';
 import { useAuth } from '../contexts/auth_context';
 import { buttonStyles, navBarStyles } from '../styles/commonStyles';
@@ -23,6 +24,9 @@ const NavBar = () => {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [notificationAnchor, setNotificationAnchor] = useState(null);
+
+  // メッセージ未読数
+  const [messageUnreadCount, setMessageUnreadCount] = useState(0);
 
   // 課金ダイアログ
   const [purchaseDialog, setPurchaseDialog] = useState({ open: false, type: null });
@@ -42,6 +46,14 @@ const NavBar = () => {
       const res = await api.get('/notifications?include_read=true&limit=10');
       setNotifications(res.data.notifications || []);
       setUnreadCount(res.data.unread_count || 0);
+
+      // メッセージ未読数も取得
+      try {
+        const msgRes = await api.get('/messages/unread-count');
+        setMessageUnreadCount(msgRes.data.unread_count || 0);
+      } catch (msgErr) {
+        console.log('Failed to fetch message unread count:', msgErr);
+      }
     } catch (e) {
       console.error('Failed to fetch notifications:', e);
     }
@@ -184,6 +196,20 @@ const NavBar = () => {
             sx={navBarStyles.searchInput}
           />
         </form>
+
+        {/* メッセージ */}
+        {currentUser && (
+          <Tooltip title="メッセージ" arrow>
+            <IconButton
+              onClick={() => navigate('/messages')}
+              sx={{ color: colors.textSecondary }}
+            >
+              <Badge badgeContent={messageUnreadCount} color="error" max={99}>
+                <MailIcon />
+              </Badge>
+            </IconButton>
+          </Tooltip>
+        )}
 
         {/* 通知ベル */}
         {currentUser && (

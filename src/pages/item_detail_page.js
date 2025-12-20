@@ -19,6 +19,7 @@ import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import SendIcon from '@mui/icons-material/Send';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import MailIcon from '@mui/icons-material/Mail';
 
 const ItemDetailPage = () => {
   const { itemId } = useParams();
@@ -197,11 +198,41 @@ const ItemDetailPage = () => {
         <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 2, overflowWrap: 'anywhere' }}>{item.name}</Typography>
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-          <Avatar alt={item.seller?.username} sx={{ width: 40, height: 40 }} />
-          <Box>
+          <Avatar
+            alt={item.seller?.username}
+            src={item.seller?.icon_url}
+            sx={{
+              width: 40,
+              height: 40,
+              cursor: !isMyItem ? 'pointer' : 'default',
+              '&:hover': !isMyItem ? { boxShadow: '0 0 0 2px #00ff88' } : {},
+            }}
+            onClick={() => {
+              if (!isMyItem && item.seller?.id) {
+                navigate(`/messages?userId=${item.seller.id}&itemId=${itemId}`);
+              }
+            }}
+          />
+          <Box sx={{ flex: 1 }}>
             <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>{item.seller?.username || '不明なユーザー'}</Typography>
             <Rating value={item.seller?.rating || 0} readOnly size="small" />
           </Box>
+          {/* 出品者にメッセージボタン（自分の商品でない場合のみ） */}
+          {!isMyItem && item.seller?.id && (
+            <Button
+              variant="outlined"
+              size="small"
+              startIcon={<MailIcon />}
+              onClick={() => navigate(`/messages?userId=${item.seller.id}&itemId=${itemId}`)}
+              sx={{
+                borderColor: '#00ff88',
+                color: '#00ff88',
+                '&:hover': { borderColor: '#00cc66', backgroundColor: 'rgba(0, 255, 136, 0.1)' },
+              }}
+            >
+              出品者に連絡
+            </Button>
+          )}
         </Box>
 
         <Divider sx={{ my: 2 }} />
