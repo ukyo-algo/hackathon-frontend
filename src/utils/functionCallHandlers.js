@@ -93,27 +93,6 @@ export const createFunctionCallHandlers = ({ setMessages, refreshUser }) => ({
         navigateWithDelay('/?category=recommended');
     },
 
-    generate_description: (result) => {
-        if (window.location.pathname === '/items/create') {
-            dispatchListingUpdate({
-                description: result.description || null,
-                name: result.name || null,
-                category: result.category || null,
-            });
-            setMessages(prev => [...prev, {
-                role: 'ai',
-                content: '📝 説明を入力しました！内容を確認してください。',
-                type: 'action_result'
-            }]);
-        } else {
-            setMessages(prev => [...prev, {
-                role: 'ai',
-                content: `📝 商品説明を生成しました:\n\n${result.description || result.prompt}`,
-                type: 'action_result'
-            }]);
-        }
-    },
-
     analyze_listing_image: (result) => {
         // 出品ページで画像解析をトリガー
         if (window.location.pathname === '/items/create') {

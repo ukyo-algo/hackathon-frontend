@@ -42,6 +42,7 @@ const ChatRoomPage = () => {
     const [sending, setSending] = useState(false);
     const [otherUser, setOtherUser] = useState(null);
     const [itemInfo, setItemInfo] = useState(null);
+    const [relationship, setRelationship] = useState(null);
     const messagesEndRef = useRef(null);
 
     // ユーザーのアバターURLを取得（ペルソナ優先）
@@ -91,22 +92,45 @@ const ChatRoomPage = () => {
                 time: new Date(msg.created_at).toLocaleString('ja-JP'),
             }));
 
+            // 関係情報のサマリーを作成
+            let relationshipSummary = '';
+            if (relationship) {
+                const parts = [];
+                if (relationship.purchases?.from_other?.length > 0) {
+                    parts.push(`自分は${otherUser.username}から${relationship.purchases.from_other.length}件購入済み`);
+                }
+                if (relationship.purchases?.to_other?.length > 0) {
+                    parts.push(`${otherUser.username}は自分から${relationship.purchases.to_other.length}件購入済み`);
+                }
+                if (relationship.likes?.i_liked_their_items > 0) {
+                    parts.push(`自分は相手の商品に${relationship.likes.i_liked_their_items}いいね`);
+                }
+                if (relationship.likes?.they_liked_my_items > 0) {
+                    parts.push(`相手は自分の商品に${relationship.likes.they_liked_my_items}いいね`);
+                }
+                if (parts.length > 0) {
+                    relationshipSummary = `【二人の関係】${parts.join('、')}。`;
+                }
+            }
+
             setPageContext({
                 page_type: 'direct_message',
                 dm_context: {
                     conversation_with: otherUser.username,
                     item_name: itemInfo?.name || null,
                     recent_messages: recentMessages,
-                    instruction: `ユーザーは「${otherUser.username}」とダイレクトメッセージ中です。` +
+                    relationship: relationship,
+                    instruction: `ユーザーは「${otherUser.username}」とダイレクトメッセージ中です。${relationshipSummary}` +
                         `「代わりに返事して」「返信を考えて」などと言われたら、` +
-                        `直近の会話の流れを踏まえて適切な返信文を提案してください。` +
+                        `直近の会話の流れと二人の取引・いいね履歴を踏まえて適切な返信文を提案してください。` +
+                        `例えば過去に取引があれば「先日はありがとうございました」など関係性を活かした返信を。` +
                         `提案する時は「【返信案】」で始めてください。`,
                 },
             });
         }
 
         return () => setPageContext(null);
-    }, [messages, otherUser, itemInfo, currentUser, setPageContext]);
+    }, [messages, otherUser, itemInfo, currentUser, relationship, setPageContext]);
 
     const fetchMessages = async () => {
         try {
@@ -125,6 +149,14 @@ const ChatRoomPage = () => {
                 if (conv.item_id && conv.item_name) {
                     setItemInfo({ id: conv.item_id, name: conv.item_name });
                 }
+            }
+
+            // 関係情報（購入・いいね・コメント）を取得
+            try {
+                const relResponse = await apiClient.get(`/messages/conversations/${conversationId}/relationship`);
+                setRelationship(relResponse.data.relationship);
+            } catch (e) {
+                console.log('Relationship info not available:', e);
             }
         } catch (error) {
             console.error('Failed to fetch messages:', error);
