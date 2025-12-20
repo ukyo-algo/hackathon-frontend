@@ -287,6 +287,15 @@ const AIChatWidget = () => {
       if (res.data.function_calls && res.data.function_calls.length > 0) {
         handleFunctionCalls(res.data.function_calls);
       }
+
+      // DM返信案を検出してメッセージ入力欄に設定
+      if (res.data.reply && res.data.reply.includes('【返信案】') && window.setSuggestedReply) {
+        // 「【返信案】」以降のテキストを抽出
+        const match = res.data.reply.match(/【返信案】(.+?)(?:$|(?=\n\n))/s);
+        if (match && match[1]) {
+          window.setSuggestedReply(match[1].trim());
+        }
+      }
     } catch (error) {
       console.error("Chat Error:", error);
       setMessages(prev => [...prev, { role: 'ai', content: "申し訳ありません。通信エラーが発生しました。" }]);

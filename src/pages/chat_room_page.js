@@ -1,5 +1,5 @@
 // src/pages/chat_room_page.js
-// リアルタイムチャットルームページ
+// リアルタイムチャットルームページ（AI返信アシスト機能付き）
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -20,17 +20,47 @@ import { useAuth } from '../contexts/auth_context';
 import apiClient from '../api/axios';
 import { colors } from '../styles/theme';
 import { useWebSocket } from '../hooks/useWebSocket';
+import { usePageContext } from '../components/AIChatWidget';
+
+// デモユーザー用のデフォルトアバター
+const DEFAULT_AVATARS = [
+    '/avatars/model1.png',
+    '/avatars/model2.png',
+    '/avatars/model3.png',
+    '/avatars/model4.png',
+    '/avatars/model5.png',
+];
 
 const ChatRoomPage = () => {
     const { conversationId } = useParams();
     const navigate = useNavigate();
     const { currentUser } = useAuth();
+    const { setPageContext } = usePageContext();
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
     const [loading, setLoading] = useState(true);
     const [sending, setSending] = useState(false);
     const [otherUser, setOtherUser] = useState(null);
+    const [itemInfo, setItemInfo] = useState(null);
     const messagesEndRef = useRef(null);
+
+    // ユーザーのアバターURLを取得（ペルソナ優先）
+    const getUserAvatar = useCallback((senderId, senderIconUrl) => {
+        if (senderId === currentUser?.id) {
+            // 自分のメッセージ: ペルソナのアバター優先
+            if (currentUser?.current_persona?.avatar_url) {
+                return currentUser.current_persona.avatar_url;
+            }
+            // デモユーザーの場合はランダムなアバター
+            if (!currentUser?.icon_url) {
+                const index = (currentUser?.id || 0) % DEFAULT_AVATARS.length;
+                return DEFAULT_AVATARS[index];
+            }
+            return currentUser.icon_url;
+        }
+        // 相手のメッセージ
+        return senderIconUrl || DEFAULT_AVATARS[0];
+    }, [currentUser]);
 
     // WebSocketでリアルタイム受信
     const handleWebSocketMessage = useCallback((data) => {
@@ -51,6 +81,33 @@ const ChatRoomPage = () => {
         scrollToBottom();
     }, [messages]);
 
+    // ページコンテキストを設定（AI返信アシスト用）
+    useEffect(() => {
+        if (messages.length > 0 && otherUser) {
+            // 直近のメッセージ履歴を整形
+            const recentMessages = messages.slice(-10).map(msg => ({
+                sender: msg.sender_id === currentUser?.id ? '自分' : otherUser.username,
+                content: msg.content,
+                time: new Date(msg.created_at).toLocaleString('ja-JP'),
+            }));
+
+            setPageContext({
+                page_type: 'direct_message',
+                dm_context: {
+                    conversation_with: otherUser.username,
+                    item_name: itemInfo?.name || null,
+                    recent_messages: recentMessages,
+                    instruction: `ユーザーは「${otherUser.username}」とダイレクトメッセージ中です。` +
+                        `「代わりに返事して」「返信を考えて」などと言われたら、` +
+                        `直近の会話の流れを踏まえて適切な返信文を提案してください。` +
+                        `提案する時は「【返信案】」で始めてください。`,
+                },
+            });
+        }
+
+        return () => setPageContext(null);
+    }, [messages, otherUser, itemInfo, currentUser, setPageContext]);
+
     const fetchMessages = async () => {
         try {
             const response = await apiClient.get(`/messages/conversations/${conversationId}/messages`);
@@ -65,6 +122,9 @@ const ChatRoomPage = () => {
                     username: conv.other_user_username,
                     icon_url: conv.other_user_icon_url,
                 });
+                if (conv.item_id && conv.item_name) {
+                    setItemInfo({ id: conv.item_id, name: conv.item_name });
+                }
             }
         } catch (error) {
             console.error('Failed to fetch messages:', error);
@@ -98,7 +158,7 @@ const ChatRoomPage = () => {
             id: Date.now(),
             sender_id: currentUser.id,
             sender_username: currentUser.username,
-            sender_icon_url: currentUser.icon_url,
+            sender_icon_url: currentUser?.current_persona?.avatar_url || currentUser.icon_url,
             content: messageContent,
             is_read: false,
             created_at: new Date().toISOString(),
@@ -131,6 +191,18 @@ const ChatRoomPage = () => {
         return date.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
     };
 
+    // AI返信提案をメッセージ入力欄に設定する関数（グローバルに公開）
+    useEffect(() => {
+        window.setSuggestedReply = (text) => {
+            // 「【返信案】」を除去して設定
+            const cleanText = text.replace(/^【返信案】\s*/, '').trim();
+            setInput(cleanText);
+        };
+        return () => {
+            delete window.setSuggestedReply;
+        };
+    }, []);
+
     if (!currentUser) {
         return (
             <Container maxWidth="md" sx={{ py: 4 }}>
@@ -144,7 +216,7 @@ const ChatRoomPage = () => {
             sx={{
                 display: 'flex',
                 flexDirection: 'column',
-                height: 'calc(100vh - 64px)', // NavBar分を引く
+                height: 'calc(100vh - 64px)',
                 backgroundColor: '#0a0a0a',
             }}
         >
@@ -166,14 +238,21 @@ const ChatRoomPage = () => {
                 {otherUser && (
                     <>
                         <Avatar
-                            src={otherUser.icon_url}
+                            src={otherUser.icon_url || DEFAULT_AVATARS[0]}
                             sx={{ width: 40, height: 40, border: `2px solid ${colors.primary}` }}
                         >
                             {otherUser.username?.charAt(0)}
                         </Avatar>
-                        <Typography sx={{ color: colors.primary, fontWeight: 'bold' }}>
-                            {otherUser.username}
-                        </Typography>
+                        <Box>
+                            <Typography sx={{ color: colors.primary, fontWeight: 'bold' }}>
+                                {otherUser.username}
+                            </Typography>
+                            {itemInfo && (
+                                <Typography variant="caption" sx={{ color: '#888' }}>
+                                    📦 {itemInfo.name}
+                                </Typography>
+                            )}
+                        </Box>
                     </>
                 )}
             </Paper>
@@ -198,10 +277,14 @@ const ChatRoomPage = () => {
                         <Typography sx={{ color: '#666' }}>
                             メッセージを送信してみましょう
                         </Typography>
+                        <Typography variant="caption" sx={{ color: '#555', mt: 1, display: 'block' }}>
+                            💡 AIに「代わりに返事して」と頼むこともできます
+                        </Typography>
                     </Box>
                 ) : (
                     messages.map((msg) => {
                         const isMe = msg.sender_id === currentUser.id;
+                        const avatarUrl = getUserAvatar(msg.sender_id, msg.sender_icon_url);
                         return (
                             <Box
                                 key={msg.id}
@@ -214,7 +297,7 @@ const ChatRoomPage = () => {
                             >
                                 {!isMe && (
                                     <Avatar
-                                        src={msg.sender_icon_url}
+                                        src={avatarUrl}
                                         sx={{ width: 32, height: 32 }}
                                     >
                                         {msg.sender_username?.charAt(0)}
@@ -252,6 +335,14 @@ const ChatRoomPage = () => {
                                         )}
                                     </Box>
                                 </Box>
+                                {isMe && (
+                                    <Avatar
+                                        src={avatarUrl}
+                                        sx={{ width: 32, height: 32 }}
+                                    >
+                                        {currentUser.username?.charAt(0)}
+                                    </Avatar>
+                                )}
                             </Box>
                         );
                     })
